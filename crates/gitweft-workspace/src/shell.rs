@@ -143,6 +143,7 @@ pub struct Shell {
     _appearance: Subscription,
     _settings: Subscription,
     _activation: Subscription,
+    _focus_lost: Subscription,
 }
 
 impl Shell {
@@ -182,6 +183,14 @@ impl Shell {
             this.window_active = window.is_window_active();
             this.sync_visibility(cx);
         });
+        // A view that closed while it had the keys can outlive its last frame (a palette
+        // command still holds it), so the window's focus stays on it, nothing is drawn
+        // there, and every key went nowhere. The shown tab takes them back.
+        let focus_lost = cx.on_focus_lost(window, |this, window, cx| {
+            this.active_workspace()
+                .clone()
+                .update(cx, |workspace, cx| workspace.take_lost_focus(window, cx));
+        });
         let frame_stats = std::env::var_os("GITWEFT_FRAME_STATS").is_some();
         let keystrokes = frame_stats.then(|| {
             cx.observe_keystrokes(|_, event, _, _| {
@@ -206,6 +215,7 @@ impl Shell {
             _appearance: appearance,
             _settings: settings,
             _activation: activation,
+            _focus_lost: focus_lost,
         };
         // The startup trace goes to the tab that will be shown: only the active tab is drawn,
         // and the trace fires on its first frame.

@@ -702,6 +702,21 @@ impl Workspace {
         centre_views!(refocus_top!(self));
     }
 
+    /// The window's focus went to an element that isn't drawn any more (a view closed
+    /// while it had the keys, and lived on a moment longer): the topmost centre view takes
+    /// them, or the graph, or the workspace itself when there is no repository.
+    pub(crate) fn take_lost_focus(&self, window: &mut Window, cx: &mut Context<Self>) {
+        if self.centre_covered() {
+            self.refocus_centre(cx);
+            return;
+        }
+        let handle = match &self.graph_view {
+            Some(view) => view.read(cx).focus_handle(cx),
+            None => self.focus_handle().clone(),
+        };
+        window.focus(&handle, cx);
+    }
+
     /// A view covers the graph in the centre (the conflict tool aside).
     pub(super) fn centre_covered(&self) -> bool {
         macro_rules! any_open {

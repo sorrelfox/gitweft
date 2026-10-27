@@ -199,9 +199,11 @@ pub(crate) fn commit_id(sb: &Sandbox, repo: &std::path::Path, rev: &str) -> gitw
     gitweft_git::ObjectId::from_hex(hex.trim().as_bytes()).expect("git gives a hex id")
 }
 
-/// `git status --porcelain` of `repo`, one entry per line.
+/// `git status --porcelain` of `repo`, one entry per line. Without the index lock that
+/// status takes when it can: the tests poll it while the app writes, which then fails on
+/// that lock, as it would beside a user's own `git status`.
 pub(crate) fn status(sb: &Sandbox, repo: &std::path::Path) -> String {
-    sb.run(repo, &["status", "--porcelain"])
+    sb.run(repo, &["--no-optional-locks", "status", "--porcelain"])
 }
 
 /// The subjects of `repo`'s commits on HEAD, newest first, joined by `|`.
@@ -289,10 +291,22 @@ mod tests {
                 status.unstaged().count() + status.staged().count() == changed
             })
         });
+        // The palette offers the command once the workspace has read the status too, which
+        // may be later than the staging view: run it before, and Enter takes another one.
+        ui.wait("the palette offers the working changes", |ui| {
+            labels(ui).iter().any(|l| l == "Show working changes")
+        });
         ui.palette("show working changes");
+        // Keys given to lists that aren't drawn go nowhere.
+        ui.wait("the file lists are drawn", |ui| {
+            ui.window.debug_bounds("staging-unstaged-list").is_some()
+                || ui.window.debug_bounds("staging-staged-list").is_some()
+        });
         let focus = ui.read(|w, cx| w.staging().read(cx).file_lists_focus());
         ui.window.update(|window, cx| focus.focus(window, cx));
-        ui.frame();
+        ui.wait("the file lists have the keys", |ui| {
+            ui.window.update(|window, _| focus.is_focused(window))
+        });
         ui
     }
 
@@ -666,12 +680,16 @@ mod tests {
             ui.window.debug_bounds("details-parent-0").is_some()
         });
         // The whole body ("Show more"): taller than the details' 60 %, so the parent
-        // is below the fold.
-        let at = ui
-            .window
-            .debug_bounds("details-body-toggle")
-            .unwrap()
-            .center();
+        // is below the fold. Clicked once the toggle is wholly in view: until the panel
+        // has been measured, the details' cap is a guess that can leave the toggle half
+        // under the fold, where the click would miss it.
+        let toggle = |ui: &mut Ui| {
+            let top = ui.window.debug_bounds("details-top")?;
+            let toggle = ui.window.debug_bounds("details-body-toggle")?;
+            (toggle.bottom() <= top.bottom()).then(|| toggle.center())
+        };
+        ui.wait("the toggle in view", |ui| toggle(ui).is_some());
+        let at = toggle(&mut ui).unwrap();
         ui.window.simulate_click(at, Modifiers::none());
         ui.frame();
         let top = ui.window.debug_bounds("details-top").unwrap();
@@ -731,11 +749,10 @@ mod tests {
         ui.wait("three commits", |ui| rows(ui, 5) == 3);
 
         ui.palette("hide in graph topic");
-        ui.wait("topic's commit leaves", |ui| rows(ui, 5) == 2);
-        assert!(
-            repo_settings(&repo).contains("refs/heads/topic"),
-            "{}",
-            repo_settings(&repo)
+        // The settings are saved in the background, maybe after the graph has changed.
+        ui.wait(
+            "topic's commit leaves, and the hidden branch is saved",
+            |ui| rows(ui, 5) == 2 && repo_settings(&repo).contains("refs/heads/topic"),
         );
 
         ui.palette("show every branch");
@@ -1262,6 +1279,41 @@ mod tests {
         assert_eq!(missing(), 0);
     }
 
+    /// A view that had the keys and closed, but lives on a moment longer (as when a
+    /// palette command still holds it): the keys don't stay with it, so Ctrl+Shift+P
+    /// still opens the palette.
+    #[test]
+    fn the_keys_leave_a_closed_view_that_lives_on() {
+        let sb = Sandbox::new();
+        let repo = four_commits(&sb);
+        let (parent, commit) = (
+            commit_id(&sb, &repo, "HEAD~1"),
+            commit_id(&sb, &repo, "HEAD"),
+        );
+        let mut cx = TestAppContext::single();
+        let mut ui = graph(&mut cx, &sb, &repo);
+        let workspace = ui.workspace();
+        ui.window.update(|_, cx| {
+            workspace.update(cx, |w, cx| {
+                w.open_commit_diff(Some(parent), commit, "f4.txt", cx)
+            })
+        });
+        ui.wait("the diff's rows", |ui| {
+            ui.window.debug_bounds("diff-row-1").is_some()
+        });
+        let diff = ui.read(|w, _| w.diff()).expect("the diff is open");
+        let focus = ui.window.update(|_, cx| diff.read(cx).focus_handle(cx));
+        ui.window.update(|window, cx| focus.focus(window, cx));
+        ui.frame();
+
+        ui.keys("escape");
+        ui.wait("the diff closed", |ui| ui.read(|w, _| w.diff().is_none()));
+        // `diff` keeps the view alive, as a palette command can.
+        ui.keys("ctrl-shift-p");
+        assert!(ui.dialog_open(), "the palette opened");
+        drop(diff);
+    }
+
     /// Three toasts in a row are all on screen (gpui-kit's stack showed only the
     /// newest); closing one leaves the others.
     #[test]
@@ -1406,6 +1458,19 @@ mod tests {
         ui.frame();
     }
 
+    /// Waits until `name`'s bounds hold still from one frame to the next. A panel's first
+    /// frames size it on a guess, before it has been measured, and a drag from those
+    /// bounds starts where nothing is any more.
+    fn settled(ui: &mut Ui, name: &'static str) {
+        let mut last = None;
+        ui.wait(&format!("{name} holds still"), |ui| {
+            let now = ui.window.debug_bounds(name);
+            let still = now.is_some() && now == last;
+            last = now;
+            still
+        });
+    }
+
     fn height(ui: &mut Ui, name: &'static str) -> f32 {
         f32::from(ui.window.debug_bounds(name).expect(name).size.height).round()
     }
@@ -1490,6 +1555,7 @@ mod tests {
         ui.wait("the details", |ui| {
             ui.window.debug_bounds("split-details-top").is_some()
         });
+        settled(&mut ui, "details-top");
         let top = height(&mut ui, "details-top");
         drag_by(&mut ui, "split-details-top", 0., 60.);
         assert_eq!(height(&mut ui, "details-top"), top + 60.);
@@ -1803,12 +1869,21 @@ mod tests {
             })
         });
         ui.palette("use identity work in this repository");
-        let config = |key: &str| sb.run(&repo, &["config", "--local", key]).trim().to_owned();
+        // The three keys are written one after another, and a key not yet set makes
+        // `git config` fail: wait for all of them.
+        let config = |key: &str| {
+            sb.git()
+                .command(&repo)
+                .args(["config", "--local", key])
+                .run(&gitweft_git::CancelToken::new())
+                .map(|out| out.stdout_str().trim().to_owned())
+                .unwrap_or_default()
+        };
         ui.wait("git has the profile", |_| {
-            config("user.email") == "ada@work.example"
+            config("user.signingkey") == "KEY1"
         });
         assert_eq!(config("user.name"), "Ada Work");
-        assert_eq!(config("user.signingkey"), "KEY1");
+        assert_eq!(config("user.email"), "ada@work.example");
     }
 
     /// Git LFS migrate on the checked-out branch: from the palette, the patterns,
