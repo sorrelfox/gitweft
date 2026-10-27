@@ -117,9 +117,11 @@ Flatpak apps you use; `GITWEFT_FLATPAK_DEPS=flathub just flatpak` says that is f
 3. Run `just check` and `just release`, and try the packages.
 4. Commit, then push a tag `vVERSION`. The release workflow (`.github/workflows/release.yml`)
    checks that the tag matches `Cargo.toml`, builds and tests every package with the same
-   scripts, checks that the build is reproducible, and creates a **draft** GitHub Release with
-   the files and `SHA256SUMS`. Read it over, then publish it. "Run workflow" on the Actions page
-   builds and tests without releasing anything.
+   scripts, checks that the build is reproducible, attests every package's build provenance
+   (`actions/attest-build-provenance`, checked with `gh attestation verify FILE --repo
+   sorrelfox/gitweft`), and creates a **draft** GitHub Release with the files and `SHA256SUMS`.
+   Read it over, then publish it. "Run workflow" on the Actions page builds and tests without
+   releasing anything.
 
 ### COPR
 

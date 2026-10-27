@@ -1,6 +1,7 @@
 # Release builds. A tag `vX.Y.Z` (matching Cargo.toml's version) builds every package with
 # the same scripts as `just release` (scripts/dist/, docs/PACKAGING.md), tests them, and
-# creates a draft GitHub Release with the files and SHA256SUMS to review and publish.
+# creates a draft GitHub Release with the files and SHA256SUMS to review and publish. Each
+# package also gets a build provenance attestation, which `gh attestation verify` checks.
 # "Run workflow" (workflow_dispatch) builds and tests without releasing.
 name: Release
 
@@ -154,6 +155,9 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+      # For the attestations: a short-lived signing certificate, and the attestation store.
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/download-artifact@v4
         with: { path: artifacts }
@@ -163,6 +167,15 @@ jobs:
           cp artifacts/sources/gitweft-*.tar.xz artifacts/rpm/*.rpm artifacts/deb/*.deb \
             artifacts/appimage/*.AppImage artifacts/flatpak/*.flatpak files/
           (cd files && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
+      - name: Build provenance attestations
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            files/*.tar.xz
+            files/*.rpm
+            files/*.deb
+            files/*.AppImage
+            files/*.flatpak
       - name: Draft GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}

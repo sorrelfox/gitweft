@@ -115,7 +115,13 @@ window. When a repository has no commit-graph file and loads slowly, Gitweft off
 ## Install
 
 The packages are on the [Releases](https://github.com/sorrelfox/gitweft/releases) page, with
-their SHA-256 checksums in `SHA256SUMS`.
+their SHA-256 checksums in `SHA256SUMS`. From the release after 1.0.0 on, each package also has
+a build attestation: a signed record that this repository's release workflow built it from the
+tagged commit. With the GitHub CLI you can check a file you downloaded:
+
+```sh
+gh attestation verify FILE --repo sorrelfox/gitweft
+```
 
 | System | File | Install |
 |---|---|---|
