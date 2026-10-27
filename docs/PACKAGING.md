@@ -76,6 +76,8 @@ is there; run `just deb` first to rebuild it.
 | `appimage.sh` | The DEB's binary, desktop file, metainfo, icons, the bundled libraries in `usr/lib` and the licenses in a zstd squashfs behind the AppImage type-2 runtime, which is pinned by tag and checksum and downloaded once into `target/tools/`. git comes from the host. |
 | `test-appimage.sh` | Starts the AppImage in a Debian 13 container that has only libxcb1 and git installed, prints where each library came from (the bundle or the host), and runs the smoke test offline. A library the bundle forgot fails the start here, as it would on a user's machine. |
 | `flatpak.sh` | Builds `packaging/flatpak/io.github.sorrelfox.Gitweft.yml` with flatpak-builder, bundles it, installs the bundle for the user and runs the smoke test with `flatpak run --unshare=network`. The SDK's git is copied into the app, because the Freedesktop Platform has none. |
+| `flathub.sh` | Writes Flathub's copy of the Flatpak manifest: the same file, with the release's two tarballs as URLs on the GitHub Release and their SHA-256 in place of the local paths, and `flathub.json`, which limits Flathub to x86_64 (the vendor tarball holds the crates of an x86_64 build). |
+| `release-notes.sh` | Prints a version's entry in `CHANGELOG.md`, the notes of its GitHub Release. |
 | `icons.sh` | Installs the SVG icons and renders PNGs from 16 to 512 px with rsvg-convert. |
 | `manpage.sh` | Writes `gitweft(1)` from the binary's own `--help`, so the options cannot drift. |
 | `validate-metadata.sh` | `desktop-file-validate` and `appstreamcli validate --pedantic` on the desktop file and the metainfo. |
@@ -119,9 +121,10 @@ Flatpak apps you use; `GITWEFT_FLATPAK_DEPS=flathub just flatpak` says that is f
    checks that the tag matches `Cargo.toml`, builds and tests every package with the same
    scripts, checks that the build is reproducible, attests every package's build provenance
    (`actions/attest-build-provenance`, checked with `gh attestation verify FILE --repo
-   sorrelfox/gitweft`), and creates a **draft** GitHub Release with the files and `SHA256SUMS`.
-   Read it over, then publish it. "Run workflow" on the Actions page builds and tests without
-   releasing anything.
+   sorrelfox/gitweft`), and creates a **draft** GitHub Release with the files, `SHA256SUMS` and
+   the version's `CHANGELOG.md` entry as its notes. Read it over, then publish it. The run also
+   keeps a `flathub` artifact with the version's Flathub files (see "Flathub"). "Run workflow"
+   on the Actions page builds and tests without releasing anything.
 
 ### COPR
 
@@ -135,6 +138,23 @@ just rpm && copr-cli build gitweft target/rpm/gitweft-*.src.rpm
 
 COPR builds the SRPM in mock with the chroot's own Rust; `rpm.sh` is the same build in a
 container.
+
+### Flathub
+
+Flathub builds the app on its own servers, from a manifest in its repository for the app
+(`flathub/io.github.sorrelfox.Gitweft`). That manifest is `flathub.sh`'s output: the same build
+as `just flatpak`, from the release's tarballs on GitHub. The release workflow writes it for
+each tag, in the run's `flathub` artifact; `just flathub DIR` writes it from tarballs you have.
+
+- **The first time:** follow Flathub's submission guide. The pull request adds the two files
+  of the `flathub` artifact, `io.github.sorrelfox.Gitweft.yml` and `flathub.json`. Two
+  permissions need a word in it: `--filesystem=home`, because repositories live anywhere in
+  the home folder, and `--talk-name=org.freedesktop.Flatpak`, because the terminal, file
+  manager, editor and diff tools the user chose run on the host, as do git's credential
+  helpers and hooks.
+- **Each release after that:** once the GitHub Release is published, replace the two files in
+  the app's Flathub repository with the new run's `flathub` artifact, in a pull request there.
+  Flathub's own build checks it; merging publishes the update.
 
 ## When something goes wrong
 

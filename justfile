@@ -143,6 +143,12 @@ flatpak *flags: (dist-src flags)
     bash scripts/dist/flatpak.sh target/dist-src target/flatpak
     @echo; echo "The Flatpak bundle is ready:"; ls -1 target/flatpak/*.flatpak
 
+# Flathub's manifest and flathub.json in target/flathub, with the tarballs in DIR (the
+# published ones; the release workflow does this for each tag) as the Release's URLs and
+# their SHA-256 (scripts/dist/flathub.sh)
+flathub dir="target/dist-src":
+    bash scripts/dist/flathub.sh {{dir}} target/flathub
+
 # Every package, tested, with SHA256SUMS, in target/release/VERSION (scripts/dist/release.sh:
 # sources, RPM, DEB, AppImage, Flatpak; the release workflow on GitHub runs the same steps on
 # a `v*` tag and drafts a Release). `--worktree` takes uncommitted files.

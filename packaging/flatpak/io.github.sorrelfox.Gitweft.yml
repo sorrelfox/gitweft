@@ -2,8 +2,7 @@
 # scripts/dist/build.sh: `scripts/dist/flatpak.sh` builds, bundles and smoke-tests it.
 # A template, like the DEB's control.in: flatpak.sh puts Cargo.toml's version into the
 # tarballs' names below (scripts/dist/check-version.sh checks they keep the placeholder).
-# The Freedesktop Platform has no git (only the SDK does): the SDK's git is copied into the
-# app. ssh comes from the Platform.
+# scripts/dist/flathub.sh writes Flathub's copy of it.
 app-id: io.github.sorrelfox.Gitweft
 runtime: org.freedesktop.Platform
 runtime-version: '25.08'
@@ -30,6 +29,8 @@ finish-args:
   - --env=GIT_EXEC_PATH=/app/libexec/git-core
   - --env=GIT_TEMPLATE_DIR=/app/share/git-core/templates
 modules:
+  # The Freedesktop Platform has no git (only the SDK does): the SDK's git is copied into the
+  # app. ssh comes from the Platform.
   - name: git
     buildsystem: simple
     build-commands:

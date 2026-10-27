@@ -2,6 +2,8 @@
 # the same scripts as `just release` (scripts/dist/, docs/PACKAGING.md), tests them, and
 # creates a draft GitHub Release with the files and SHA256SUMS to review and publish. Each
 # package also gets a build provenance attestation, which `gh attestation verify` checks.
+# The Release's notes are the version's CHANGELOG.md entry, and the run's "flathub" artifact
+# holds the files of the app's Flathub repository for this version (scripts/dist/flathub.sh).
 # "Run workflow" (workflow_dispatch) builds and tests without releasing.
 name: Release
 
@@ -159,6 +161,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: { path: artifacts }
       - name: Files and checksums
@@ -176,9 +179,17 @@ jobs:
             files/*.deb
             files/*.AppImage
             files/*.flatpak
+      - name: Flathub manifest, sources from this Release
+        run: bash scripts/dist/flathub.sh files flathub
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flathub
+          path: flathub/
+          if-no-files-found: error
       - name: Draft GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          bash scripts/dist/release-notes.sh "${GITHUB_REF_NAME#v}" > notes.md
           gh release create "$GITHUB_REF_NAME" files/* --repo "$GITHUB_REPOSITORY" --draft \
-            --title "Gitweft ${GITHUB_REF_NAME#v}" --generate-notes
+            --title "Gitweft ${GITHUB_REF_NAME#v}" --notes-file notes.md --generate-notes
