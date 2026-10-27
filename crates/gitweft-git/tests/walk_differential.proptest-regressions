@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 3190dd9a3abdd04a65d9b27608cc8268be4587a0ff9e92cc8976fa82a9c2693b # shrinks to steps = [Merge { from: 0, into: 34524828652 }], commit_graph = true

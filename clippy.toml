@@ -1,0 +1,9 @@
+# Code-level part of the offline guarantee (docs/OFFLINE.md).
+disallowed-methods = [
+    { path = "std::net::TcpStream::connect", reason = "Gitweft never opens network connections; only git/ssh child processes do (docs/OFFLINE.md)" },
+    { path = "std::net::TcpStream::connect_timeout", reason = "Gitweft never opens network connections (docs/OFFLINE.md)" },
+    { path = "std::net::TcpListener::bind", reason = "Gitweft never listens on the network (docs/OFFLINE.md)" },
+    { path = "std::net::UdpSocket::bind", reason = "Gitweft never opens network sockets (docs/OFFLINE.md)" },
+    { path = "gpui::App::set_http_client", reason = "registering an HTTP client would let GPUI fetch URLs (docs/OFFLINE.md)" },
+    { path = "std::process::Command::new", reason = "spawn git through gitweft_git::GitCli so it is supervised, logged and cancellable" },
+]

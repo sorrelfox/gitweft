@@ -1,0 +1,142 @@
+# Building the packages
+
+How the RPM, DEB, AppImage and Flatpak are made, how to build them on your machine with one
+command each, and how a release is cut. If you only want the binary, `just build dist` is
+enough; this page is about the packages.
+
+## The idea
+
+Every package is built from the same two files:
+
+- `gitweft-VERSION.tar.xz`, the source tree as committed, and
+- `gitweft-VERSION-vendor.tar.xz`, every Rust crate the build needs, taken from cargo's cache,
+  plus a `.cargo/config.toml` that points cargo at them and switches the network off.
+
+With both unpacked over each other, `scripts/dist/build.sh` runs `cargo build --frozen --profile
+dist`, which cannot download anything. Each package format has one script in `scripts/dist/`
+that runs this build inside a container of the right distribution, packs the result, installs
+the package in a fresh container, and starts the installed app with `--network none` to prove
+that it loads a repository offline. `just release` runs all of them in turn, and the release
+workflow on GitHub runs the same scripts.
+
+The toolchains differ because each channel requires it: the RPM is built with Fedora's own Rust
+(COPR would build the same SRPM the same way), the Flatpak with the Freedesktop SDK's Rust
+extension, the DEB with the Rust named in `rust-toolchain.toml`. The DEB and the AppImage share
+one binary: the AppImage repacks the DEB's, which is built on Ubuntu 24.04 so that it runs on
+anything newer. Within one toolchain the build is reproducible. `just repro-check` builds twice,
+in two folders at different paths (one with a space in it), and compares the binaries byte for
+byte.
+
+## What you need
+
+| For | On your machine |
+|---|---|
+| The sources | python3, git, and the Rust toolchain (`cargo fetch` fills the cache the vendor tarball is made from) |
+| RPM, DEB | podman, or docker with `CONTAINER=docker` |
+| AppImage | squashfs-tools and curl, plus the DEB's binary, which is built for you when it is missing |
+| Flatpak | flatpak and flatpak-builder; the SDK is installed for your user from Flathub on the first run |
+| `just release` | all of the above, plus desktop-file-utils and appstream for the metadata check |
+
+The containers download their own build dependencies with dnf or apt, and the DEB build installs
+the pinned Rust with rustup when its image has none. The RPM build needs about 12 GB of free
+memory: Fedora's build flags add full debug information on top of fat link-time optimisation.
+
+## The commands
+
+| Command | Result | Where |
+|---|---|---|
+| `just dist-src` | the two tarballs, `THIRD-PARTY-LICENSES.txt`, the RPM's bundled-crates macros | `target/dist-src/` |
+| `just rpm` | the RPM and SRPM, built in Fedora 44 as COPR does, installed and smoke-tested | `target/rpm/` |
+| `just deb` | the DEB, built in Ubuntu 24.04, installed and smoke-tested on Debian 13, Ubuntu 24.04 and 26.04, checked with lintian | `target/deb/` |
+| `just appimage` | the AppImage, from the DEB's binary | `target/appimage/` |
+| `just flatpak` | the Flatpak bundle, built in the Freedesktop SDK and smoke-tested in the sandbox | `target/flatpak/` |
+| `just release` | all of the above, plus `SHA256SUMS` | `target/release/VERSION/` |
+| `just repro-check` | two builds, compared | |
+
+Each command prints the path of the finished file at the end. The tarballs are made from the
+last commit; `just rpm --worktree` (and the same for the others) takes the working tree instead,
+to try a packaging change before committing it. `just appimage` reuses the DEB's binary when one
+is there; run `just deb` first to rebuild it.
+
+## The scripts
+
+| Script | What it does |
+|---|---|
+| `sources.py` | Writes the source tarball (the tracked files; `--worktree` takes the working tree) and the vendor tarball. Crates that no Linux build compiles (Windows, macOS, wasm; about 250 of them) are reduced to stubs, so the vendor tarball is about 45 MiB rather than a gigabyte. Also writes `THIRD-PARTY-LICENSES.txt`, the license notice for every crate the Linux build uses, and the RPM macros that declare them as bundled. |
+| `build.sh` | The release build from an unpacked tree: `cargo build --frozen --profile dist` with a private `CARGO_HOME`, `SOURCE_DATE_EPOCH` from the sources, and the tree's path remapped to `/usr/src/gitweft`, so the binary does not depend on where it was built. |
+| `rpm.sh` | In a Fedora 44 container: makes the SRPM from `packaging/rpm/gitweft.spec`, installs its build dependencies with `dnf builddep`, rebuilds it as a normal user, installs the RPM, then runs the smoke test in a container with no network. |
+| `deb.sh` | In an Ubuntu 24.04 container: builds, strips, computes `Depends` with `dpkg-shlibdeps` plus the libraries GPUI loads at run time (Vulkan, Wayland), writes the changelog from the release entry, packs with `dpkg-deb`. Leaves the binary and the icons next to the DEB for the AppImage. |
+| `test-deb.sh`, `lint-deb.sh` | Install the DEB on Debian 13, Ubuntu 24.04 and 26.04 and run the smoke test offline; run lintian with errors fatal. |
+| `appimage.sh` | The DEB's binary, desktop file, metainfo, icons and licenses in a zstd squashfs behind the AppImage type-2 runtime, which is pinned by tag and checksum and downloaded once into `target/tools/`. git comes from the host. |
+| `flatpak.sh` | Builds `packaging/flatpak/io.github.sorrelfox.Gitweft.yml` with flatpak-builder, bundles it, installs the bundle for the user and runs the smoke test with `flatpak run --unshare=network`. The SDK's git is copied into the app, because the Freedesktop Platform has none. |
+| `icons.sh` | Installs the SVG icons and renders PNGs from 16 to 512 px with rsvg-convert. |
+| `manpage.sh` | Writes `gitweft(1)` from the binary's own `--help`, so the options cannot drift. |
+| `validate-metadata.sh` | `desktop-file-validate` and `appstreamcli validate --pedantic` on the desktop file and the metainfo. |
+| `check-version.sh` | Every file that carries the version agrees with `Cargo.toml` (see "Making a release"). This is `just versions`. |
+| `release-entry.sh` | Prints the newest release's date and note from the metainfo, the one source the RPM and DEB changelogs follow. |
+| `pins.env`, `update-pins.sh`, `flatpak-pins.sh`, `rustup-init.sh` | The pinned inputs, next. |
+
+## Pinned inputs
+
+What a build starts from is pinned in `scripts/dist/pins.env`, so that rebuilding a version later
+starts from the same inputs:
+
+- the container images (Fedora 44, Ubuntu 24.04 and 26.04, Debian 13) by digest;
+- rustup by version, and `rustup-init` by its SHA-256, instead of piping `sh.rustup.rs` into a
+  shell;
+- the Flatpak SDK, Platform and Rust extension by commit.
+
+`scripts/dist/update-pins.sh` fetches the current digests and commits and rewrites the file; read
+the diff, rebuild the packages, and commit. `GITWEFT_RPM_IMAGE`, `GITWEFT_DEB_IMAGE` and
+`GITWEFT_DEB_TEST_IMAGES` point the scripts at other images (a local mirror, say) without
+touching the pins.
+
+The Flatpak build needs the SDK, the Platform and the Rust extension installed for your user at
+the pinned commits. `flatpak-pins.sh` installs them from Flathub when they are missing. When one
+is installed at a different commit, it stops and tells you, because moving it may affect other
+Flatpak apps you use; `GITWEFT_FLATPAK_DEPS=flathub just flatpak` says that is fine.
+
+## Making a release
+
+1. Pick the version. Set it in `Cargo.toml` (`[workspace.package]`) and in the spec's
+   `Version:` line.
+2. Write the release note once, in three places that must agree: a new `<release>` at the top
+   of `packaging/linux/io.github.sorrelfox.Gitweft.metainfo.xml` (with its date and a `<p>`), a
+   new `%changelog` entry at the top of `packaging/rpm/gitweft.spec` (same day, same note), and a
+   new entry at the top of `CHANGELOG.md` (`## VERSION (DATE)`, then the same note as its first
+   paragraph). `just versions` checks all of it; it is also the first step of `just check` and
+   of `just release`. The Flatpak manifest and the DEB's `control.in` take the version from
+   `Cargo.toml` themselves.
+3. Run `just check` and `just release`, and try the packages.
+4. Commit, then push a tag `vVERSION`. The release workflow (`.github/workflows/release.yml`)
+   checks that the tag matches `Cargo.toml`, builds and tests every package with the same
+   scripts, checks that the build is reproducible, and creates a **draft** GitHub Release with
+   the files and `SHA256SUMS`. Read it over, then publish it. "Run workflow" on the Actions page
+   builds and tests without releasing anything.
+
+### COPR
+
+Fedora's COPR can build the RPM from the SRPM. You need a Fedora account and `copr-cli` with its
+token in `~/.config/copr`:
+
+```sh
+copr-cli create gitweft --chroot fedora-44-x86_64 --chroot fedora-rawhide-x86_64   # once
+just rpm && copr-cli build gitweft target/rpm/gitweft-*.src.rpm
+```
+
+COPR builds the SRPM in mock with the chroot's own Rust; `rpm.sh` is the same build in a
+container.
+
+## When something goes wrong
+
+- **`unshare: Operation not permitted` during `just check`**: the system forbids unprivileged
+  user namespaces (Ubuntu's AppArmor does by default). `sudo sysctl -w
+  kernel.apparmor_restrict_unprivileged_userns=0` allows them, or run the smoke test without the
+  namespace; the socket audit is the check that matters.
+- **The RPM build is killed**: it ran out of memory. 12 GB free is enough.
+- **`flatpak-pins.sh: ... is at <commit>, pins.env pins <commit>`**: your installed SDK moved past
+  the pin (a `flatpak update` does that). `GITWEFT_FLATPAK_DEPS=flathub just flatpak` moves it
+  back for the build.
+- **`sources.py: the tree has uncommitted changes`**: commit them, or add `--worktree`.
+- **A container image cannot be pulled**: the pinned digest is looked up at the registry;
+  `GITWEFT_*_IMAGE` points at a mirror, and `update-pins.sh` refreshes the pins.

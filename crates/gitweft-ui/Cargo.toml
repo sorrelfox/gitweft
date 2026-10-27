@@ -1,0 +1,19 @@
+[package]
+name = "gitweft-ui"
+description = "Gitweft design system: fonts, icons, palette, metrics, the gpui-kit theme and the settings store"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+gitweft-core.workspace = true
+gpui-kit.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+tempfile.workspace = true
+# GPUI's test context (#51); dev-only, so the app itself never gets it.
+gpui-kit = { workspace = true, features = ["test-support"] }

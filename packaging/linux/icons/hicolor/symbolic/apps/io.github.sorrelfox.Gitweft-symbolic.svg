@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Gitweft, symbolic: the main line and the branch that leaves and merges back, with
+       their commits. Filled shapes only, so the desktop can recolor it. -->
+  <g fill="#2e3436">
+    <rect x="4" y="3" width="2" height="8"/>
+    <circle cx="5" cy="3" r="2.5"/>
+    <path d="M5 3h1.5a4.25 4.25 0 0 1 0 8.5H5v-2h1.5a2.25 2.25 0 0 0 0-4.5H5z"/>
+    <circle cx="10.5" cy="7.25" r="2.5"/>
+    <path fill-rule="evenodd"
+          d="M2.5 13a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0zM3.8 13a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0-2.4 0z"/>
+  </g>
+</svg>

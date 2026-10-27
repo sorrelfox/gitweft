@@ -1,0 +1,22 @@
+[package]
+name = "gitweft-diff"
+description = "Pure diff algorithms for Gitweft: word-level changes, line pairing"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+similar.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+# Only for the tests against git's own --color-moved (#69).
+gitweft-testkit.workspace = true
+proptest.workspace = true
+
+[[bench]]
+name = "diff"
+harness = false

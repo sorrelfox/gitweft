@@ -1,0 +1,18 @@
+Package: gitweft
+Version: @VERSION@-1
+Architecture: amd64
+Maintainer: sorrelfox <sorrelfox@users.noreply.github.com>
+Installed-Size: @SIZE@
+Depends: @DEPENDS@
+Recommends: mesa-vulkan-drivers
+Section: vcs
+Priority: optional
+Homepage: https://github.com/sorrelfox/gitweft
+Description: fast, offline Git client
+ Gitweft is a native Git client with a visual commit graph, staging by file,
+ hunk or line, a merge conflict tool, branches, remotes, tags and stashes, and
+ undo for local operations.
+ .
+ It has no accounts, no cloud features and no telemetry, and works without an
+ internet connection: the only network traffic comes from git itself, talking
+ to your remotes.

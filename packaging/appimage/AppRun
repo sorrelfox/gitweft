@@ -1,0 +1,5 @@
+#!/bin/sh
+# AppImage entry point. The runtime mounts the image and runs this; git comes from the host
+# (Gitweft checks its version at start).
+HERE="$(dirname "$(readlink -f "$0")")"
+exec "$HERE/usr/bin/gitweft" "$@"

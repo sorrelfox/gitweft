@@ -1,0 +1,173 @@
+# Release builds. A tag `vX.Y.Z` (matching Cargo.toml's version) builds every package with
+# the same scripts as `just release` (scripts/dist/, docs/PACKAGING.md), tests them, and
+# creates a draft GitHub Release with the files and SHA256SUMS to review and publish.
+# "Run workflow" (workflow_dispatch) builds and tests without releasing.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sources:
+    name: Sources and notices
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: The tag matches the version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          test "v$version" = "$GITHUB_REF_NAME" || {
+            echo "::error::tag $GITHUB_REF_NAME, but Cargo.toml says $version"; exit 1; }
+      - name: Desktop file and metainfo, validated
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq appstream desktop-file-utils
+          bash scripts/dist/validate-metadata.sh
+      - name: Rust (rust-toolchain.toml)
+        run: rustup toolchain install "$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" --profile minimal
+      - name: Crates into cargo's cache
+        run: cargo fetch --locked
+      - name: Tarballs, vendored crates, notices
+        run: python3 scripts/dist/sources.py dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sources
+          path: dist/
+          if-no-files-found: error
+
+  reproducible:
+    name: Reproducible build
+    needs: sources
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: sources, path: dist }
+      - name: Build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq pkg-config libxcb1-dev libxkbcommon-dev libxkbcommon-x11-dev \
+            libfreetype-dev libfontconfig-dev libegl-dev
+      - name: Rust (rust-toolchain.toml)
+        run: rustup toolchain install "$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" --profile minimal
+      - name: Two builds at different paths, compared
+        run: bash scripts/dist/repro-check.sh dist target/repro
+
+  rpm:
+    name: RPM (Fedora 44)
+    needs: sources
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: sources, path: dist }
+      - name: Build as COPR does, install, smoke-test offline
+        run: bash scripts/dist/rpm.sh dist out/rpm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpm
+          path: out/rpm/*.rpm
+          if-no-files-found: error
+
+  deb:
+    name: DEB (Debian, Ubuntu)
+    needs: sources
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: sources, path: dist }
+      - name: Build in Ubuntu 24.04
+        run: bash scripts/dist/deb.sh dist out/deb
+      - name: Install on Debian 13, Ubuntu 24.04 and 26.04, smoke-test offline
+        run: bash scripts/dist/test-deb.sh out/deb/gitweft_*_amd64.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: |
+            out/deb/*.deb
+            out/deb/gitweft
+            out/deb/icons/
+          if-no-files-found: error
+
+  appimage:
+    name: AppImage
+    needs: [sources, deb]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: sources, path: dist }
+      - uses: actions/download-artifact@v4
+        with: { name: deb, path: out/deb }
+      - name: Pack
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq squashfs-tools
+          chmod +x out/deb/gitweft
+          bash scripts/dist/appimage.sh out/deb/gitweft dist out/appimage
+      - name: Smoke test
+        run: |
+          git init -q /tmp/repo
+          git -C /tmp/repo -c user.name=T -c user.email=t@example.com commit -q --allow-empty -m first
+          out/appimage/Gitweft-*-x86_64.AppImage --appimage-extract-and-run --headless-smoke /tmp/repo
+      - uses: actions/upload-artifact@v4
+        with:
+          name: appimage
+          path: out/appimage/*.AppImage
+          if-no-files-found: error
+
+  flatpak:
+    name: Flatpak
+    needs: sources
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: sources, path: dist }
+      - name: flatpak-builder, and Flathub for the SDK and its Rust
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq flatpak flatpak-builder
+          # bwrap needs unprivileged user namespaces, which Ubuntu's AppArmor restricts by
+          # default (the same setting ci.yml needs for `unshare -rn`).
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+      - name: Build in the SDK, bundle, smoke-test offline
+        env:
+          GITWEFT_FLATPAK_DEPS: flathub
+        run: bash scripts/dist/flatpak.sh dist out/flatpak
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak
+          path: out/flatpak/*.flatpak
+          if-no-files-found: error
+
+  release:
+    name: Draft release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [sources, reproducible, rpm, deb, appimage, flatpak]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: artifacts }
+      - name: Files and checksums
+        run: |
+          mkdir files
+          cp artifacts/sources/gitweft-*.tar.xz artifacts/rpm/*.rpm artifacts/deb/*.deb \
+            artifacts/appimage/*.AppImage artifacts/flatpak/*.flatpak files/
+          (cd files && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
+      - name: Draft GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" files/* --repo "$GITHUB_REPOSITORY" --draft \
+            --title "Gitweft ${GITHUB_REF_NAME#v}" --generate-notes

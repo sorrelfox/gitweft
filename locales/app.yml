@@ -1,0 +1,3282 @@
+_version: 2
+
+# All user-visible strings. Keys are namespaced by area; `%{name}` are placeholders.
+
+cli.usage:
+  en: |
+    Usage: gitweft [--new-instance] [--] [PATH...]
+
+    Opens the Git repository containing each PATH in its own tab (or shows the start screen).
+    When Gitweft is running already, its window opens them and comes forward.
+
+    Options:
+      --new-instance           Start another Gitweft instead of using the one running
+      --headless-smoke [PATH]  Load the repository without a window and print a summary
+      --version                Print version
+      -h, --help               Print this help
+      --                       Take every argument after it as a PATH, even one starting with -
+cli.unknown_option:
+  en: "gitweft: unknown option %{flag} (a path that starts with - goes after --)"
+cli.no_answer:
+  en: "gitweft: a Gitweft is running but didn't answer (%{error}), so this starts another one."
+cli.no_answer_notice:
+  en: "Another Gitweft is running but didn't answer, so this window opened on its own. Folders opened from the command line may go to the other one."
+cli.window_failed:
+  en: "gitweft: the window couldn't open: %{error}"
+common.middle_dot:
+  en: "%{first} · %{second}"
+common.paragraphs:
+  en: "%{first}\n\n%{second}"
+common.two_sentences:
+  en: "%{first} %{second}"
+common.bullet:
+  en: "• %{item}"
+activity.duration_ms:
+  en: "%{ms} ms"
+start.clone_default_folder:
+  en: repository
+external.failed_detail:
+  en: "%{program}: %{message}"
+settings.zoom_percent:
+  en: "%{percent}%"
+trash.unknown_repository:
+  en: "Gitweft doesn't know which repository this entry's files came from."
+trash.not_relative:
+  en: its saved path isn't inside the repository
+trash.gone_from_trash:
+  en: its saved copy is no longer in the trash
+trash.restore_failed_file:
+  en: "%{path}: %{why}"
+app.tagline:
+  en: A fast, offline Git client
+
+start.open_repository:
+  en: Open Repository…
+start.open_repository_prompt:
+  en: Open Repository
+start.create_repository:
+  en: Create Repository…
+start.create_repository_prompt:
+  en: Create Repository
+start.clone_repository:
+  en: Clone Repository…
+start.clone_into_prompt:
+  en: Clone Into
+start.recent:
+  en: Recent repositories
+start.forget:
+  en: Remove from this list
+clone.title:
+  en: Clone Repository
+clone.subtitle:
+  en: "Its address: https://…, ssh://…, user@host:path, or a local path. Next, choose the folder to clone into; the repository gets its own folder there."
+clone.placeholder:
+  en: "https://example.com/team/project.git"
+clone.submodules:
+  en: Include submodules
+clone.choose_folder:
+  en: Choose Folder…
+clone.running:
+  en: "Cloning %{url}"
+clone.failed:
+  en: "Clone failed: %{error}"
+init.failed:
+  en: "Couldn't create the repository: %{error}"
+
+repo.loading:
+  en: Loading…
+repo.reload_failed:
+  en: "Couldn't reload the repository, so it's shown as it was; it loads again with the next change. %{error}"
+status.failed:
+  en: "Couldn't read the working tree's status, so the file lists may be out of date. %{error}"
+status.stale:
+  en: Out of date (git status failed)
+patch.apply_failed:
+  en: "Couldn't apply the selection. %{error}"
+trash.record_failed:
+  en: "The lines were discarded, but the Trash couldn't record them. %{error}"
+review.save_failed:
+  en: "Couldn't save the review. %{error}"
+commit_graph.failed:
+  en: "Couldn't write the commit-graph. %{error}"
+undo.save_failed:
+  en: "Couldn't save the undo history. %{error}"
+repo_settings.save_failed:
+  en: "Couldn't save this repository's settings (hidden branches, graph width, ignored blame commits). %{error}"
+conflict.record_failed:
+  en: "Couldn't record the conflicted files; after a restart they may not be listed. %{error}"
+remote.busy:
+  en: Another network operation is running; try again when it's done
+job.lost:
+  en: The operation stopped unexpectedly; its result is lost (see the log)
+repo.opening:
+  en: Opening %{path}…
+
+tabs.new_tab:
+  en: New tab
+tabs.new:
+  en: New tab (Ctrl+T)
+tabs.close_busy:
+  en: Close this tab?
+tabs.close_busy_detail:
+  en: A fetch, pull, push, clone or bisect run is still running in it. Closing the tab cancels it.
+tabs.close_anyway:
+  en: Close Tab
+title.light_theme:
+  en: Switch to the light theme
+title.dark_theme:
+  en: Switch to the dark theme
+
+head.unborn:
+  en: "%{branch} (no commits yet)"
+head.detached:
+  en: detached at %{sha}
+
+
+details.none_selected:
+  en: Select a commit to see its details
+details.authored_on:
+  en: "authored %{date}"
+details.authored_committed_later:
+  en: "authored %{date} · committed %{later} later"
+details.authored_committed_by:
+  en: "authored %{date} · committed by %{name}"
+details.authored_committed_by_later:
+  en: "authored %{date} · committed by %{name} %{later} later"
+details.later_minutes_one:
+  en: "%{count} min"
+details.later_minutes_other:
+  en: "%{count} min"
+details.later_hours_one:
+  en: "%{count} hour"
+details.later_hours_other:
+  en: "%{count} hours"
+details.later_days_one:
+  en: "%{count} day"
+details.later_days_other:
+  en: "%{count} days"
+details.commit:
+  en: Commit
+details.parents:
+  en: Parents
+details.parent:
+  en: Parent
+details.branches:
+  en: Branches
+details.tags:
+  en: Tags
+details.refs:
+  en: Refs
+details.stash:
+  en: Stash
+details.files_one:
+  en: "%{count} file"
+details.files_other:
+  en: "%{count} files"
+details.body_more:
+  en: Show more
+details.body_less:
+  en: Show less
+details.open_diff:
+  en: Open
+details.preview_loading:
+  en: Loading the diff…
+details.preview_binary:
+  en: "Binary file: no text to show"
+details.preview_empty:
+  en: No change in the content (only its mode or name changed)
+details.preview_more_one:
+  en: "%{count} more line in the full diff"
+details.preview_more_other:
+  en: "%{count} more lines in the full diff"
+details.stashed:
+  en: "%{name}, stashed %{time}"
+details.stash_base:
+  en: Made on commit
+details.stash_changes:
+  en: "Changed files (%{count})"
+details.stash_untracked:
+  en: "Untracked files (%{count})"
+details.working_clean:
+  en: No uncommitted changes
+
+staging.stage:
+  en: Stage
+staging.unstage:
+  en: Unstage
+staging.discard:
+  en: Discard
+staging.discard_file:
+  en: "Discard changes…"
+staging.mark_resolved:
+  en: Mark resolved
+staging.stage_all:
+  en: Stage all
+staging.unstage_all:
+  en: Unstage all
+staging.discard_all:
+  en: Discard all
+staging.discard_single:
+  en: Discard changes to %{path}?
+staging.discard_multiple_one:
+  en: "Discard changes to %{count} file?"
+staging.discard_multiple_other:
+  en: Discard changes to %{count} files?
+staging.discard_detail:
+  en: "A backup is kept: discarded content is saved in the repository's object database, untracked files are moved to the Gitweft trash folder."
+staging.cancel:
+  en: Cancel
+staging.unstaged:
+  en: Unstaged
+staging.staged:
+  en: Staged
+staging.stage_count_one:
+  en: Stage %{count} file
+staging.stage_count_other:
+  en: Stage %{count} files
+staging.unstage_count_one:
+  en: Unstage %{count} file
+staging.unstage_count_other:
+  en: Unstage %{count} files
+staging.discard_count_one:
+  en: Discard %{count} file
+staging.discard_count_other:
+  en: Discard %{count} files
+staging.discard_count_menu_one:
+  en: Discard %{count} file…
+staging.discard_count_menu_other:
+  en: Discard %{count} files…
+staging.stash_count_one:
+  en: Stash %{count} file…
+staging.stash_count_other:
+  en: Stash %{count} files…
+staging.nothing_staged:
+  en: Nothing staged yet
+
+code.wrap:
+  en: Wrap
+settings.moved_tint:
+  en: Tint moved lines
+settings.moved_tint_hint:
+  en: "Lines a change moved (git's --color-moved) get magenta where they left and cyan where they arrived. Off: they look like any added and removed lines."
+settings.wrap_lines:
+  en: Wrap long lines
+settings.wrap_lines_hint:
+  en: "In the diff, file and blame views. Otherwise long lines scroll sideways (Shift+wheel or a sideways swipe)."
+settings.tab_width:
+  en: Tab width
+settings.tab_width_hint:
+  en: "Columns between tab stops in diffs, files, blame and the conflict tool."
+blame.open:
+  en: Blame
+blame.at_commit:
+  en: Blame at %{sha}
+blame.working_tree:
+  en: Blame of the working-tree file
+blame.progress_one:
+  en: "Blaming… %{done} of %{count} line"
+blame.progress_other:
+  en: "Blaming… %{done} of %{count} lines"
+blame.uncommitted:
+  en: Not committed yet
+blame.binary:
+  en: Binary file — nothing to blame
+blame.parent:
+  en: Blame the parent commit
+blame.ignore:
+  en: Ignore this commit in blame
+blame.ignored_one:
+  en: "%{count} commit ignored"
+blame.ignored_other:
+  en: "%{count} commits ignored"
+blame.ignore_file:
+  en: skipping the commits in %{file}
+blame.show_ignored:
+  en: Stop ignoring
+blame.stop_ignoring_commit:
+  en: "Stop ignoring %{sha} “%{summary}”"
+blame.stop_ignoring_missing:
+  en: "Stop ignoring %{sha} (not in this repository)"
+blame.stop_ignoring_all:
+  en: Stop ignoring all
+blame.marked_one:
+  en: "%{count} line changed by an ignored commit"
+blame.marked_other:
+  en: "%{count} lines changed by ignored commits"
+blame.mark_ignored:
+  en: "?"
+blame.mark_ignored_tip:
+  en: "An ignored commit changed this line; blame looked past it to an older commit."
+blame.mark_unblamable:
+  en: "*"
+blame.mark_unblamable_tip:
+  en: "An ignored commit added or changed this line and no older commit has it, so it stays with that commit."
+blame.back:
+  en: Back
+tree.browse:
+  en: Browse files
+tree.empty:
+  en: This commit has no files
+tree.title:
+  en: Files at %{sha}
+tree.count_one:
+  en: "%{count} file"
+tree.count_other:
+  en: "%{count} files"
+tree.submodule:
+  en: submodule
+file.at_commit:
+  en: At %{sha}
+file.binary:
+  en: Binary file — it can't be shown as text
+file.empty:
+  en: The file is empty
+toolbar.reflog:
+  en: Reflog
+reflog.show:
+  en: Show reflog
+reflog.title:
+  en: Reflog of %{name}
+reflog.count_one:
+  en: "%{count} entry"
+reflog.count_other:
+  en: "%{count} entries"
+reflog.lost:
+  en: lost
+reflog.only_lost:
+  en: Only lost commits
+reflog.empty:
+  en: No reflog entries
+reflog.column_entry:
+  en: Entry
+reflog.column_action:
+  en: Action
+dangling.show:
+  en: Find dangling commits
+dangling.title:
+  en: Dangling commits
+dangling.count_one:
+  en: "%{count} commit no branch, tag or reflog reaches"
+dangling.count_other:
+  en: "%{count} commits no branch, tag or reflog reaches"
+dangling.count_capped_one:
+  en: "The newest %{shown} of %{count} commit no branch, tag or reflog reaches"
+dangling.count_capped_other:
+  en: "The newest %{shown} of %{count} commits no branch, tag or reflog reaches"
+dangling.searching:
+  en: Looking through every object (git fsck)…
+dangling.stopped:
+  en: The search was stopped
+dangling.search_again:
+  en: Search again
+dangling.empty:
+  en: "No dangling commits: every commit is on a branch, a tag or in a reflog"
+dangling.stash_note:
+  en: dropped stash
+dangling.apply_stash:
+  en: Apply these changes
+dangling.stash_applied:
+  en: Applied the changes of %{sha}
+trash.show:
+  en: Trash
+trash.title:
+  en: Trash
+trash.subtitle_one:
+  en: "%{count} entry · %{size} · discarded and cleaned files of this repository"
+trash.subtitle_other:
+  en: "%{count} entries · %{size} · discarded and cleaned files of this repository"
+trash.subtitle_older_one:
+  en: "%{count} folder from an older version (its repository unknown)"
+trash.subtitle_older_other:
+  en: "%{count} folders from an older version (their repository unknown)"
+trash.empty:
+  en: Nothing of this repository is in the trash
+trash.empty_trash:
+  en: Empty trash
+trash.restore:
+  en: Restore
+trash.restore_all:
+  en: Restore all
+trash.delete:
+  en: Delete
+trash.files_one:
+  en: "%{count} file"
+trash.files_other:
+  en: "%{count} files"
+trash.action_discard:
+  en: Discarded
+trash.action_clean:
+  en: Cleaned
+trash.action_reset:
+  en: Moved aside by a hard reset
+trash.action_unknown:
+  en: Moved to the trash
+trash.size_b:
+  en: "%{n} B"
+trash.size_kb:
+  en: "%{n} KB"
+trash.size_mb:
+  en: "%{n} MB"
+trash.restored_single:
+  en: Restored %{path}
+trash.restored_multiple_one:
+  en: "Restored %{count} file"
+trash.restored_multiple_other:
+  en: Restored %{count} files
+trash.conflicts:
+  en: "Not restored, since the file changed after it was discarded: %{paths}"
+trash.restore_failed:
+  en: Couldn't restore from the trash
+trash.delete_confirm:
+  en: Delete this trash entry?
+trash.empty_confirm_one:
+  en: "Delete the %{count} trash entry of this repository?"
+trash.empty_confirm_other:
+  en: Delete all %{count} trash entries of this repository?
+trash.delete_detail:
+  en: Their files can't be restored afterwards.
+trash.delete_older:
+  en: Delete older folders
+trash.delete_older_confirm_one:
+  en: "Delete the %{count} folder from an older version?"
+trash.delete_older_confirm_other:
+  en: Delete all %{count} folders from an older version?
+trash.delete_older_detail:
+  en: They don't say which repository their files came from, so they may hold files discarded in any repository. They can't be restored afterwards.
+trash.delete_failed:
+  en: Couldn't delete from the trash
+compare.with_current:
+  en: Compare with current branch
+compare.with_another:
+  en: Compare with…
+compare.with_group:
+  en: Compare %{name} with
+compare.current:
+  en: current branch
+compare.kind_branch:
+  en: branch
+compare.kind_remote:
+  en: remote branch
+compare.kind_tag:
+  en: tag
+compare.swap:
+  en: Swap sides
+compare.title:
+  en: "%{head} compared with %{base}"
+compare.counts:
+  en: "%{ahead}, %{behind}"
+compare.ahead_one:
+  en: "%{count} ahead"
+compare.ahead_other:
+  en: "%{count} ahead"
+compare.behind_one:
+  en: "%{count} behind"
+compare.behind_other:
+  en: "%{count} behind"
+compare.merge_base:
+  en: merge base %{sha}
+compare.unrelated:
+  en: unrelated histories
+compare.only_in:
+  en: "Commits only in %{name} (%{count})"
+compare.files:
+  en: "Files changed in %{name} since the merge base (%{count})"
+compare.more_show_all_one:
+  en: "… and %{count} more: show all"
+compare.more_show_all_other:
+  en: "… and %{count} more: show all"
+list.show_all:
+  en: Show all
+compare.diff_subtitle:
+  en: "Changes in %{head} since it left %{base}"
+signature.good:
+  en: Good signature from %{signer}
+signature.untrusted:
+  en: Good signature, but the key isn't trusted
+signature.bad:
+  en: Bad signature — it doesn't match the commit
+signature.expired:
+  en: Signed, but the signature has expired
+signature.expired_key:
+  en: Signed with a key that has since expired
+signature.revoked:
+  en: Signed with a revoked key
+signature.cannot_check:
+  en: Signed, but the signature can't be checked here
+graph.search_changes:
+  en: In changes
+graph.search_changes_hint:
+  en: "Press Enter to search the changes: text, or /regex/"
+graph.search_changes_running_one:
+  en: "Searching the changes… %{count} found"
+graph.search_changes_running_other:
+  en: Searching the changes… %{count} found
+graph.search_changes_none:
+  en: No commit adds or removes that
+graph.search_changes_cancel:
+  en: Cancel
+graph.commit_not_shown:
+  en: That commit isn't in the graph.
+history.open:
+  en: File history
+history.from_commit:
+  en: History up to %{sha}
+history.from_head:
+  en: History up to HEAD
+history.count_one:
+  en: "%{count} commit"
+history.count_other:
+  en: "%{count} commits"
+history.renamed_from:
+  en: renamed from %{path}
+history.blame_here:
+  en: Blame at this revision
+history.show_in_graph:
+  en: Show in graph
+history.open_file_here:
+  en: Open the file as of this commit
+history.empty:
+  en: No commit changed this file
+diff.close:
+  en: Close
+diff.binary:
+  en: Binary file — no text diff
+diff.image_before:
+  en: Before
+diff.image_after:
+  en: After
+diff.image_none:
+  en: Not in this version
+diff.size_bytes:
+  en: "%{n} bytes"
+diff.size_kb:
+  en: "%{n} KB"
+diff.size_mb:
+  en: "%{n} MB"
+diff.no_changes:
+  en: No changes
+diff.mode_changed:
+  en: "Only the file mode changed: %{old} → %{new}"
+diff.mode_note:
+  en: "File mode: %{old} → %{new}"
+diff.too_large:
+  en: The file is too large to show
+diff.truncated:
+  en: The diff is too long; only the beginning is shown.
+diff.stage_hunk:
+  en: Stage hunk
+diff.unstage_hunk:
+  en: Unstage hunk
+diff.discard_hunk:
+  en: Discard hunk
+diff.lines_selected_one:
+  en: "%{count} line selected"
+diff.lines_selected_other:
+  en: "%{count} lines selected"
+diff.stage_lines:
+  en: Stage lines
+diff.unstage_lines:
+  en: Unstage lines
+diff.discard_lines_button:
+  en: Discard lines
+diff.clear_selection:
+  en: Clear
+diff.discard_lines_one:
+  en: "Discard %{count} changed line?"
+diff.discard_lines_other:
+  en: Discard %{count} changed lines?
+diff.discard_lines_detail:
+  en: "A backup is kept: the file's current content is saved in the repository's object database."
+diff.moved_to:
+  en: "Moved to %{file}"
+diff.moved_from:
+  en: "Moved from %{file}"
+diff.no_newline:
+  en: ⏎ no newline at end of file
+diff.unstaged:
+  en: Unstaged changes
+diff.staged:
+  en: Staged changes
+diff.untracked:
+  en: New file (untracked)
+diff.unified:
+  en: Unified
+diff.split:
+  en: Split
+diff.ignore_whitespace:
+  en: Ignore whitespace
+diff.full_file:
+  en: Full file
+diff.hidden_lines_one:
+  en: "⋯  %{count} unchanged line — click to show more"
+diff.hidden_lines_other:
+  en: "⋯  %{count} unchanged lines — click to show more"
+diff.whitespace_only:
+  en: Only whitespace changed
+diff.whitespace_no_staging:
+  en: Hunk and line staging is unavailable while whitespace is ignored.
+diff.in_commit:
+  en: Changes in commit %{sha}
+diff.in_stash:
+  en: "Changes in %{name}"
+
+commit.summary_placeholder:
+  en: Summary (required)
+commit.description_placeholder:
+  en: Description
+commit.identity:
+  en: Committing as %{name} <%{email}>
+commit.no_identity:
+  en: No name or email for commits · set them
+commit.amend:
+  en: Amend
+commit.signoff:
+  en: Sign off
+commit.co_authors:
+  en: Co-authors
+commit.co_authors_count:
+  en: "Co-authors (%{count})"
+commit.co_authors_empty:
+  en: No other authors in recent history
+commit.co_authors_with:
+  en: "With %{names}"
+commit.no_verify:
+  en: Skip hooks
+commit.button_one:
+  en: "Commit %{count} file"
+commit.button_other:
+  en: Commit %{count} files
+commit.amend_button:
+  en: Amend last commit
+commit.committing:
+  en: Committing…
+commit.cancelled:
+  en: The commit was cancelled
+
+wip.row:
+  en: "Working changes — %{counts}"
+wip.staged_one:
+  en: "%{count} staged"
+wip.staged_other:
+  en: "%{count} staged"
+wip.unstaged_one:
+  en: "%{count} unstaged"
+wip.unstaged_other:
+  en: "%{count} unstaged"
+wip.conflicts_one:
+  en: "%{count} conflicted"
+wip.conflicts_other:
+  en: "%{count} conflicted"
+
+graph.search_placeholder:
+  en: Search commits — message, author, SHA, branch
+graph.search_matches:
+  en: "%{current} of %{total}"
+graph.search_no_matches:
+  en: No matches
+graph.column.refs:
+  en: Branch / Tag
+graph.commit_graph_hint:
+  en: This repository has no commit-graph file. Writing one makes history loading much faster.
+graph.commit_graph_write:
+  en: Write commit-graph
+graph.commit_graph_writing:
+  en: Writing commit-graph…
+graph.commit_graph_dismiss:
+  en: Not now
+branch.checkout_named:
+  en: "Check out %{name}"
+branch.upstream_gone:
+  en: gone
+branch.ok:
+  en: OK
+branch.new:
+  en: New branch…
+branch.new_here:
+  en: Create branch here…
+branch.new_title:
+  en: New branch
+branch.new_from:
+  en: "Starts at %{start}"
+branch.name_placeholder:
+  en: Branch name
+branch.switch_to_new:
+  en: Switch to it
+branch.create:
+  en: Create
+branch.checkout:
+  en: Check out
+branch.checkout_detached:
+  en: Check out this commit (detached)
+branch.rename:
+  en: Rename…
+branch.rename_title:
+  en: "Rename %{name}"
+branch.rename_button:
+  en: Rename
+branch.delete:
+  en: Delete
+branch.delete_confirm:
+  en: "Delete branch %{name}?"
+branch.delete_confirm_detail:
+  en: The branch's commits stay reachable from other branches.
+branch.unmerged_title:
+  en: "%{name} has unmerged commits"
+branch.unmerged_text:
+  en: "Its commits are not on its upstream or the current branch. Deleting it anyway leaves them reachable only through the reflog."
+branch.delete_anyway:
+  en: Delete anyway
+branch.ambiguous_name:
+  en: "Several branches show as “%{name}” (their names aren't UTF-8), so it isn't clear which one you mean. Rename one in a terminal."
+branch.invalid_name:
+  en: "Not a valid branch name: %{name}"
+branch.would_overwrite_title:
+  en: Local changes are in the way
+branch.would_overwrite_text:
+  en: "Switching would overwrite uncommitted changes. Commit or stash them first; nothing was changed."
+branch.created:
+  en: "Created %{name}"
+branch.switched:
+  en: "Switched to %{name}"
+branch.renamed:
+  en: "Renamed to %{name}"
+branch.deleted:
+  en: "Deleted %{name}"
+branch.failed:
+  en: Branch operation failed
+conflict.position:
+  en: "conflict %{current} of %{count}"
+conflict.label_ours:
+  en: Ours
+conflict.label_theirs:
+  en: Theirs
+conflict.title_merge:
+  en: "Merging %{theirs} into %{ours}"
+conflict.title_op:
+  en: "%{op}: %{theirs} onto %{ours}"
+conflict.title_plain:
+  en: "Conflicts between %{ours} and %{theirs}"
+conflict.files_one:
+  en: "%{count} file conflicted"
+conflict.files_other:
+  en: "%{count} files conflicted"
+conflict.commit_merge:
+  en: Commit merge
+conflict.abort_merge:
+  en: Abort merge
+conflict.none:
+  en: No conflict markers in this file
+conflict.take_ours:
+  en: Take ours
+conflict.take_theirs:
+  en: Take theirs
+conflict.take_both:
+  en: Take both
+conflict.take_both_reversed:
+  en: Take both, theirs first
+conflict.take_base:
+  en: Take base
+conflict.empty_side:
+  en: (nothing)
+conflict.result:
+  en: Result
+conflict.edited:
+  en: "Edited by hand: taking a side again replaces the whole result"
+conflict.markers_left_one:
+  en: "%{count} conflict still has markers"
+conflict.markers_left_other:
+  en: "%{count} conflicts still have markers"
+conflict.previous:
+  en: ↑ Previous
+conflict.next:
+  en: Next ↓
+conflict.save:
+  en: Save
+conflict.save_resolved:
+  en: Save & mark resolved
+conflict.close:
+  en: Close
+conflict.saved:
+  en: "Saved %{path}"
+conflict.resolved:
+  en: "Marked %{path} as resolved"
+conflict.failed:
+  en: Could not save the file
+conflict.files_resolved_one:
+  en: "%{count} file conflicted · %{resolved} resolved"
+conflict.files_resolved_other:
+  en: "%{count} files conflicted · %{resolved} resolved"
+conflict.panel_title:
+  en: Conflicted files
+conflict.panel_all:
+  en: All changes
+conflict.panel_back:
+  en: Show conflicted files
+conflict.panel_count_one:
+  en: "%{count} conflict"
+conflict.panel_count_other:
+  en: "%{count} conflicts"
+conflict.panel_conflicted:
+  en: conflicted
+conflict.panel_resolved:
+  en: resolved
+conflict.panel_resolved_as_head:
+  en: resolved · HEAD's version
+conflict.panel_resolved_deleted:
+  en: resolved · deleted
+conflict.panel_hint_title_merge:
+  en: Resolve, then commit
+conflict.panel_hint_merge:
+  en: "Each hunk needs a decision: ours, theirs, both, or a manual edit in the Result pane. The merge commit is enabled once all files are marked resolved."
+conflict.panel_hint_title_op:
+  en: Resolve, then continue
+conflict.panel_hint_op:
+  en: "Each hunk needs a decision: ours, theirs, both, or a manual edit in the Result pane. The operation continues once all files are marked resolved."
+conflict.panel_message_placeholder:
+  en: Merge commit message
+conflict.panel_commit_unresolved_one:
+  en: "Commit merge · %{count} unresolved"
+conflict.panel_commit_unresolved_other:
+  en: "Commit merge · %{count} unresolved"
+conflict.panel_continue_unresolved_one:
+  en: "Continue · %{count} unresolved"
+conflict.panel_continue_unresolved_other:
+  en: "Continue · %{count} unresolved"
+op.merge:
+  en: Merge
+op.rebase:
+  en: Rebase
+op.cherry_pick:
+  en: Cherry-pick
+op.revert:
+  en: Revert
+op.am:
+  en: Applying patches
+op.bisect:
+  en: Bisect
+op.in_progress:
+  en: "%{op} in progress"
+op.in_progress_conflicts_one:
+  en: "%{op} in progress: %{count} conflicted file to resolve"
+op.in_progress_conflicts_other:
+  en: "%{op} in progress: %{count} conflicted files to resolve"
+op.continue:
+  en: Continue
+op.skip:
+  en: Skip
+op.abort:
+  en: Abort
+op.continued:
+  en: "%{op} continued"
+op.skipped:
+  en: Skipped the current step
+op.aborted:
+  en: "%{op} aborted"
+op.abort_confirm:
+  en: "Abort the operation in progress (%{op})?"
+op.abort_confirm_none:
+  en: "The branch goes back to where it was before it started. This can't be undone."
+op.abort_confirm_resolved_one:
+  en: "Your resolution of %{count} of the %{total} conflicted files is lost, and the branch goes back to where it was before it started. This can't be undone."
+op.abort_confirm_resolved_other:
+  en: "Your resolutions of %{count} of the %{total} conflicted files are lost, and the branch goes back to where it was before it started. This can't be undone."
+op.continue_unresolved:
+  en: Resolve every conflicted file first
+op.failed:
+  en: "%{op} could not proceed"
+op.next_conflict_title:
+  en: Stopped at another conflict
+op.next_conflict_text:
+  en: "The next step conflicts as well. Resolve it, then continue."
+merge.into_current:
+  en: Merge into current branch…
+merge.title:
+  en: "Merge %{branch} into %{head}"
+merge.clean:
+  en: No conflicts expected.
+merge.conflicts_one:
+  en: "%{count} file will conflict (%{files}). The merge will stop so you can resolve it."
+merge.conflicts_other:
+  en: "%{count} files will conflict (%{files}). The merge will stop so you can resolve them."
+merge.conflict:
+  en: "%{files} will conflict. The merge will stop so you can resolve it."
+merge.button:
+  en: Merge
+merge.failed:
+  en: Merge failed
+merge.up_to_date:
+  en: Already up to date
+merge.fast_forwarded:
+  en: "Fast-forwarded to %{branch}"
+merge.merged:
+  en: "Merged %{branch}"
+merge.squashed:
+  en: "The changes are staged; commit them to finish the squash"
+merge.conflicted_title:
+  en: The merge stopped at conflicts
+merge.conflicted_text:
+  en: "Resolve the conflicted files (listed in the working changes), then press Continue in the banner, or Abort to undo the merge."
+toolbar.stash:
+  en: Stash
+toolbar.pop:
+  en: Pop
+toolbar.activity:
+  en: Activity
+toolbar.undo:
+  en: Undo
+toolbar.redo:
+  en: Redo
+undo.tooltip:
+  en: "Undo %{op} (Ctrl+Z)"
+undo.redo_tooltip:
+  en: "Redo %{op} (Ctrl+Shift+Z)"
+undo.nothing:
+  en: Nothing to undo
+undo.nothing_to_redo:
+  en: Nothing to redo
+undo.undone:
+  en: "Undid %{op}"
+undo.redone:
+  en: "Redid %{op}"
+undo.failed:
+  en: "Couldn't undo %{op}"
+undo.redo_failed:
+  en: "Couldn't redo %{op}"
+undo.moved:
+  en: "A branch or tag it would move has changed since, so this could lose work. Nothing was changed, and the step was removed."
+undo.left_in_trash_one:
+  en: "%{count} file the reset moved to the trash stayed there: something else is in its place now. It's on the Trash page."
+undo.left_in_trash_other:
+  en: "%{count} files the reset moved to the trash stayed there: something else is in their place now. They're on the Trash page."
+data.set_aside:
+  en: "%{file} couldn't be read, so it was kept as %{backup} and a new one was saved."
+status_bar.writes_waiting:
+  en: "Waiting: queued work runs when the operation that's running is done"
+data.newer_kept:
+  en: "%{file} was written by a newer version of Gitweft. It was left as it is, so this change wasn't saved there."
+undo.op_commit:
+  en: "commit “%{summary}”"
+undo.op_merge:
+  en: "merge of %{branch}"
+undo.op_merge_commit:
+  en: merge commit
+undo.op_cherry_pick_commit:
+  en: cherry-picked commit
+undo.op_revert_commit:
+  en: revert commit
+undo.op_cherry_pick:
+  en: "cherry-pick of “%{summary}”"
+undo.op_revert:
+  en: "revert of “%{summary}”"
+undo.op_reset:
+  en: "reset of %{branch} to %{sha}"
+undo.op_rebase:
+  en: "rebase of %{branch}"
+undo.op_pull:
+  en: pull
+undo.op_am:
+  en: apply patches
+undo.op_create_branch:
+  en: "creating branch %{name}"
+undo.op_delete_branch:
+  en: "deleting branch %{name}"
+undo.op_create_tag:
+  en: "creating tag %{name}"
+undo.op_delete_tag:
+  en: "deleting tag %{name}"
+stash.new_title:
+  en: Stash changes
+stash.message_placeholder:
+  en: Message (optional)
+stash.include_untracked:
+  en: Include untracked files
+stash.save:
+  en: Stash
+stash.apply:
+  en: Apply
+stash.pop:
+  en: Pop
+stash.drop:
+  en: Drop…
+stash.unnamed:
+  en: "Changes on %{branch}, on top of “%{subject}”"
+stash.nothing:
+  en: There are no local changes to stash
+stash.saved:
+  en: Stashed the local changes
+stash.applied:
+  en: "Applied %{name}"
+stash.popped:
+  en: "Popped %{name}"
+stash.dropped:
+  en: "Dropped %{name}"
+stash.drop_confirm:
+  en: "Drop %{name}?"
+stash.drop_confirm_detail:
+  en: "Its commit stays in the repository until garbage collection, so it can still be restored with git stash apply and its commit ID."
+stash.conflict_title:
+  en: Applying the stash conflicted
+stash.conflict_text:
+  en: "Resolve the conflicts in the working changes. The stash was kept, so nothing is lost."
+stash.failed:
+  en: Stash operation failed
+stash.file:
+  en: Stash this file…
+toolbar.more:
+  en: More
+files.apply_patches:
+  en: Apply patches…
+files.apply_prompt:
+  en: Patches to apply
+files.apply_failed:
+  en: Applying the patches failed
+files.patches_applied_single:
+  en: Applied the patch as a commit
+files.patches_applied_multiple_one:
+  en: "Applied %{count} patch as a commit"
+files.patches_applied_multiple_other:
+  en: "Applied %{count} patches as commits"
+files.diff_applied_single:
+  en: Applied the patch to the working tree
+files.diff_applied_multiple_one:
+  en: "Applied %{count} patch to the working tree"
+files.diff_applied_multiple_other:
+  en: "Applied %{count} patches to the working tree"
+files.am_conflict_title:
+  en: A patch doesn't apply cleanly
+files.am_conflict_text:
+  en: "Resolve the conflicts in the working changes and stage them, then Continue in the banner. Or Skip this patch, or Abort to go back."
+files.save_patch:
+  en: Save as patch…
+files.save_patches_one:
+  en: "Save %{count} commit as a patch…"
+files.save_patches_other:
+  en: "Save %{count} commits as patches…"
+files.save_patches_prompt:
+  en: Folder for the patches
+files.patch_saved:
+  en: "Saved %{name}"
+files.patches_saved_one:
+  en: "Saved %{count} patch in %{folder}"
+files.patches_saved_other:
+  en: "Saved %{count} patches in %{folder}"
+files.diff_conflicts_one:
+  en: "The patch left conflicts in %{count} file: resolve them in the working changes"
+files.diff_conflicts_other:
+  en: "The patch left conflicts in %{count} files: resolve them in the working changes"
+files.export_archive:
+  en: Export as archive…
+files.archive_saved:
+  en: "Saved %{name}"
+files.save_failed:
+  en: Saving failed
+files.clean_untracked:
+  en: Remove untracked files…
+files.clean_ignored:
+  en: Remove untracked and ignored files…
+files.clean_title_one:
+  en: "Remove %{count} untracked item?"
+files.clean_title_other:
+  en: "Remove %{count} untracked items?"
+files.clean_title_ignored_one:
+  en: "Remove %{count} untracked or ignored item?"
+files.clean_title_ignored_other:
+  en: "Remove %{count} untracked and ignored items?"
+files.clean_text:
+  en: "They're moved to Gitweft's trash folder, so they can still be recovered.\n\n%{files}"
+files.clean_more_one:
+  en: "…and %{count} more"
+files.clean_more_other:
+  en: "…and %{count} more"
+files.clean_ok:
+  en: Move to trash
+files.cleaned_one:
+  en: "Moved %{count} item to %{dir}"
+files.cleaned_other:
+  en: "Moved %{count} items to %{dir}"
+files.nothing_to_clean:
+  en: Nothing to remove
+files.clean_failed:
+  en: Removing failed
+files.ignore_file:
+  en: Ignore this file
+files.ignore_folder_self:
+  en: Ignore this folder
+files.ignore_extension:
+  en: "Ignore all %{pattern} files"
+files.ignore_parent:
+  en: "Ignore the folder %{folder}"
+files.ignore_local:
+  en: Ignore only in this clone
+files.ignored:
+  en: "Added %{pattern} to %{file}"
+files.ignore_failed:
+  en: Couldn't add the ignore rule
+bisect.start_path:
+  en: Bisect changes to this path…
+bisect.already_running:
+  en: "A bisect is running already: reset it first to bisect this path."
+bisect.merge_base:
+  en: "Bisecting: testing %{sha}, where the good and the bad commit's histories meet (a good commit isn't an ancestor of the bad one). Is it good or bad?"
+bisect.with_paths:
+  en: "%{status} Only commits that change %{paths} count."
+bisect.start_bad:
+  en: "Start bisect: this commit is bad"
+bisect.start_good:
+  en: "Start bisect: this commit is good"
+bisect.mark_good:
+  en: "Bisect: mark good"
+bisect.mark_bad:
+  en: "Bisect: mark bad"
+bisect.mark_skip:
+  en: "Bisect: skip"
+bisect.pill_bad:
+  en: bad
+bisect.pill_good:
+  en: good
+bisect.pill_skip:
+  en: skipped
+bisect.in_progress:
+  en: Bisecting…
+bisect.needs_both:
+  en: "Bisecting: right-click a commit in the graph to mark it bad, and another to mark it good."
+bisect.needs_bad:
+  en: "Bisecting: now mark a bad commit (right-click it in the graph)."
+bisect.needs_good:
+  en: "Bisecting: now mark a good commit (right-click it in the graph)."
+bisect.testing_one:
+  en: "Bisecting: testing %{sha}, %{count} left to test (%{steps}). Is it good or bad?"
+bisect.testing_other:
+  en: "Bisecting: testing %{sha}, %{count} left to test (%{steps}). Is it good or bad?"
+bisect.steps_one:
+  en: "about %{count} step"
+bisect.steps_other:
+  en: "about %{count} steps"
+bisect.testing_mismatch:
+  en: "Bisecting: %{sha} is checked out, but git wants %{next} tested next (local changes may be in the way). Mark what's checked out, or commit or stash your changes."
+bisect.contradictory:
+  en: "The marks contradict each other (a good commit comes after the bad one). Reset and start again."
+bisect.found:
+  en: "Found it: %{sha} is the first bad commit."
+bisect.only_skipped_one:
+  en: "Only skipped commits are left: the first bad one is one of %{count}."
+bisect.only_skipped_other:
+  en: "Only skipped commits are left: the first bad one is one of %{count}."
+bisect.good:
+  en: Good
+bisect.bad:
+  en: Bad
+bisect.skip:
+  en: Skip
+bisect.show:
+  en: Show commit
+bisect.reset:
+  en: Reset
+bisect.failed:
+  en: Bisect failed
+submodule.open_tab:
+  en: Open in new tab
+submodule.update:
+  en: Update
+submodule.set_up:
+  en: Set up and update
+submodule.sync:
+  en: Sync URL
+submodule.copy_path:
+  en: Copy path
+submodule.updating:
+  en: Updating submodules
+submodule.update_all:
+  en: Update all submodules
+submodule.updated:
+  en: "Updated %{name}"
+submodule.updated_all:
+  en: Updated all submodules
+submodule.synced:
+  en: "Synced the URL of %{name}"
+submodule.failed:
+  en: Submodule operation failed
+submodule.changed:
+  en: moved
+submodule.uninitialized:
+  en: not set up
+submodule.conflict:
+  en: conflict
+worktree.add_item:
+  en: Add worktree…
+worktree.add_title:
+  en: New worktree
+worktree.add_subtitle:
+  en: "A new branch from HEAD, checked out in a folder of its own."
+worktree.add_in_folder_item:
+  en: Add worktree in a folder…
+worktree.pick_folder_prompt:
+  en: Choose the new worktree's folder
+worktree.add_subtitle_folder:
+  en: "A new branch from HEAD, checked out in this folder. A folder that has files already gets the worktree inside it, named after the branch."
+worktree.branch_placeholder:
+  en: New branch name
+worktree.folder_placeholder:
+  en: "Folder (empty: next to this repository, named after the branch)"
+worktree.folder:
+  en: Folder
+worktree.open_after:
+  en: Open it in a new tab
+worktree.add:
+  en: Create worktree
+worktree.added:
+  en: "Created worktree %{name}"
+worktree.branch_title:
+  en: "Check out %{branch} in a new worktree"
+worktree.checkout_in_new:
+  en: Check out in new worktree…
+worktree.open_tab:
+  en: Open in new tab
+worktree.copy_path:
+  en: Copy path
+worktree.lock:
+  en: Lock
+worktree.unlock:
+  en: Unlock
+worktree.locked_done:
+  en: "Locked %{name}"
+worktree.unlocked_done:
+  en: "Unlocked %{name}"
+worktree.lock_title:
+  en: "Lock %{name}"
+worktree.lock_subtitle:
+  en: "A lock keeps git from pruning, removing or moving it (for a folder on a removable drive, say). Why, if you like: git keeps the reason with the worktree."
+worktree.lock_placeholder:
+  en: Reason (optional)
+worktree.lock_ok:
+  en: Lock
+worktree.locked_because:
+  en: "locked: %{reason}"
+worktree.move:
+  en: Move…
+worktree.move_title:
+  en: "Move %{name}"
+worktree.move_subtitle:
+  en: "Its new folder, which must not exist yet. Git updates its records; the branch stays checked out there."
+worktree.move_ok:
+  en: Move
+worktree.moved:
+  en: "Moved the worktree to %{path}"
+worktree.prune:
+  en: Prune missing worktrees
+worktree.pruned:
+  en: Pruned missing worktrees
+worktree.remove:
+  en: Remove…
+worktree.remove_confirm:
+  en: "Remove worktree %{name}?"
+worktree.remove_detail:
+  en: "Its folder is deleted; its branch stays."
+worktree.remove_dirty:
+  en: "It has local changes or untracked files, and they will be lost. Its branch stays."
+worktree.remove_ok:
+  en: Remove
+worktree.removed:
+  en: "Removed worktree %{name}"
+worktree.failed:
+  en: Worktree operation failed
+worktree.detached:
+  en: "detached at %{sha}"
+worktree.locked:
+  en: locked
+worktree.missing:
+  en: missing
+stash.saved_path:
+  en: "Stashed %{path}"
+stash.saved_paths_one:
+  en: "Stashed %{count} file"
+stash.saved_paths_other:
+  en: "Stashed %{count} files"
+stash.new_title_path:
+  en: "Stash %{path}"
+stash.new_title_paths_one:
+  en: "Stash %{count} file"
+stash.new_title_paths_other:
+  en: "Stash %{count} files"
+stash.branch:
+  en: Create branch from stash…
+stash.branch_title:
+  en: "New branch from %{name}"
+stash.branch_placeholder:
+  en: Branch name
+stash.branch_ok:
+  en: Create branch
+stash.branch_blocked:
+  en: "Local changes are in the way, so the stash couldn't be applied and was kept; its untracked files may already be back. Git may already have created and switched to %{branch}. Commit or stash your changes, then apply the stash there."
+stash.branched:
+  en: "Created branch %{branch} from %{name} and dropped the stash"
+tag.new_here:
+  en: Create tag here…
+review.viewed:
+  en: Viewed
+review.viewed_count:
+  en: "viewed %{viewed} of %{total}"
+review.mark_reviewed:
+  en: Mark reviewed
+review.reviewed_done:
+  en: Reviewed
+review.reviewed_at:
+  en: "reviewed at %{sha}"
+review.since_one:
+  en: "Since last review (%{sha}): %{count} new commit changed these files"
+review.since_other:
+  en: "Since last review (%{sha}): %{count} new commits changed these files"
+review.rewritten:
+  en: "Rewritten since last review (%{sha}): its commits then and now"
+review.since_failed_header:
+  en: "Since last review (%{sha})"
+review.since_subtitle:
+  en: "%{head}, changes since the last review (%{sha})"
+review.interdiff_title:
+  en: "How “%{summary}” changed"
+review.interdiff_subtitle:
+  en: "%{old} → %{new}: the difference between the two patches"
+review.pair_same:
+  en: same
+review.pair_changed:
+  en: changed
+review.pair_removed:
+  en: removed
+review.pair_added:
+  en: added
+submodule.add_menu:
+  en: Add submodule…
+submodule.add_title:
+  en: Add a submodule
+submodule.add_hint:
+  en: "Clones the repository into a folder here and records it in .gitmodules (staged, to be committed)"
+submodule.add_url:
+  en: URL of the repository
+submodule.add_path:
+  en: Folder (from the URL when empty)
+submodule.add:
+  en: Add
+submodule.added:
+  en: Added the submodule %{name}
+submodule.add_failed:
+  en: Couldn't add the submodule
+submodule.deinit_menu:
+  en: Deinitialize…
+submodule.deinit:
+  en: Deinitialize
+submodule.deinit_confirm:
+  en: Deinitialize %{name}?
+submodule.deinit_detail:
+  en: "Its folder is emptied and it stays in .gitmodules; Set up brings it back."
+submodule.deinited:
+  en: Deinitialized %{name}
+submodule.deinit_failed:
+  en: Couldn't deinitialize the submodule
+submodule.remove_menu:
+  en: Remove submodule…
+submodule.remove:
+  en: Remove
+submodule.remove_confirm:
+  en: Remove the submodule %{name}?
+submodule.remove_detail:
+  en: "It's taken out of .gitmodules and the index (staged, to be committed); its clone under .git/modules stays."
+submodule.removed:
+  en: Removed %{name}
+submodule.remove_failed:
+  en: Couldn't remove the submodule
+submodule.modified:
+  en: "%{name} has changes of its own"
+submodule.modified_detail:
+  en: "Its work tree has changes that aren't committed there. Doing it anyway throws them away."
+submodule.staged:
+  en: "Adding %{name} isn't committed yet"
+submodule.staged_detail:
+  en: "Doing it anyway drops the staged addition; its clone under .git/modules stays."
+submodule.force_staged:
+  en: Do it anyway
+submodule.force:
+  en: Throw them away
+palette.bisect_run_cancel:
+  en: "Bisect: stop the command"
+bisect.run_button:
+  en: Run a command…
+bisect.run_title:
+  en: Let a command find the first bad commit
+bisect.run_hint:
+  en: "Runs in the repository at each step: exit 0 means good, 1–127 bad (125 skips the commit)."
+bisect.run_placeholder:
+  en: "A shell command, e.g. cargo test --lib parser"
+bisect.run:
+  en: Run
+bisect.show_output:
+  en: Show output
+bisect.output_title:
+  en: "Output of “%{command}”"
+bisect.output_empty:
+  en: Nothing printed yet
+bisect.output_close:
+  en: Close
+bisect.running:
+  en: "Running %{command}… %{line}"
+bisect.run_found:
+  en: "The command found the first bad commit: %{sha}"
+bisect.run_no_result:
+  en: "The command couldn't decide: only skipped commits are left"
+bisect.run_stopped:
+  en: The command was stopped
+bisect.run_failed:
+  en: The bisect run failed
+lfs.set_up:
+  en: Set up
+lfs.set_up_done:
+  en: Git LFS is set up in this clone
+lfs.set_up_failed:
+  en: Couldn't set up Git LFS
+lfs.locks_menu:
+  en: Git LFS locks…
+lfs.locks_group:
+  en: Git LFS locks
+lfs.locks_unsupported:
+  en: "This remote doesn't support Git LFS locks"
+lfs.locks_failed:
+  en: Couldn't read or change the Git LFS locks
+lfs.lock_file:
+  en: Lock a file…
+lfs.lock_title:
+  en: Lock a file with Git LFS
+lfs.lock_path:
+  en: Path in the repository
+lfs.lock:
+  en: Lock
+lfs.locked:
+  en: Locked %{path}
+lfs.lock_row:
+  en: Lock (Git LFS)
+lfs.unlock_row:
+  en: Unlock (Git LFS)
+lfs.unlock_changed_title:
+  en: "Unlock %{path} with its changes?"
+lfs.unlock_changed_text:
+  en: "git-lfs keeps the lock of a file with uncommitted changes, so that no one else changes it meanwhile. Unlock it anyway? Your changes stay in the file."
+lfs.force_unlock:
+  en: "Force unlock %{path}"
+lfs.force_title:
+  en: "Break the lock on %{path}?"
+lfs.force_text:
+  en: "%{owner} holds this lock. Breaking it lets others lock the file, and %{owner} may no longer be able to push their changes to it."
+lfs.force_button:
+  en: Force unlock
+lfs.unlock:
+  en: Unlock %{path}
+lfs.unlocked:
+  en: Unlocked %{path}
+lfs.locked_by:
+  en: "locked by %{owner} %{when}"
+review.export_file:
+  en: Save as Markdown…
+review.export_clipboard:
+  en: Copy as Markdown
+review.export_note:
+  en: Save as a git note
+review.copied:
+  en: Review copied as Markdown
+review.noted:
+  en: "Review saved as a note on %{sha} (refs/notes/review)"
+review.note_failed:
+  en: Couldn't save the review as a note
+remote.fetch_this:
+  en: Fetch
+remote.fetch_all:
+  en: Fetch all remotes
+remote.fetch_named:
+  en: Fetch %{remote}
+remote.fetched_named:
+  en: Fetched %{remote}
+review.export:
+  en: Export…
+review.exported:
+  en: "Saved the review to %{path}"
+review.export_failed:
+  en: Couldn't save the review
+# The review's Markdown export (gitweft_core::review::ExportWords).
+review.md_title:
+  en: "Review of %{branch}"
+review.md_against:
+  en: "Against %{base}"
+review.md_branch_at:
+  en: "branch at %{sha}"
+review.md_merge_base:
+  en: "merge base %{sha}"
+review.md_reviewed_at:
+  en: "last marked reviewed at %{sha}"
+review.md_place:
+  en: "Line %{line} (%{side})"
+review.md_old:
+  en: old
+review.md_new:
+  en: new
+review.md_resolved:
+  en: resolved
+review.md_outdated:
+  en: outdated
+review.md_no_comments:
+  en: No comments.
+review.comments:
+  en: "Comments (%{count})"
+review.outdated:
+  en: outdated
+review.resolved:
+  en: resolved
+review.picked_line:
+  en: "Line %{line}: comment on it, or pick another line."
+review.comment_button:
+  en: Comment…
+review.comment_title:
+  en: "Comment on %{path}, line %{line}"
+review.picked_patch_line:
+  en: "A line of %{file} as this commit has it: comment on it, or pick another line."
+review.patch_line_gone:
+  en: The line isn't in the file as this commit has it, so there's nothing to anchor a comment to.
+review.comment_placeholder:
+  en: What should change here? Shift+Enter starts a new line.
+review.edit:
+  en: Edit…
+review.edit_title:
+  en: "Edit the comment on %{path}, line %{line}"
+review.save:
+  en: Save
+review.mark_all_viewed:
+  en: Mark all viewed
+review.add_comment:
+  en: Add comment
+review.open_title:
+  en: "%{path}, line %{line}"
+review.open_outdated:
+  en: "This line isn't in the current version any more."
+review.comment_by:
+  en: "%{author}, %{when}"
+review.md_by:
+  en: "by %{author}"
+review.mark_reviewed_tip:
+  en: Also marks every file viewed at its current content
+review.match_harder:
+  en: Match reworked commits harder
+review.deleted_header_one:
+  en: "Recently deleted comment (%{count})"
+review.deleted_header_other:
+  en: "Recently deleted comments (%{count})"
+review.restore:
+  en: Restore
+review.resolve:
+  en: Resolve
+review.reopen:
+  en: Reopen
+review.delete:
+  en: Delete
+review.close:
+  en: Close
+rebase.menu:
+  en: Interactive rebase after this commit…
+rebase.menu_from:
+  en: Interactive rebase from this commit…
+rebase.title:
+  en: "Interactive rebase of %{branch} onto %{sha}"
+rebase.title_root:
+  en: "Interactive rebase of %{branch} from its first commit"
+rebase.subtitle_single:
+  en: "1 commit. Git applies it as listed."
+rebase.subtitle_multiple_one:
+  en: "%{count} commit, oldest first: git applies them from the top. Alt+↑/↓ moves the selected one."
+rebase.subtitle_multiple_other:
+  en: "%{count} commits, oldest first: git applies them from the top. Alt+↑/↓ moves the selected one."
+rebase.pick:
+  en: Pick
+rebase.reword:
+  en: Reword
+rebase.squash:
+  en: Squash
+rebase.fixup:
+  en: Fixup
+rebase.drop:
+  en: Drop
+rebase.move_up:
+  en: "Move up (Alt+↑)"
+rebase.move_down:
+  en: "Move down (Alt+↓)"
+rebase.start:
+  en: Start rebase
+rebase.ready:
+  en: "Ready. Start rebase applies these steps from the top; Undo (Ctrl+Z) takes the whole rebase back."
+rebase.unchanged:
+  en: "Nothing changed yet: pick another action for a commit, or move one."
+# Escape in a changed rebase plan (#29).
+rebase.close_ask:
+  en: "Close the rebase editor?"
+rebase.close_ask_detail:
+  en: "The plan you made is lost; the branch stays as it is."
+rebase.close_discard:
+  en: "Close and lose the plan"
+rebase.problem_nothing_kept:
+  en: "Every commit is dropped. To remove them all, reset the branch to this commit instead."
+rebase.problem_fold:
+  en: "Commit %{n} has nothing above it to go into. Keep an earlier commit, or move this one down."
+rebase.problem_empty:
+  en: "Commit %{n} needs a message."
+rebase.problem_other_commits:
+  en: "The list doesn't match the branch's commits. Close it and open the rebase again."
+rebase.problem_path:
+  en: "The repository's folder (or git's) has a name that isn't UTF-8, so the rebase can't name its files. Rename the folder, or rebase in a terminal."
+rebase.plan_failed:
+  en: "Couldn't start an interactive rebase"
+# Merges among the commits of an interactive rebase (#37).
+rebase.merges_title_one:
+  en: "The commits after this one include a merge"
+rebase.merges_title_other:
+  en: "The commits after this one include %{count} merges"
+rebase.merges_text:
+  en: "An interactive rebase edits a straight line of commits and can't make merges again yet. You can edit the commits after the newest merge (%{sha}) instead."
+rebase.merges_after:
+  en: "Edit the commits after it"
+rebase.merges_head:
+  en: "The newest commit is a merge, so no straight line of commits follows it to edit. An interactive rebase can't make merges again yet."
+rebase.merges_quick:
+  en: "Only the commits after the newest merge can be reworded, folded or dropped here: a rebase can't make merges again yet."
+rebase.not_in_history:
+  en: "That commit isn't in the current branch's history, so there is nothing to rebase onto it."
+rebase.combined_note:
+  en: "The message this commit gets once the squashes below are folded in. Edit it here."
+# The preview of an interactive rebase's result, under its plan (#37).
+rebase.preview_title_one:
+  en: "After the rebase: %{count} commit on %{branch}"
+rebase.preview_title_other:
+  en: "After the rebase: %{count} commits on %{branch}"
+rebase.preview_folded_one:
+  en: "+%{count} folded in"
+rebase.preview_folded_other:
+  en: "+%{count} folded in"
+rebase.preview_stops:
+  en: "stops here"
+rebase.preview_more_one:
+  en: "…and %{count} older commit"
+rebase.preview_more_other:
+  en: "…and %{count} older commits"
+rebase.preview_base:
+  en: "%{sha}, the base"
+rebase.preview_root:
+  en: "No base: these become the first commits"
+rebase.nothing_after:
+  en: "No commits come after that one, so there is nothing to rebase."
+rebase.confirm:
+  en: "Rebase %{branch}?"
+rebase.anyway:
+  en: Rebase anyway
+rebase.done:
+  en: "Rebased %{branch}"
+rebase.failed:
+  en: "Couldn't rebase"
+rebase.conflict_title:
+  en: The rebase stopped at a conflict
+rebase.local_changes:
+  en: "Commit or stash your local changes first: a rebase needs a clean working tree. Nothing was changed."
+graph.drag_commit:
+  en: "Cherry-pick “%{summary}”"
+graph.drag_branch:
+  en: "Merge or rebase %{name}"
+graph.in_worktree:
+  en: "Checked out in the worktree %{folder}"
+rewrite.drop_pick_confirm:
+  en: "Cherry-pick “%{summary}” onto %{branch}?"
+rewrite.drop_pick_detail:
+  en: "It becomes a new commit on top of %{branch}. Undo (Ctrl+Z) takes it back."
+rewrite.cherry_pick_button:
+  en: Cherry-pick
+rewrite.cherry_pick:
+  en: Cherry-pick commit
+rewrite.cherry_pick_no_commit:
+  en: Cherry-pick without committing
+rewrite.picked_no_commit:
+  en: "Applied the changes of “%{summary}”: they're staged, not committed"
+rewrite.pick_no_commit_conflict:
+  en: "Resolve the conflicted files (listed in the working changes). The changes stay uncommitted: commit them when they're ready."
+rewrite.revert:
+  en: Revert commit
+rewrite.reset_menu:
+  en: Reset current branch to here
+rewrite.reset_soft:
+  en: "Soft: keep the changes, staged"
+rewrite.reset_mixed:
+  en: "Mixed: keep the changes, unstaged"
+rewrite.reset_hard:
+  en: "Hard: discard the changes…"
+rewrite.picked:
+  en: "Cherry-picked “%{summary}”"
+rewrite.reverted:
+  en: "Reverted “%{summary}”"
+rewrite.pick_empty:
+  en: "“%{summary}” is already on this branch, so nothing was cherry-picked."
+rewrite.revert_empty:
+  en: "“%{summary}” is already undone on this branch, so nothing was reverted."
+rewrite.local_changes:
+  en: "Commit or stash your local changes first. Cherry-pick and revert need nothing staged, and no changes to the files they touch. Nothing was changed."
+rewrite.pick_failed:
+  en: "Couldn't cherry-pick"
+rewrite.revert_failed:
+  en: "Couldn't revert"
+rewrite.conflict_title:
+  en: "“%{summary}” conflicts with this branch"
+rewrite.conflict_text:
+  en: "Resolve the conflicted files (listed in the working changes), then press Continue in the banner, or Abort to go back."
+rewrite.reset_done:
+  en: "Reset %{branch} to %{sha}"
+rewrite.reset_done_trashed:
+  en: "Reset %{branch} to %{sha}. Untracked files in the way were moved to %{dir}."
+rewrite.reset_failed:
+  en: "Couldn't reset"
+rewrite.hard_confirm:
+  en: "Reset %{branch} to %{sha} and discard your local changes?"
+rewrite.hard_confirm_detail:
+  en: "Staged and unstaged changes are saved first, and Undo (Ctrl+Z) brings them back. Untracked files stay, except where this commit has files of its own: those are moved to the trash."
+rewrite.reset:
+  en: Reset
+rewrite.published_one:
+  en: "%{count} commit it leaves behind is already on %{remotes}. Others may have built on it, and pushing afterwards needs a force push, which replaces the remote branch for everyone who fetches it."
+rewrite.published_other:
+  en: "%{count} commits it leaves behind are already on %{remotes}. Others may have built on them, and pushing afterwards needs a force push, which replaces the remote branch for everyone who fetches it."
+rewrite.a_remote:
+  en: a remote
+rewrite.reset_confirm:
+  en: "Reset %{branch} to %{sha}?"
+rewrite.reset_anyway:
+  en: Reset anyway
+rewrite.amend_confirm:
+  en: "Amend a commit that is already on %{remotes}?"
+rewrite.amend_detail:
+  en: "Amending replaces it with a new commit. Others may have built on it, and pushing afterwards needs a force push, which replaces the remote branch for everyone who fetches it."
+rewrite.amend_anyway:
+  en: Amend anyway
+rewrite.undo_confirm:
+  en: "Undo %{op}?"
+rewrite.redo_confirm:
+  en: "Redo %{op}?"
+rewrite.undo_anyway:
+  en: Undo anyway
+rewrite.redo_anyway:
+  en: Redo anyway
+tag.new_title:
+  en: New tag
+tag.name_placeholder:
+  en: Tag name
+tag.message_placeholder:
+  en: "Message (optional: makes an annotated tag)"
+tag.create:
+  en: Create
+tag.created:
+  en: "Created tag %{name}"
+tag.push:
+  en: "Push to %{remote}"
+tag.pushed:
+  en: "Pushed tag %{name} to %{remote}"
+tag.delete:
+  en: Delete…
+tag.delete_remote:
+  en: "Delete from %{remote}"
+tag.delete_confirm:
+  en: "Delete tag %{name}?"
+tag.delete_confirm_detail:
+  en: The tag is removed from this repository only.
+tag.deleted:
+  en: "Deleted tag %{name}"
+tag.deleted_remote:
+  en: "Deleted tag %{name} from %{remote}"
+tag.invalid_name:
+  en: "Not a valid tag name: %{name}"
+tag.failed:
+  en: Tag operation failed
+activity.title:
+  en: Activity
+activity.empty:
+  en: No git commands yet
+activity.show_reads:
+  en: Show reads
+activity.close:
+  en: Close
+activity.cancelled:
+  en: cancelled
+toolbar.fetch:
+  en: Fetch
+toolbar.pull:
+  en: Pull
+toolbar.push:
+  en: Push
+toolbar.pull_merge:
+  en: Pull (merge)
+toolbar.pull_rebase:
+  en: Pull (rebase)
+toolbar.pull_ff_only:
+  en: Pull (fast-forward only)
+toolbar.force_push:
+  en: Force push (with lease)
+toolbar.cancel:
+  en: Cancel
+remote.fetching:
+  en: Fetching…
+remote.pulling:
+  en: Pulling…
+remote.pushing:
+  en: Pushing…
+remote.progress:
+  en: "%{phase} %{percent}%"
+remote.fetched:
+  en: Fetched all remotes
+remote.pulled:
+  en: Pulled
+remote.pushed:
+  en: "Pushed %{branch} to %{target}"
+remote.cancelled:
+  en: Cancelled
+remote.fetch_failed:
+  en: Fetch failed
+remote.pull_failed:
+  en: Pull failed
+remote.push_failed:
+  en: Push failed
+remote.detached:
+  en: "HEAD is detached: check out a branch to push it."
+remote.no_remote:
+  en: "There is no remote to push to: add one, or give the branch an upstream."
+remote.add_item:
+  en: Add remote…
+remote.add_title:
+  en: Add remote
+remote.name_placeholder:
+  en: "Name, e.g. origin"
+remote.url_placeholder:
+  en: "URL or path, e.g. git@example.com:team/app.git"
+remote.fetch_after_add:
+  en: Fetch it now
+remote.add:
+  en: Add
+remote.added:
+  en: "Added remote %{name}"
+remote.invalid_name:
+  en: "“%{name}” can't be a remote name."
+remote.url_required:
+  en: Enter the remote's URL.
+remote.rename:
+  en: Rename…
+remote.rename_title:
+  en: "Rename remote %{name}"
+remote.rename_ok:
+  en: Rename
+remote.renamed:
+  en: "Renamed remote %{old} to %{new}"
+remote.change_url:
+  en: Change URLs…
+remote.change_url_title:
+  en: "URLs of %{name}"
+remote.push_url_hint:
+  en: "It fetches from the first URL, and pushes there too unless a push URL is given below."
+remote.push_url_placeholder:
+  en: "Push URL (empty: push to the URL above)"
+remote.urls_changed:
+  en: "%{name} now fetches from %{url} and pushes to %{push}"
+remote.save:
+  en: Save
+remote.url_changed:
+  en: "%{name} now uses %{url}"
+remote.copy_url:
+  en: Copy URL
+remote.remove:
+  en: Remove…
+remote.remove_confirm:
+  en: "Remove remote %{name}?"
+remote.remove_confirm_detail:
+  en: "Its remote-tracking branches go too, and branches that track it lose their upstream. This can't be undone, but adding the remote again and fetching brings its branches back."
+remote.remove_ok:
+  en: Remove
+remote.removed:
+  en: "Removed remote %{name}"
+remote.failed:
+  en: Remote change failed
+remote.pick_title:
+  en: "Push %{branch} to which remote?"
+remote.pick_text:
+  en: "The branch has no upstream yet, and no remote is called origin. The one you pick becomes its upstream."
+remote.diverged_title:
+  en: Your branch and its upstream have diverged
+remote.diverged_text:
+  en: "Both have new commits. Combine them with a merge commit, or rebase your commits on top of the upstream ones."
+remote.merge:
+  en: Merge
+remote.rebase:
+  en: Rebase
+remote.rejected_title:
+  en: Push rejected
+remote.rejected_text:
+  en: "The remote branch has commits that yours doesn't. Pull them first. If you rewrote your branch on purpose (amend, rebase), force push with lease instead: it still refuses to drop commits you haven't fetched."
+remote.pull_first:
+  en: Pull first
+askpass.title_secret:
+  en: Authentication
+askpass.title_text:
+  en: Authentication
+askpass.title_host:
+  en: Verify host key
+askpass.connect:
+  en: Connect
+askpass.ok:
+  en: OK
+askpass.cancel:
+  en: Cancel
+watch.limited:
+  en: "The system limit on file watches has been reached, so working-tree changes are checked every few seconds instead of instantly. Raising fs.inotify.max_user_watches fixes this."
+watch.stopped:
+  en: "File watching stopped after repeated errors, so changes are checked every few seconds instead of instantly. Reopening the repository starts it again."
+watch.dismiss:
+  en: Dismiss
+
+graph.empty:
+  en: No commits yet
+graph.column.graph:
+  en: Graph
+graph.column.message:
+  en: Message
+graph.column.author:
+  en: Author
+graph.column.date:
+  en: Date
+graph.column.sha:
+  en: SHA
+lfs.pulling:
+  en: Downloading LFS files…
+lfs.fetching:
+  en: Fetching LFS objects…
+lfs.failed:
+  en: Git LFS failed
+lfs.pulled:
+  en: Downloaded the LFS files
+lfs.fetched:
+  en: Fetched the LFS objects; the files in the working tree are unchanged
+lfs.pull:
+  en: Download LFS files (git lfs pull)
+lfs.fetch:
+  en: Fetch LFS objects only (git lfs fetch)
+lfs.fetch_all:
+  en: Fetch LFS objects of all history (git lfs fetch --all)
+lfs.fetching_all:
+  en: Fetching the LFS objects of all history…
+lfs.fetched_all:
+  en: Fetched the LFS objects of every branch, tag and older commit; the files in the working tree are unchanged
+lfs.prune:
+  en: Delete old local LFS copies (git lfs prune)…
+lfs.sizes_branch:
+  en: "Git LFS: the largest kinds of files in this branch's history"
+lfs.sizes_all:
+  en: "Git LFS: the largest kinds of files in every branch's history"
+lfs.sizes_title_branch:
+  en: "Largest kinds of files in this branch's history"
+lfs.sizes_title_all:
+  en: "Largest kinds of files in every branch's history"
+lfs.sizes_versions_one:
+  en: "%{count} version"
+lfs.sizes_versions_other:
+  en: "%{count} versions"
+lfs.sizes_hint:
+  en: "Kept in plain git, not in Git LFS (git lfs migrate info). Moving them to LFS would rewrite these commits, so it isn't done here."
+lfs.sizes_close:
+  en: Close
+lfs.sizes_nothing:
+  en: No files in plain git to report
+lfs.sizes_no_git_lfs:
+  en: git-lfs isn't installed, so it can't tell which files would suit it.
+lfs.sizes_failed:
+  en: Couldn't list the largest kinds of files
+lfs.migrate_import_menu:
+  en: "Git LFS: move files into LFS on this branch (rewrites its history)…"
+lfs.migrate_export_menu:
+  en: "Git LFS: move files out of LFS on this branch (rewrites its history)…"
+lfs.migrate_row:
+  en: Move into LFS…
+lfs.migrate_import_title:
+  en: "Move files into Git LFS on %{branch}"
+lfs.migrate_export_title:
+  en: "Move files out of Git LFS on %{branch}"
+lfs.migrate_import_hint:
+  en: "Every commit of this branch that has such files is rewritten to keep them in LFS. Other branches and tags stay as they are."
+lfs.migrate_export_hint:
+  en: "Every commit of this branch that has such files is rewritten to keep them in plain git again. Other branches and tags stay as they are."
+lfs.migrate_patterns:
+  en: "Which files, e.g. *.psd, *.zip"
+lfs.migrate_next:
+  en: Continue…
+lfs.migrate_import_confirm:
+  en: "Rewrite %{branch} to move %{patterns} into Git LFS?"
+lfs.migrate_export_confirm:
+  en: "Rewrite %{branch} to move %{patterns} out of Git LFS?"
+lfs.migrate_detail:
+  en: "The commits that have these files get new ids. Undo takes the branch back."
+lfs.migrate_detail_published:
+  en: "%{published} Afterwards, pushing the branch needs a force push, and others must reset to it. Undo takes the branch back."
+lfs.migrate_rewrite:
+  en: Rewrite
+lfs.migrate_import_done:
+  en: "Moved %{patterns} into Git LFS on %{branch}. If it was pushed before, pushing it again needs a force push."
+lfs.migrate_export_done:
+  en: "Moved %{patterns} out of Git LFS on %{branch}. If it was pushed before, pushing it again needs a force push."
+lfs.migrate_failed:
+  en: Couldn't rewrite the branch
+lfs.migrate_needs_branch:
+  en: Moving files into or out of Git LFS works on a checked-out branch; check one out first.
+lfs.migrate_dirty:
+  en: Moving files into or out of Git LFS rewrites the branch and checks it out again; commit or stash your changes first.
+lfs.prune_nothing:
+  en: "Nothing to delete: every local LFS copy is checked out, recent, in a stash or not pushed yet."
+lfs.prune_title_one:
+  en: "Delete %{count} local LFS copy (%{size})?"
+lfs.prune_title_other:
+  en: "Delete %{count} local LFS copies (%{size})?"
+lfs.prune_text:
+  en: "git lfs prune deletes the local copies that aren't checked out, recent, in a stash or unpushed. The remote keeps them, so they download again when needed, but not without a network."
+lfs.prune_button:
+  en: Delete
+lfs.pruned_one:
+  en: "Deleted %{count} local LFS copy, freeing %{size}"
+lfs.pruned_other:
+  en: "Deleted %{count} local LFS copies, freeing %{size}"
+lfs.prune_failed:
+  en: Couldn't delete the old LFS copies
+lfs.not_installed:
+  en: This repository uses Git LFS, but git-lfs isn't installed, so its large files show as small pointer files.
+lfs.not_set_up:
+  en: "This repository uses Git LFS, but Git LFS isn't set up in this clone, so checkouts leave pointer files."
+lfs.missing_one:
+  en: "%{count} file tracked by Git LFS is only a pointer file here."
+lfs.missing_other:
+  en: "%{count} files tracked by Git LFS are only pointer files here."
+lfs.download:
+  en: Download
+lfs.dismiss:
+  en: Not now
+shallow.deepening:
+  en: Fetching more history…
+shallow.failed:
+  en: Fetching more history failed
+shallow.deepened_one:
+  en: "Fetched up to %{count} more commit of history"
+shallow.deepened_other:
+  en: "Fetched up to %{count} more commits of history"
+shallow.unshallowed:
+  en: Fetched the whole history
+shallow.banner_single:
+  en: "This is a shallow clone: its history stops at %{sha}."
+shallow.banner_more_one:
+  en: "This is a shallow clone: its history stops at %{sha} and %{count} other commit."
+shallow.banner_more_other:
+  en: "This is a shallow clone: its history stops at %{sha} and %{count} other commits."
+shallow.deepen_one:
+  en: "Fetch %{count} more commit"
+shallow.deepen_other:
+  en: "Fetch %{count} more commits"
+shallow.unshallow:
+  en: Fetch all history
+graph.shallow_pill:
+  en: shallow
+shallow.dismiss:
+  en: Not now
+background_fetch.menu_one:
+  en: "Fetch in the background every %{count} minute"
+background_fetch.menu_other:
+  en: "Fetch in the background every %{count} minutes"
+background_fetch.interval_menu:
+  en: Background fetch interval
+background_fetch.every_one:
+  en: "Every %{count} minute"
+background_fetch.every_other:
+  en: "Every %{count} minutes"
+background_fetch.interval_set_one:
+  en: "Background fetch will run every %{count} minute once it's on."
+background_fetch.interval_set_other:
+  en: "Background fetch will run every %{count} minutes once it's on."
+background_fetch.on_one:
+  en: "Background fetch is on: all remotes are fetched every %{count} minute while this repository is open."
+background_fetch.on_other:
+  en: "Background fetch is on: all remotes are fetched every %{count} minutes while this repository is open."
+background_fetch.off:
+  en: Background fetch is off
+background_fetch.tooltip_one:
+  en: "Also fetches in the background every %{count} minute"
+background_fetch.tooltip_other:
+  en: "Also fetches in the background every %{count} minutes"
+background_fetch.running:
+  en: Fetching in the background…
+background_fetch.failed_title:
+  en: Background fetch failed
+background_fetch.failed_tooltip:
+  en: "The last background fetch failed: %{error}"
+diff.lfs_oid:
+  en: "sha256 %{oid}"
+diff.lfs_object:
+  en: "Git LFS object · %{size}"
+diff.lfs_note:
+  en: "This file is stored with Git LFS: the repository holds a small pointer file, and the content comes from the LFS store."
+
+title.settings:
+  en: "Settings (Ctrl+,)"
+settings.window_title:
+  en: Settings
+settings.search_placeholder:
+  en: "Search settings"
+settings.search_results:
+  en: "Search results"
+settings.search_none:
+  en: "No setting matches the search."
+settings.reset_page:
+  en: "Reset this page's settings to their defaults"
+settings.general:
+  en: General
+settings.date_format:
+  en: Dates
+settings.date_format_hint:
+  en: How commit dates are shown in the graph, lists and details.
+settings.date_full:
+  en: "2026-08-29 12:27"
+settings.date_short:
+  en: "08-29 12:27"
+settings.date_relative:
+  en: "Relative (3 h ago)"
+conflict.all_resolved:
+  en: every conflict resolved
+conflict.pick_hint:
+  en: "· click lines to take only those"
+conflict.edit_by_hand:
+  en: Edit by hand
+conflict.edit_done:
+  en: Done
+conflict.whole_file_after:
+  en: "· whole file"
+conflict.whole_deleted_theirs:
+  en: "Changed here and deleted in theirs. Keep the file as it is here, or delete it."
+conflict.whole_deleted_ours:
+  en: "Deleted here and changed in theirs. Delete it, or keep their version."
+conflict.whole_deleted_both:
+  en: "Deleted on both sides (each side renamed it differently, perhaps). Delete it to resolve."
+conflict.whole_binary:
+  en: "The file changed on both sides and isn't text, so it can't be merged line by line. Keep one side's version whole, or open it in your merge tool."
+conflict.take_deletion:
+  en: Delete the file
+conflict.side_deleted:
+  en: Deleted
+conflict.side_added:
+  en: Added
+conflict.side_changed:
+  en: Changed
+conflict.side_detail:
+  en: "%{size} · %{kind}"
+conflict.whole_binary_attributes:
+  en: "Your .gitattributes marks this file as binary for merging (merge=binary, -merge or binary), so git kept your side's version without conflict markers. Keep one side's version whole, or open it in your merge tool."
+conflict.whole_symlink:
+  en: "The link points somewhere else on each side, and a link can't hold conflict markers. Keep one side's link, or open it in your merge tool."
+conflict.whole_submodule:
+  en: "The submodule is at a different commit on each side. Keep one side's commit, or open it in your merge tool."
+conflict.side_symlink:
+  en: "Symbolic link to %{target}"
+conflict.side_submodule:
+  en: "Submodule at %{commit}"
+conflict.side_executable:
+  en: Executable
+conflict.kind_binary:
+  en: binary
+conflict.kind_text:
+  en: text
+conflict.took_ours:
+  en: "%{path}: our version kept"
+conflict.took_theirs:
+  en: "%{path}: their version kept"
+conflict.took_deletion:
+  en: "%{path} deleted"
+conflict.take_failed:
+  en: Couldn't resolve the file
+conflict.note_deleted_here:
+  en: deleted here
+conflict.note_deleted_by_them:
+  en: deleted by them
+conflict.note_only_here:
+  en: added here only
+conflict.note_only_theirs:
+  en: added by them only
+conflict.note_deleted_both:
+  en: deleted on both sides
+conflict.note_binary:
+  en: binary
+conflict.note_binary_attributes:
+  en: binary by .gitattributes
+conflict.note_symlink:
+  en: symbolic link
+repair.staging_failed:
+  en: Couldn't change the working changes
+repair.lock_title:
+  en: A lock file is in the way
+repair.lock_gone:
+  en: "The lock file %{path} is gone now. Try again."
+repair.lock_busy:
+  en: "Git is running in this repository right now (%{commands}) and holds %{path}. Let it finish, then try again."
+repair.lock_stale:
+  en: "Git couldn't change the repository because %{path} exists (made %{age}). Git makes this file while it works and removes it when it's done. No git is running in this repository, so this one was left behind by a git that crashed or was stopped. Remove it, then try again."
+repair.lock_remove:
+  en: Remove lock file
+repair.lock_removed:
+  en: The lock file was removed. Try again.
+repair.lock_remove_failed:
+  en: Couldn't remove the lock file
+repair.age_unknown:
+  en: at an unknown time
+repair.trust_title:
+  en: Git doesn't trust this folder
+repair.trust_text:
+  en: "%{path} belongs to another user, so git refuses to work in it: a repository's settings and hooks could run that user's commands. If you know who owns it, trust it. This adds it to safe.directory in your git config (~/.gitconfig)."
+repair.trust:
+  en: Trust this folder
+repair.trust_button:
+  en: Trust this folder…
+repair.trust_failed:
+  en: Couldn't trust the folder
+repair.untrusted_banner:
+  en: "Git doesn't trust this folder (another user owns it), so it can't read or change your working changes."
+repair.untrusted_preview:
+  en: "Git doesn't trust this folder (another user owns it), so it can't show this file's changes."
+identity.title:
+  en: Your name and email
+identity.subtitle:
+  en: Git records them in every commit you make.
+identity.name_placeholder:
+  en: Name
+identity.email_placeholder:
+  en: Email
+identity.global:
+  en: Use them in all repositories (your global git config)
+identity.save:
+  en: Save
+identity.save_commit:
+  en: Save and commit
+identity.saved:
+  en: Your name and email are saved.
+identity.failed:
+  en: Couldn't save your name and email
+identity.email_needed:
+  en: An email is needed as well.
+identity.use_profile:
+  en: "Use identity “%{profile}” in this repository"
+identity.delete_profile:
+  en: "Delete identity profile “%{profile}”"
+identity.save_profile:
+  en: "Save this repository's identity as a profile…"
+identity.save_profile_title:
+  en: Save the identity as a profile
+identity.profile_label:
+  en: "A name for it, e.g. Work"
+identity.profile_detail:
+  en: "%{name} <%{email}>"
+identity.profile_applied:
+  en: "This repository now commits as “%{profile}”"
+identity.profile_saved:
+  en: "Saved the identity profile “%{profile}”"
+identity.profile_deleted:
+  en: "Deleted the identity profile “%{profile}”"
+commit.identity_guessed:
+  en: "Committing as %{name} <%{email}>, guessed by git · set yours"
+commit.identity_edit:
+  en: Change your name and email for commits
+commit.identity_from:
+  en: "Name and email from %{place} · click to change them"
+commit.identity_from_each:
+  en: "Name from %{name_place}; email from %{email_place} · click to change them"
+commit.identity_not_in_config:
+  en: "the environment or git's guess"
+commit.config_place:
+  en: "%{file}, %{scope}"
+config_scope.system:
+  en: "the system config"
+config_scope.global:
+  en: "your global config"
+config_scope.local:
+  en: "this repository's config"
+config_scope.worktree:
+  en: "this worktree's config"
+config_scope.command:
+  en: "the command line (-c)"
+settings.tools:
+  en: Tools
+settings.tools_programs:
+  en: Programs
+settings.tools_programs_hint:
+  en: "A command for each. {path} stands for the folder or file; without it, a file is added at the end and a terminal starts in the folder. A terminal of your own runs a merge tool where you put {command}. Empty: picked for you."
+settings.terminal:
+  en: Terminal
+settings.terminal_hint:
+  en: "Empty: %{found}."
+settings.terminal_none:
+  en: none found
+settings.terminal_looking:
+  en: still looking
+settings.file_manager:
+  en: File manager
+settings.file_manager_hint:
+  en: "Empty: the desktop's file manager, with the file selected."
+settings.editor:
+  en: Editor
+settings.editor_hint:
+  en: "For example code -g {path}. Empty: the file's default application."
+settings.git_tools:
+  en: Diff and merge tools
+settings.git_tools_hint:
+  en: "They run through git difftool and git mergetool, so git's settings for each tool apply."
+settings.diff_tool:
+  en: Diff tool
+settings.diff_tool_hint:
+  en: "A tool name git knows (meld, kdiff3, vscode…). Empty: git's diff.guitool or diff.tool."
+settings.merge_tool:
+  en: Merge tool
+settings.merge_tool_hint:
+  en: "Empty: git's merge.guitool or merge.tool."
+external.open_terminal:
+  en: Open in terminal
+external.open_file_manager:
+  en: Open in file manager
+external.open_editor:
+  en: Open in editor
+external.show_in_folder:
+  en: Show in file manager
+external.open_working_copy:
+  en: Open the working copy in editor
+external.diff_tool:
+  en: Open in diff tool
+external.merge_tool:
+  en: Open in merge tool
+external.terminal_failed:
+  en: Couldn't open a terminal
+external.file_manager_failed:
+  en: Couldn't open the file manager
+external.editor_failed:
+  en: Couldn't open the editor
+external.diff_tool_failed:
+  en: The diff tool failed
+external.merge_tool_failed:
+  en: The merge tool failed
+external.not_found:
+  en: "%{program} isn't installed (or not on PATH). Choose another program in Settings → Tools."
+external.no_terminal:
+  en: "No terminal was found. Set one in Settings → Tools."
+external.bad_command:
+  en: "Can't read the command “%{command}”: a quote isn't closed."
+external.no_command_form:
+  en: "%{terminal} can't be given a command to run. In Settings → Tools, choose a terminal Gitweft knows (such as Konsole or GNOME Terminal), or put {command} where your terminal's command takes one; or run git mergetool in your own terminal."
+external.merge_tool_in_terminal:
+  en: "%{tool} runs in a terminal, so it opened in one. When you save and quit it there, git marks the file resolved."
+external.no_diff_tool:
+  en: "No diff tool is set up. Name one in Settings → Tools, or in git: git config --global diff.tool meld"
+external.no_merge_tool:
+  en: "No merge tool is set up. Name one in Settings → Tools, or in git: git config --global merge.tool meld"
+external.merge_tool_missing:
+  en: "The merge tool %{tool} isn't installed: git can't find its program. Install it, or name another tool in Settings → Tools (or give git its program: git config --global mergetool.%{tool}.path PATH)."
+external.no_host_git:
+  en: "Diff and merge tools run on your system, outside the Flatpak sandbox, with the system's git, and no git was found there. Install git on the system to use them."
+settings.restore_session:
+  en: Reopen repositories
+settings.restore_session_hint:
+  en: "When Gitweft starts, open the repositories of the last session again, each in its tab. Folders named on the command line open as well."
+settings.trash_max_age:
+  en: Keep trash for (days)
+settings.trash_max_age_hint:
+  en: "Older entries in the Trash are deleted for good when a repository opens. 0 keeps them until you empty the Trash."
+settings.trash_max_size:
+  en: Largest trash (MB)
+settings.trash_max_size_hint:
+  en: "While the Trash is larger, its oldest entries are deleted for good when a repository opens. 0 sets no limit."
+settings.appearance:
+  en: Appearance
+settings.theme_group:
+  en: Theme
+settings.theme:
+  en: Theme
+settings.theme_hint:
+  en: "System follows the desktop. The sun/moon button in the title bar picks light or dark."
+settings.theme_system:
+  en: System
+settings.theme_light:
+  en: Light
+settings.theme_dark:
+  en: Dark
+settings.density:
+  en: Density
+settings.density_hint:
+  en: "Row height in lists: 32 px (comfortable) or 28 px (compact)."
+settings.density_comfortable:
+  en: Comfortable
+settings.density_compact:
+  en: Compact
+settings.zoom:
+  en: Zoom
+settings.zoom_hint:
+  en: Scales the whole interface.
+settings.text_group:
+  en: Text
+settings.ui_font:
+  en: Interface font
+settings.ui_font_size:
+  en: Interface text size
+settings.mono_font:
+  en: Code font
+settings.mono_font_hint:
+  en: For code, paths, SHAs and dates.
+settings.mono_font_size:
+  en: Code text size
+settings.colors:
+  en: Colors
+settings.preview_subject:
+  en: "fix: release notes"
+settings.preview_author:
+  en: Alex Tran
+settings.color_preset:
+  en: Preset
+settings.color_preset_hint:
+  en: "The built-in colors; your changes below go on top of them."
+settings.preset_graphite:
+  en: Graphite
+settings.preset_high_contrast:
+  en: High contrast
+settings.saved_colors:
+  en: Saved colors
+settings.saved_colors_hint:
+  en: "Keep the colors in use (the preset and your changes, dark and light) under a name, to come back to them."
+settings.save_colors:
+  en: Save the colors in use
+settings.save_colors_hint:
+  en: Under this name; a name used before is replaced.
+settings.save_colors_placeholder:
+  en: Name
+settings.save_colors_button:
+  en: Save
+settings.save_colors_replace:
+  en: Replace
+settings.saved_colors_use:
+  en: Use
+settings.saved_colors_in_use:
+  en: In use
+settings.saved_colors_delete:
+  en: Delete
+settings.saved_colors_replace_title:
+  en: "Use the colors saved as “%{name}”?"
+settings.saved_colors_replace_text:
+  en: "The colors you changed aren't saved under a name, and these would replace them. Save them first to keep them."
+settings.saved_colors_use_anyway:
+  en: Replace Colors
+settings.saved_colors_delete_title:
+  en: "Delete the saved colors “%{name}”?"
+settings.saved_colors_delete_text:
+  en: The colors in use stay as they are.
+settings.colors_editing:
+  en: Palette
+settings.colors_editing_hint:
+  en: Dark and light have their own colors. Reset puts back the preset's color.
+settings.diff:
+  en: Diff
+settings.diff_hint:
+  en: The defaults for diffs. Changing them in a diff changes them here too.
+settings.diff_layout:
+  en: Layout
+settings.diff_unified:
+  en: Unified
+settings.diff_split:
+  en: Split
+settings.ignore_whitespace:
+  en: Ignore whitespace
+settings.graph:
+  en: Graph
+settings.graph_columns:
+  en: Columns
+settings.graph_columns_hint:
+  en: The columns of the commit graph. Drag the edge of a column header in the graph to resize it.
+settings.graph_show_author:
+  en: Author
+settings.graph_show_date:
+  en: Date
+settings.graph_show_sha:
+  en: SHA
+settings.graph_widths:
+  en: Column widths
+settings.graph_widths_hint:
+  en: Branch / Tag, Author and Date keep the widths they were dragged to.
+settings.graph_widths_reset:
+  en: Reset widths
+colors.group_surfaces:
+  en: Surfaces
+colors.group_text:
+  en: Text colors
+colors.group_accent:
+  en: Accent
+colors.group_lanes:
+  en: Graph lanes
+colors.group_changes:
+  en: Changes and merges
+colors.bg:
+  en: Window background
+colors.panel:
+  en: Panels
+colors.panel2:
+  en: Raised areas (banners, headers)
+colors.line:
+  en: Borders
+colors.fg:
+  en: Text
+colors.fg2:
+  en: Secondary text
+colors.fg3:
+  en: Muted text
+colors.acc:
+  en: Accent
+colors.acc_fg:
+  en: Text on the accent
+colors.sel:
+  en: Selected rows
+colors.hover:
+  en: Hovered rows
+colors.chip:
+  en: Chips and tags
+colors.lane:
+  en: "Lane %{n}"
+colors.add:
+  en: Added
+colors.del:
+  en: Removed
+colors.mod:
+  en: Modified
+colors.add_bg:
+  en: Added lines
+colors.del_bg:
+  en: Removed lines
+colors.moved_from_bg:
+  en: Moved lines (old place)
+colors.moved_to_bg:
+  en: Moved lines (new place)
+colors.find_bg:
+  en: Find matches
+find.placeholder:
+  en: Find
+find.none:
+  en: No matches
+find.count:
+  en: "%{current} of %{total}"
+find.total_one:
+  en: "%{count} match"
+find.total_other:
+  en: "%{count} matches"
+find.match_case:
+  en: "Match case (Alt+C)"
+find.previous:
+  en: Previous
+find.next:
+  en: Next
+find.close:
+  en: Close
+colors.ours_bg:
+  en: Ours (conflicts)
+colors.theirs_bg:
+  en: Theirs (conflicts)
+colors.scrim:
+  en: Behind dialogs
+time.just_now:
+  en: just now
+time.minutes_ago_one:
+  en: "%{count} min ago"
+time.minutes_ago_other:
+  en: "%{count} min ago"
+time.hours_ago_one:
+  en: "%{count} h ago"
+time.hours_ago_other:
+  en: "%{count} h ago"
+time.days_ago_one:
+  en: "%{count} d ago"
+time.days_ago_other:
+  en: "%{count} d ago"
+time.date_time:
+  en: "%{year}-%{month}-%{day} %{hour}:%{minute}"
+time.date_time_short:
+  en: "%{month}-%{day} %{hour}:%{minute}"
+list.separator:
+  en: ", "
+
+title.ahead_one:
+  en: "%{count} ahead"
+title.ahead_other:
+  en: "%{count} ahead"
+title.behind_one:
+  en: "%{count} behind"
+title.behind_other:
+  en: "%{count} behind"
+title.ahead_behind:
+  en: "%{ahead}, %{behind}"
+status_bar.up_to_date:
+  en: "Up to date with %{upstream}"
+status_bar.ahead_one:
+  en: "%{count} ahead of %{upstream}"
+status_bar.ahead_other:
+  en: "%{count} ahead of %{upstream}"
+status_bar.behind_one:
+  en: "%{count} behind %{upstream}"
+status_bar.behind_other:
+  en: "%{count} behind %{upstream}"
+status_bar.diverged:
+  en: "%{ahead}, %{behind}"
+status_bar.diverged_behind_one:
+  en: "%{count} behind"
+status_bar.diverged_behind_other:
+  en: "%{count} behind"
+status_bar.no_upstream:
+  en: No upstream branch
+status_bar.detached:
+  en: Detached HEAD
+status_bar.fetched:
+  en: "fetched %{when}"
+status_bar.commits_one:
+  en: "%{count} commit"
+status_bar.commits_other:
+  en: "%{count} commits"
+# Between groups of three digits in counts ("1,247 commits"): "." or a narrow no-break
+# space (U+202F) in many languages.
+number.thousands_separator:
+  en: ","
+
+sidebar.filter:
+  en: Filter branches
+sidebar.section_local:
+  en: Local
+sidebar.section_remote:
+  en: Remote
+sidebar.section_tags:
+  en: Tags
+sidebar.section_stashes:
+  en: Stashes
+sidebar.section_submodules:
+  en: Submodules
+sidebar.section_worktrees:
+  en: Worktrees
+
+# The command palette (Ctrl+Shift+P).
+palette.placeholder:
+  en: "Type a command, a branch or a repository"
+palette.empty:
+  en: "No matching commands"
+# Under a list cut short: a rebase of thousands of commits offers several commands each.
+palette.more_one:
+  en: "%{count} more command: type to find it"
+palette.more_other:
+  en: "%{count} more commands: type to find them"
+palette.group.operation:
+  en: "Operation in progress"
+palette.group.commit:
+  en: "Selected commit"
+palette.group.changes:
+  en: "Working changes"
+palette.group.remote:
+  en: "Remote"
+palette.group.repository:
+  en: "Repository"
+palette.group.view:
+  en: "View"
+palette.group.window:
+  en: "Window and tabs"
+palette.continue_merge:
+  en: "Continue the merge"
+palette.continue_rebase:
+  en: "Continue the rebase"
+palette.continue_cherry_pick:
+  en: "Continue the cherry-pick"
+palette.continue_revert:
+  en: "Continue the revert"
+palette.continue_am:
+  en: "Continue applying the patches"
+palette.skip_rebase:
+  en: "Skip this commit of the rebase"
+palette.skip_cherry_pick:
+  en: "Skip this commit of the cherry-pick"
+palette.skip_revert:
+  en: "Skip this commit of the revert"
+palette.skip_am:
+  en: "Skip this patch"
+palette.abort_merge:
+  en: "Abort the merge"
+palette.abort_rebase:
+  en: "Abort the rebase"
+palette.abort_cherry_pick:
+  en: "Abort the cherry-pick"
+palette.abort_revert:
+  en: "Abort the revert"
+palette.abort_am:
+  en: "Stop applying the patches (abort)"
+palette.bisect_good:
+  en: "Bisect: the checked-out commit is good"
+palette.bisect_bad:
+  en: "Bisect: the checked-out commit is bad"
+palette.bisect_skip:
+  en: "Bisect: skip the checked-out commit"
+palette.bisect_reset:
+  en: "Bisect: end it and go back"
+palette.reset_soft:
+  en: "Reset current branch to here (soft: keep the changes, staged)"
+palette.reset_mixed:
+  en: "Reset current branch to here (mixed: keep the changes, unstaged)"
+palette.reset_hard:
+  en: "Reset current branch to here (hard: discard the changes)…"
+palette.show_changes:
+  en: "Show working changes"
+palette.discard_all:
+  en: "Discard all changes…"
+palette.commit:
+  en: "Commit the staged changes"
+palette.stash:
+  en: "Stash changes…"
+palette.pop:
+  en: "Pop the latest stash"
+palette.cancel_remote:
+  en: "Cancel the running fetch, pull or push"
+palette.background_fetch_on_one:
+  en: "Fetch in the background (every %{count} minute)"
+palette.background_fetch_on_other:
+  en: "Fetch in the background (every %{count} minutes)"
+palette.background_fetch_off:
+  en: "Stop fetching in the background"
+palette.undo:
+  en: "Undo %{op}"
+palette.redo:
+  en: "Redo %{op}"
+palette.new_tag:
+  en: "New tag on the checked-out commit…"
+palette.search:
+  en: "Search commits"
+palette.show_reflog:
+  en: "Show the reflog of HEAD"
+palette.hide_reflog:
+  en: "Hide the reflog"
+palette.show_activity:
+  en: "Show git activity"
+palette.hide_activity:
+  en: "Hide git activity"
+palette.browse_head:
+  en: "Browse files of the checked-out commit"
+palette.tab_new:
+  en: "New tab"
+palette.tab_close:
+  en: "Close tab"
+palette.tab_next:
+  en: "Next tab"
+palette.tab_previous:
+  en: "Previous tab"
+palette.tab_switch:
+  en: "Switch to tab %{name}"
+palette.settings:
+  en: "Settings…"
+palette.open_recent:
+  en: "Open %{name}"
+palette.group.branches:
+  en: "Branches"
+palette.group.remote_branches:
+  en: "Remote branches"
+palette.group.tags:
+  en: "Tags"
+palette.group.stashes:
+  en: "Stashes"
+palette.group.remotes:
+  en: "Remotes"
+palette.group.submodules:
+  en: "Submodules"
+palette.group.worktrees:
+  en: "Worktrees"
+palette.group.files:
+  en: "Changed files"
+palette.group.history:
+  en: "File history"
+palette.group.tree:
+  en: "Files of the commit"
+palette.group.reflog:
+  en: "Reflog"
+palette.group.blame:
+  en: "Blame"
+palette.blame_close:
+  en: "Close the blame"
+palette.group.trash:
+  en: "Trash"
+palette.group.dangling:
+  en: "Dangling commits"
+palette.group.compare:
+  en: "Comparison"
+# A comparison row's Shift+F10 (#27): what a click does, and a file's Viewed box.
+palette.compare_open:
+  en: "Open"
+palette.compare_viewed:
+  en: "Mark as viewed"
+palette.compare_not_viewed:
+  en: "Mark as not viewed"
+
+# G15h2: the centre views' buttons in the palette
+palette.group.conflict:
+  en: "Conflict tool"
+palette.group.diff:
+  en: "Diff"
+palette.group.rebase:
+  en: "Interactive rebase"
+palette.conflict_next:
+  en: "Next conflict"
+palette.conflict_previous:
+  en: "Previous conflict"
+palette.conflict_stop_editing:
+  en: "Stop editing by hand"
+palette.conflict_close:
+  en: "Close the conflict tool"
+palette.diff_clear_selection:
+  en: "Clear the line selection"
+palette.diff_split:
+  en: "Show the diff side by side"
+palette.diff_unified:
+  en: "Show the diff unified"
+palette.diff_ignore_whitespace:
+  en: "Ignore whitespace in the diff"
+palette.diff_show_whitespace:
+  en: "Show whitespace changes in the diff"
+palette.diff_full_file:
+  en: "Show the whole file in the diff"
+palette.diff_hunks_only:
+  en: "Show only the changed parts of the file"
+palette.diff_comment_line:
+  en: "Comment on line %{line}…"
+diff.missing_objects:
+  en: "This partial clone doesn't have this file's contents here, and Gitweft never downloads them by itself."
+diff.fetch_missing:
+  en: Fetch missing contents
+file.missing_objects:
+  en: "This partial clone doesn't have this version of the file here, and Gitweft never downloads it by itself."
+blame.missing_objects:
+  en: "This partial clone lacks versions of the file blame needs, and Gitweft never downloads them by itself."
+diff.fetch_missing_failed:
+  en: "Couldn't fetch the missing contents: %{error}"
+toast.close:
+  en: Close
+palette.diff_close:
+  en: "Close the diff"
+palette.rebase_move_up:
+  en: "Move the commit up"
+palette.rebase_move_down:
+  en: "Move the commit down"
+palette.rebase_pause:
+  en: "Pause after this commit"
+palette.rebase_no_pause:
+  en: "Don't pause after this commit"
+palette.rebase_close:
+  en: "Close the rebase editor"
+
+# G15i1: the trash kept from git gc, older folders, files in a restore's way
+trash.action_aside:
+  en: "Moved aside for a restore"
+trash.action_legacy:
+  en: "From an older version · repository unknown"
+trash.show_folder:
+  en: "Show in file manager"
+trash.blocked_confirm_one:
+  en: "“%{path}” is a file now, where %{count} file needs a folder"
+trash.blocked_confirm_other:
+  en: "“%{path}” is a file now, where %{count} files need a folder"
+trash.blocked_detail:
+  en: "Move it to the trash (it can be put back from there like the rest) and restore the files?"
+trash.move_and_restore:
+  en: "Move and restore"
+trash.blocked_still:
+  en: "%{path}: “%{blocker}” is still in the way"
+palette.detail.branch:
+  en: "branch %{name}"
+palette.detail.remote_branch:
+  en: "remote branch %{name}"
+palette.detail.tag:
+  en: "tag %{name}"
+palette.detail.stash:
+  en: "stash %{name}"
+palette.detail.remote:
+  en: "remote %{name}"
+palette.detail.submodule:
+  en: "submodule %{name}"
+palette.detail.worktree:
+  en: "worktree %{name}"
+
+# The Keyboard page of the settings window.
+settings.keyboard:
+  en: "Keyboard"
+settings.keyboard_hint:
+  en: "Record gives a command the next keys you press: one shortcut, or a sequence such as Ctrl+K Ctrl+S, ended by a second's pause (Escape cancels). Changes are saved in keymap.json."
+keyboard.group.window:
+  en: "Window and tabs"
+keyboard.group.repository:
+  en: "Repository"
+keyboard.group.graph:
+  en: "Graph"
+keyboard.group.views:
+  en: "Views"
+keyboard.record:
+  en: "Record"
+keyboard.cancel:
+  en: "Cancel"
+keyboard.remove:
+  en: "Remove"
+keyboard.press_keys:
+  en: "Press the new keys (a pause ends a sequence)…"
+keyboard.unbound:
+  en: "No keys"
+keyboard.conflict:
+  en: "Also bound to %{names}"
+keyboard.action.palette:
+  en: "Open the command palette"
+keyboard.action.settings:
+  en: "Open the settings"
+keyboard.action.activate_tab:
+  en: "Go to tab %{n}"
+keyboard.action.last_tab:
+  en: "Go to the last tab"
+keyboard.action.deepen:
+  en: "Fetch more history"
+keyboard.action.background_fetch:
+  en: "Turn background fetch on or off"
+keyboard.action.next:
+  en: "Select the next commit"
+keyboard.action.previous:
+  en: "Select the previous commit"
+keyboard.action.first:
+  en: "Select the first commit"
+keyboard.action.last:
+  en: "Select the last commit"
+keyboard.action.page_down:
+  en: "Page down"
+keyboard.action.page_up:
+  en: "Page up"
+keyboard.action.close_diff:
+  en: "Close the diff"
+keyboard.action.close_blame:
+  en: "Close the blame"
+keyboard.action.close_file:
+  en: "Close the file"
+keyboard.action.find_open:
+  en: "Find in the text"
+keyboard.action.find_next:
+  en: "Find: next match"
+keyboard.action.find_previous:
+  en: "Find: previous match"
+keyboard.action.find_case:
+  en: "Find: match case or not"
+keyboard.action.find_close:
+  en: "Close Find"
+keyboard.action.close_history:
+  en: "Close the file history"
+keyboard.action.close_tree:
+  en: "Close the file tree"
+keyboard.action.close_reflog:
+  en: "Close the reflog"
+keyboard.action.close_dangling:
+  en: Close the dangling commits
+keyboard.action.close_trash:
+  en: Close the trash
+keyboard.action.close_compare:
+  en: "Close the comparison"
+keyboard.action.close_conflict:
+  en: "Close the conflict tool (or leave its text box)"
+keyboard.action.other_pane:
+  en: "Switch between Ours and Theirs"
+keyboard.action.move_up:
+  en: "Rebase: move the commit up"
+keyboard.action.move_down:
+  en: "Rebase: move the commit down"
+# The rebase editor's selected row (#29): git's todo letters.
+keyboard.action.rebase_pick:
+  en: "Rebase: pick the selected commit"
+keyboard.action.rebase_reword:
+  en: "Rebase: reword the selected commit"
+keyboard.action.rebase_edit:
+  en: "Rebase: stop to edit the selected commit"
+keyboard.action.rebase_squash:
+  en: "Rebase: squash the selected commit"
+keyboard.action.rebase_fixup:
+  en: "Rebase: fix up the selected commit"
+keyboard.action.rebase_drop:
+  en: "Rebase: drop the selected commit"
+keyboard.action.rebase_close:
+  en: "Close the rebase editor (or leave its message box)"
+keyboard.group.lists:
+  en: "Lists"
+keyboard.action.next_panel:
+  en: "Focus the next panel"
+keyboard.action.previous_panel:
+  en: "Focus the previous panel"
+keyboard.action.next_row:
+  en: "Next row"
+keyboard.action.previous_row:
+  en: "Previous row"
+keyboard.action.first_row:
+  en: "First row"
+keyboard.action.last_row:
+  en: "Last row"
+keyboard.action.open_row:
+  en: "Open the row (its diff, commit or stash)"
+keyboard.action.toggle_row:
+  en: "Stage or unstage the file; mark a compared file viewed; pick a conflict's line"
+keyboard.action.delete_row:
+  en: "Discard the file's changes; delete a trash entry"
+keyboard.action.row_menu:
+  en: "Show the row's actions"
+# The code views' keys (#28).
+keyboard.action.scroll_left:
+  en: "Scroll the lines to the left"
+keyboard.action.scroll_right:
+  en: "Scroll the lines to the right"
+keyboard.action.next_hunk:
+  en: "Next hunk or conflict (in a blame: the next commit's lines)"
+keyboard.action.previous_hunk:
+  en: "Previous hunk or conflict (in a blame: the previous commit's lines)"
+keyboard.action.extend_next_commit:
+  en: "Extend the selection to the next commit"
+keyboard.action.extend_previous_commit:
+  en: "Extend the selection to the previous commit"
+keyboard.action.extend_first_commit:
+  en: "Extend the selection to the first commit"
+keyboard.action.extend_last_commit:
+  en: "Extend the selection to the last commit"
+keyboard.action.tree_collapse:
+  en: "Collapse the folder, or go to the folder it's in"
+keyboard.action.tree_expand:
+  en: "Expand the folder, or go to its first entry"
+keyboard.action.extend_next:
+  en: "Extend the selection to the next file"
+keyboard.action.extend_previous:
+  en: "Extend the selection to the previous file"
+keyboard.action.extend_first:
+  en: "Extend the selection to the first file"
+keyboard.action.extend_last:
+  en: "Extend the selection to the last file"
+keyboard.action.select_all_rows:
+  en: "Select every file in the list"
+
+# G8: the graph's view menu, double click, merge base
+graph.walk.all_branches:
+  en: "All branches"
+graph.walk.current_branch:
+  en: "Current branch only"
+graph.walk.first_parent:
+  en: "First parent only"
+graph.walk.date_order:
+  en: "Date order"
+graph.walk.topo_order:
+  en: "Topological order"
+graph.walk.short_all:
+  en: "All branches"
+graph.walk.short_current:
+  en: "Current branch"
+graph.walk.short_first_parent:
+  en: "First parent"
+graph.walk.short_topo:
+  en: "Topological"
+graph.select_merge_base:
+  en: "Select merge base with HEAD"
+graph.merge_base_is_commit:
+  en: "This commit is in HEAD's history, so it is the merge base itself."
+graph.no_merge_base:
+  en: "This commit and HEAD have no history in common."
+graph.merge_base_failed:
+  en: "Couldn't find the merge base: %{error}"
+graph.checkout_detached_confirm:
+  en: "Check out commit %{sha}?"
+graph.checkout_detached_detail:
+  en: "No branch points at it, so HEAD will be detached: new commits won't belong to any branch until you create one."
+palette.group.checkout:
+  en: "Check out"
+palette.graph_current_branch:
+  en: "Graph: show the current branch only"
+palette.graph_all_branches:
+  en: "Graph: show all branches"
+palette.graph_first_parent:
+  en: "Graph: show first parents only"
+palette.graph_all_parents:
+  en: "Graph: show every parent"
+palette.graph_topo_order:
+  en: "Graph: topological order"
+palette.graph_date_order:
+  en: "Graph: date order"
+
+# G8b: several selected commits
+graph.drag_commits_one:
+  en: "Cherry-pick %{count} commit"
+graph.drag_commits_other:
+  en: "Cherry-pick %{count} commits"
+graph.cherry_pick_multiple_one:
+  en: "Cherry-pick %{count} commit"
+graph.cherry_pick_multiple_other:
+  en: "Cherry-pick %{count} commits"
+details.several:
+  en: "Selected commits"
+details.several_count_one:
+  en: "%{count} commit"
+details.several_count_other:
+  en: "%{count} commits"
+details.several_hint:
+  en: "Ctrl+click adds or removes a commit, Shift+click selects a range. Dragging them onto the checked-out commit cherry-picks them too."
+undo.op_cherry_pick_multiple_one:
+  en: "cherry-pick of %{count} commit"
+undo.op_cherry_pick_multiple_other:
+  en: "cherry-pick of %{count} commits"
+undo.op_lfs_import:
+  en: "moving %{patterns} into Git LFS on %{branch}"
+undo.op_lfs_export:
+  en: "moving %{patterns} out of Git LFS on %{branch}"
+rewrite.picked_multiple_one:
+  en: "Cherry-picked %{count} commit"
+rewrite.picked_multiple_other:
+  en: "Cherry-picked %{count} commits"
+rewrite.picked_some_one:
+  en: "Cherry-picked %{picked} of %{count} commit; the others were on this branch already."
+rewrite.picked_some_other:
+  en: "Cherry-picked %{picked} of %{count} commits; the others were on this branch already."
+rewrite.pick_empty_multiple:
+  en: "Those changes are on this branch already, so nothing was cherry-picked."
+rewrite.conflict_title_multiple_one:
+  en: "Cherry-picking %{count} commit stopped on a conflict"
+rewrite.conflict_title_multiple_other:
+  en: "Cherry-picking %{count} commits stopped on a conflict"
+rewrite.drop_picks_confirm_one:
+  en: "Cherry-pick %{count} commit onto %{branch}?"
+rewrite.drop_picks_confirm_other:
+  en: "Cherry-pick %{count} commits onto %{branch}?"
+rewrite.drop_picks_detail:
+  en: "They become new commits on top of %{branch}, oldest first. Undo (Ctrl+Z) takes them back."
+
+# G8c: hidden and solo branches
+graph.hide:
+  en: "Hide in graph"
+graph.unhide:
+  en: "Show in graph"
+graph.solo:
+  en: "Solo in graph"
+graph.unsolo:
+  en: "Stop solo"
+graph.hide_remote:
+  en: "Hide its branches in graph"
+graph.unhide_remote:
+  en: "Show its branches in graph"
+graph.walk.show_every_branch:
+  en: "Show every branch"
+graph.walk.show_ref:
+  en: "Show %{name}"
+graph.walk.show_remote:
+  en: "Show %{remote}'s branches"
+graph.walk.more_hidden_one:
+  en: "and %{count} more hidden"
+graph.walk.more_hidden_other:
+  en: "and %{count} more hidden"
+graph.walk.fit_graph:
+  en: Fit the graph column to its lanes
+graph.walk.short_hidden_one:
+  en: "%{count} hidden"
+graph.walk.short_hidden_other:
+  en: "%{count} hidden"
+graph.walk.short_solo:
+  en: "Solo: %{name}"
+sidebar.hidden:
+  en: "hidden"
+sidebar.solo:
+  en: "solo"
+palette.graph_show_every_branch:
+  en: "Graph: show every branch"
+
+# G8d: a branch dropped on another branch
+graph.drop_title:
+  en: "%{branch} and %{target}"
+graph.drop_text_one:
+  en: "%{branch} has %{count} commit that %{target} doesn't have. Merge brings it into %{target} with a merge commit, after switching to %{target}. Rebase copies it on top of %{target} and moves %{branch} there, after switching to %{branch}."
+graph.drop_text_other:
+  en: "%{branch} has %{count} commits that %{target} doesn't have. Merge brings them into %{target} with a merge commit, after switching to %{target}. Rebase copies them on top of %{target} and moves %{branch} there, after switching to %{branch}; merge commits among them are left out."
+graph.drop_text_none:
+  en: "%{target} already has every commit of %{branch}, so there's nothing to merge. A rebase moves %{branch} to %{target}, after switching to %{branch}."
+graph.drop_text_any:
+  en: "Merge brings the commits of %{branch} that %{target} doesn't have into %{target}, after switching to %{target}. Rebase copies them on top of %{target} and moves %{branch} there, after switching to %{branch}."
+graph.drop_merge:
+  en: "Merge into %{target}"
+graph.drop_rebase:
+  en: "Rebase onto %{target}"
+graph.drop_rebase_merges:
+  en: "Rebase, keeping merges"
+graph.drop_merges_note_one:
+  en: "%{count} of them is a merge commit: a plain rebase leaves it out, rebasing while keeping merges makes it again."
+graph.drop_merges_note_other:
+  en: "%{count} of them are merge commits: a plain rebase leaves them out, rebasing while keeping merges makes them again."
+graph.drop_pick_group:
+  en: Drop onto
+graph.drop_pick_target:
+  en: "%{branch} onto %{target}…"
+graph.rebased:
+  en: "Rebased %{branch} onto %{target}"
+graph.rebase_failed:
+  en: "Couldn't rebase"
+graph.rebase_published:
+  en: "Rebase %{branch} onto %{target}?"
+graph.rebase_anyway:
+  en: Rebase anyway
+graph.rebase_conflict_title:
+  en: "Rebasing %{branch} stopped on a conflict"
+undo.op_rebase_branch:
+  en: "rebase of %{branch} onto %{target}"
+
+# G9a: edit and pause in a rebase, autosquash
+rebase.edit:
+  en: "Edit"
+rebase.pause:
+  en: "Pause after"
+rebase.pause_tip:
+  en: "Stop after this commit (and what is folded into it), to change or test things; Continue in the banner goes on."
+rebase.autosquash:
+  en: "Autosquash"
+rebase.autosquash_tip:
+  en: "Move fixup!, squash! and amend! commits under the commits they name"
+rebase.paused:
+  en: "Rebase of %{branch} paused: change what you need, then Continue in the banner."
+op.rebase_paused:
+  en: "Rebase paused: change what you need (amend the commit it stopped at, if you like), then Continue."
+
+# G9b: the graph's quick rebase actions
+rebase.quick_reword:
+  en: "Reword…"
+rebase.quick_squash:
+  en: "Squash into parent"
+rebase.quick_drop:
+  en: "Drop commit"
+rebase.quick_fixup:
+  en: "Create fixup! commit"
+rebase.reword_title:
+  en: "Reword “%{summary}”"
+rebase.reword_placeholder:
+  en: "Commit message"
+rebase.reword_ok:
+  en: "Reword"
+rebase.drop_confirm:
+  en: "Drop “%{summary}”?"
+rebase.drop_detail:
+  en: "Its changes leave %{branch}, and the commits after it are replayed. Undo (Ctrl+Z) brings it back."
+rebase.drop_button:
+  en: "Drop"
+rebase.not_on_branch:
+  en: "That commit isn't on the checked-out branch."
+
+# G15g: the first commit in quick rebases, fixup into parent
+rebase.quick_fixup_parent:
+  en: "Fixup into parent (keep the parent's message)"
+rebase.no_parent:
+  en: "That's the first commit: it has no parent to fold into."
+rebase.drop_only:
+  en: "That's the branch's only commit: dropping it would leave nothing."
+rebase.fixup_done:
+  en: "Committed a fixup! for “%{summary}”"
+rebase.fixup_failed:
+  en: "Couldn't commit the fixup"
+undo.op_fixup:
+  en: "fixup! commit for “%{summary}”"

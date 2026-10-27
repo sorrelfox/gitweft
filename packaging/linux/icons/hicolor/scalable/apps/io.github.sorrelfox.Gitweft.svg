@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Gitweft: a main line with a branch that leaves and merges back. -->
+  <rect x="8" y="8" width="112" height="112" rx="26" fill="#1f2430"/>
+  <path d="M46 30 V98" fill="none" stroke="#5b9cf5" stroke-width="10" stroke-linecap="round"/>
+  <path d="M46 38 C46 50 82 44 82 56 V72 C82 84 46 78 46 90" fill="none" stroke="#f0a33c"
+        stroke-width="10" stroke-linecap="round"/>
+  <circle cx="46" cy="30" r="11" fill="#5b9cf5"/>
+  <circle cx="82" cy="64" r="11" fill="#f0a33c"/>
+  <circle cx="46" cy="98" r="11" fill="#1f2430" stroke="#5b9cf5" stroke-width="7"/>
+</svg>

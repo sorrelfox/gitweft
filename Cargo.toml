@@ -1,0 +1,76 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.98"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/sorrelfox/gitweft"
+publish = false
+
+[workspace.dependencies]
+# UI — exact pins: GPUI Kit tracks a pre-1.0 GPUI snapshot, upgrades are deliberate.
+gpui-kit = { version = "=0.6.1", default-features = false, features = ["component", "assets"] }
+
+# Git reads. Network, credential and signal-handler features stay OFF: every network
+# operation goes through the system `git` binary (see docs/OFFLINE.md).
+gix = { version = "0.87.1", default-features = false, features = [
+    "sha1",
+    # Repositories made with `git init --object-format=sha256`; without it gix refuses to
+    # open them at all ("Failed to load the git configuration").
+    "sha256",
+    "max-performance-safe",
+    "basic",
+    "status",
+    "mailmap",
+    "excludes",
+] }
+
+async-channel = "2"
+libc = "0.2"
+# inotify file watching; already in the tree through gpui-component, so no new code.
+notify = { version = "7.0.0", default-features = false }
+similar = { version = "3.2", features = ["unicode"] }
+# bat's syntax/theme collection for syntect, with the pure-Rust regex engine (no C build).
+two-face = { version = "0.5.2", default-features = false, features = ["syntect-fancy"] }
+# Same i18n system gpui-component uses, so one set_locale() covers everything.
+rust-i18n = "4.2"
+# The undo log on disk (oplog.jsonl); both are already in the tree through GPUI.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+# How many columns a character takes in the code font (CJK and emoji take two, #42); already
+# in the tree through GPUI's text input.
+unicode-width = "0.2.2"
+
+# Internal crates
+gitweft-core = { path = "crates/gitweft-core" }
+gitweft-diff = { path = "crates/gitweft-diff" }
+gitweft-syntax = { path = "crates/gitweft-syntax" }
+gitweft-git = { path = "crates/gitweft-git" }
+gitweft-graph = { path = "crates/gitweft-graph" }
+gitweft-workspace = { path = "crates/gitweft-workspace" }
+gitweft-testkit = { path = "crates/gitweft-testkit" }
+gitweft-ui = { path = "crates/gitweft-ui" }
+
+# Dev
+proptest = "1"
+tempfile = "3"
+# Benchmarks (`just bench`, #26): no plots, no rayon.
+criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
+
+[profile.dev.package."*"]
+# Keep debug builds usable on large repositories.
+opt-level = 2
+
+[profile.release]
+lto = "thin"
+debug = "line-tables-only"
+
+[profile.dist]
+inherits = "release"
+lto = "fat"
+codegen-units = 1
+strip = "debuginfo"

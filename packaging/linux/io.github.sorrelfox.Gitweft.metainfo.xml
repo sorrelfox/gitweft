@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.sorrelfox.Gitweft</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Gitweft</name>
+  <summary>A fast, offline Git client</summary>
+  <summary xml:lang="de">Ein schneller Offline-Git-Client</summary>
+  <summary xml:lang="fr">Un client Git rapide et hors ligne</summary>
+  <summary xml:lang="es">Un cliente de Git rápido y sin conexión</summary>
+  <summary xml:lang="pt-BR">Um cliente Git rápido e offline</summary>
+  <summary xml:lang="it">Un client Git veloce e offline</summary>
+  <summary xml:lang="pl">Szybki klient Git działający offline</summary>
+  <summary xml:lang="ru">Быстрый Git-клиент, работающий без сети</summary>
+  <summary xml:lang="uk">Швидкий Git-клієнт, що працює без мережі</summary>
+  <summary xml:lang="zh-CN">快速的离线 Git 客户端</summary>
+  <summary xml:lang="ja">高速なオフライン Git クライアント</summary>
+  <summary xml:lang="ko">빠른 오프라인 Git 클라이언트</summary>
+  <summary xml:lang="tr">Hızlı, çevrimdışı bir Git istemcisi</summary>
+  <developer id="io.github.sorrelfox">
+    <name>sorrelfox</name>
+  </developer>
+  <description>
+    <p>
+      Gitweft is a native Git client with a visual commit graph, staging by file, hunk or
+      line, a merge conflict tool, branches, remotes, tags and stashes, and undo for local
+      operations.
+    </p>
+    <p xml:lang="de">Gitweft ist ein nativer Git-Client mit einem grafischen Commit-Graphen, Staging nach Datei, Hunk oder Zeile, einem Werkzeug für Merge-Konflikte, Branches, Remotes, Tags und Stashes sowie Rückgängig für lokale Operationen.</p>
+    <p xml:lang="fr">Gitweft est un client Git natif avec un graphe visuel des commits, l&#x27;indexation par fichier, section ou ligne, un outil de résolution des conflits de fusion, les branches, dépôts distants, étiquettes et remisages, et l&#x27;annulation des opérations locales.</p>
+    <p xml:lang="es">Gitweft es un cliente de Git nativo con un grafo visual de commits, preparación por archivo, fragmento o línea, una herramienta para conflictos de fusión, ramas, remotos, etiquetas y stashes, y deshacer para las operaciones locales.</p>
+    <p xml:lang="pt-BR">Gitweft é um cliente Git nativo com um grafo visual de commits, preparação por arquivo, trecho ou linha, uma ferramenta para conflitos de mesclagem, ramos, remotos, tags e stashes, e desfazer para operações locais.</p>
+    <p xml:lang="it">Gitweft è un client Git nativo con un grafo visuale dei commit, staging per file, blocco o riga, uno strumento per i conflitti di merge, branch, remoti, tag e stash, e l&#x27;annullamento delle operazioni locali.</p>
+    <p xml:lang="pl">Gitweft to natywny klient Git z graficznym grafem commitów, dodawaniem do indeksu według pliku, fragmentu lub wiersza, narzędziem do konfliktów scalania, gałęziami, zdalnymi repozytoriami, tagami i schowkami oraz cofaniem operacji lokalnych.</p>
+    <p xml:lang="ru">Gitweft — нативный Git-клиент с наглядным графом коммитов, индексированием по файлам, фрагментам или строкам, инструментом для конфликтов слияния, ветками, внешними репозиториями, метками и отложенными изменениями, а также отменой локальных операций.</p>
+    <p xml:lang="uk">Gitweft — нативний Git-клієнт із наочним графом комітів, індексуванням за файлами, фрагментами або рядками, інструментом для конфліктів злиття, гілками, віддаленими репозиторіями, мітками та схованками, а також скасуванням локальних операцій.</p>
+    <p xml:lang="zh-CN">Gitweft 是一款原生 Git 客户端，提供可视化提交图、按文件、区块或行暂存、合并冲突工具、分支、远程仓库、标签和贮藏，以及本地操作的撤销。</p>
+    <p xml:lang="ja">Gitweft は、視覚的なコミットグラフ、ファイル・ハンク・行単位のステージング、マージ競合ツール、ブランチ、リモート、タグ、スタッシュ、そしてローカル操作の取り消しを備えたネイティブ Git クライアントです。</p>
+    <p xml:lang="ko">Gitweft는 시각적 커밋 그래프, 파일·헝크·줄 단위 스테이징, 병합 충돌 도구, 브랜치, 원격, 태그와 스태시, 그리고 로컬 작업 되돌리기를 갖춘 네이티브 Git 클라이언트입니다.</p>
+    <p xml:lang="tr">Gitweft; görsel işleme grafiği, dosya, parça veya satır bazında hazırlama, birleştirme çakışması aracı, dallar, uzak konumlar, etiketler ve zulalar ile yerel işlemler için geri alma sunan yerel bir Git istemcisidir.</p>
+    <p>
+      It has no accounts, no cloud features and no telemetry. It works without an internet
+      connection: the only network traffic comes from git itself, talking to the remotes you
+      configured.
+    </p>
+    <p xml:lang="de">Es hat keine Konten, keine Cloud-Funktionen und keine Telemetrie. Es funktioniert ohne Internetverbindung: Der einzige Netzwerkverkehr stammt von git selbst, das mit den von Ihnen eingerichteten Remotes spricht.</p>
+    <p xml:lang="fr">Il n&#x27;a ni comptes, ni fonctions cloud, ni télémétrie. Il fonctionne sans connexion Internet : le seul trafic réseau vient de git lui-même, qui communique avec les dépôts distants que vous avez configurés.</p>
+    <p xml:lang="es">No tiene cuentas, ni funciones en la nube, ni telemetría. Funciona sin conexión a Internet: el único tráfico de red proviene del propio git, al comunicarse con los remotos que hayas configurado.</p>
+    <p xml:lang="pt-BR">Não tem contas, nem recursos de nuvem, nem telemetria. Funciona sem conexão com a Internet: o único tráfego de rede vem do próprio git, conversando com os remotos que você configurou.</p>
+    <p xml:lang="it">Non ha account, né funzioni cloud, né telemetria. Funziona senza connessione a Internet: l&#x27;unico traffico di rete proviene da git stesso, che comunica con i remoti che hai configurato.</p>
+    <p xml:lang="pl">Nie ma kont, funkcji chmurowych ani telemetrii. Działa bez połączenia z Internetem: jedyny ruch sieciowy pochodzi od samego gita, który łączy się ze skonfigurowanymi przez Ciebie zdalnymi repozytoriami.</p>
+    <p xml:lang="ru">В нём нет учётных записей, облачных функций и телеметрии. Он работает без подключения к интернету: весь сетевой трафик создаёт только сам git, обращаясь к настроенным вами внешним репозиториям.</p>
+    <p xml:lang="uk">У ньому немає облікових записів, хмарних функцій і телеметрії. Він працює без підключення до інтернету: весь мережевий трафік створює лише сам git, звертаючись до налаштованих вами віддалених репозиторіїв.</p>
+    <p xml:lang="zh-CN">它没有账户、没有云功能，也没有遥测。它无需联网即可工作：唯一的网络流量来自 git 本身与您配置的远程仓库之间的通信。</p>
+    <p xml:lang="ja">アカウント、クラウド機能、テレメトリーはありません。インターネット接続なしで動作します。ネットワーク通信は、設定したリモートと通信する git 自身からのものだけです。</p>
+    <p xml:lang="ko">계정, 클라우드 기능, 원격 측정이 없습니다. 인터넷 연결 없이 작동합니다. 네트워크 트래픽은 설정한 원격과 통신하는 git 자체에서만 발생합니다.</p>
+    <p xml:lang="tr">Hesap, bulut özelliği ya da telemetri içermez. İnternet bağlantısı olmadan çalışır: tek ağ trafiği, yapılandırdığınız uzak konumlarla konuşan git&#x27;in kendisinden gelir.</p>
+  </description>
+  <launchable type="desktop-id">io.github.sorrelfox.Gitweft.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <caption>The commit graph, with a commit's details and its diff</caption>
+      <caption xml:lang="de">Der Commit-Graph mit den Details und dem Diff eines Commits</caption>
+      <caption xml:lang="fr">Le graphe des commits, avec les détails et le diff d&#x27;un commit</caption>
+      <caption xml:lang="es">El grafo de commits, con los detalles y el diff de un commit</caption>
+      <caption xml:lang="pt-BR">O grafo de commits, com os detalhes e o diff de um commit</caption>
+      <caption xml:lang="it">Il grafo dei commit, con i dettagli e il diff di un commit</caption>
+      <caption xml:lang="pl">Graf commitów ze szczegółami i różnicami jednego commita</caption>
+      <caption xml:lang="ru">Граф коммитов со сведениями о коммите и его изменениями</caption>
+      <caption xml:lang="uk">Граф комітів із відомостями про коміт і його змінами</caption>
+      <caption xml:lang="zh-CN">提交图，以及某个提交的详情和差异</caption>
+      <caption xml:lang="ja">コミットグラフと、コミットの詳細および差分</caption>
+      <caption xml:lang="ko">커밋 그래프와 커밋의 세부 정보 및 차이</caption>
+      <caption xml:lang="tr">Bir işlemenin ayrıntıları ve farkıyla birlikte işleme grafiği</caption>
+      <image type="source" width="1456" height="912">https://raw.githubusercontent.com/sorrelfox/gitweft/main/docs/screenshots/graph-dark.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>The same in the light theme</caption>
+      <caption xml:lang="de">Dasselbe im hellen Design</caption>
+      <caption xml:lang="fr">La même vue avec le thème clair</caption>
+      <caption xml:lang="es">Lo mismo con el tema claro</caption>
+      <caption xml:lang="pt-BR">O mesmo no tema claro</caption>
+      <caption xml:lang="it">Lo stesso con il tema chiaro</caption>
+      <caption xml:lang="pl">To samo w jasnym motywie</caption>
+      <caption xml:lang="ru">То же в светлой теме</caption>
+      <caption xml:lang="uk">Те саме у світлій темі</caption>
+      <caption xml:lang="zh-CN">浅色主题下的同一视图</caption>
+      <caption xml:lang="ja">ライトテーマでの同じ画面</caption>
+      <caption xml:lang="ko">밝은 테마에서 본 같은 화면</caption>
+      <caption xml:lang="tr">Açık temada aynısı</caption>
+      <image type="source" width="1456" height="912">https://raw.githubusercontent.com/sorrelfox/gitweft/main/docs/screenshots/graph-light.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://github.com/sorrelfox/gitweft</url>
+  <url type="bugtracker">https://github.com/sorrelfox/gitweft/issues</url>
+  <url type="vcs-browser">https://github.com/sorrelfox/gitweft</url>
+  <categories>
+    <category>Development</category>
+    <category>RevisionControl</category>
+  </categories>
+  <requires>
+    <display_length compare="ge">720</display_length>
+  </requires>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </supports>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.0.0" date="2026-10-27" type="stable">
+      <description>
+        <p>
+          The first release: a commit graph that stays quick on very large repositories,
+          staging by file, hunk or line, a merge conflict tool, an interactive rebase editor,
+          local code review, undo for local operations, twelve interface languages, and RPM,
+          DEB, AppImage and Flatpak packages.
+        </p>
+      </description>
+    </release>
+    <release version="0.1.0" date="2026-09-12" type="development">
+      <description>
+        <p>Development build: graph, staging, commits, branches, remotes, merge conflicts, tabs and undo.</p>
+      </description>
+    </release>
+  </releases>
+</component>

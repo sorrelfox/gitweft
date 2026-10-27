@@ -1,0 +1,32 @@
+[package]
+name = "gitweft-workspace"
+description = "Gitweft application shell: windows, title bar, repository views"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+async-channel.workspace = true
+gitweft-core.workspace = true
+gitweft-diff.workspace = true
+gitweft-git.workspace = true
+gitweft-graph.workspace = true
+gitweft-syntax.workspace = true
+gitweft-ui.workspace = true
+gpui-kit.workspace = true
+libc.workspace = true
+rust-i18n.workspace = true
+unicode-width.workspace = true
+
+[dev-dependencies]
+gitweft-testkit.workspace = true
+# The locale-keys test reads the translations' JSON-quoted texts (#46).
+serde_json.workspace = true
+tempfile.workspace = true
+# GPUI's test context (#51); dev-only, so the app itself never gets it.
+gpui-kit = { workspace = true, features = ["test-support"] }
+# Its tests keep undo logs, repository settings and the trash in a temporary folder.
+gitweft-core = { workspace = true, features = ["test-support"] }

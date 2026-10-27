@@ -1,0 +1,45 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Gitweft
+Source: https://github.com/sorrelfox/gitweft
+
+Files: *
+Copyright: Gitweft contributors
+License: GPL-3.0-or-later
+ On Debian systems, the full text of the GNU General Public License version 3
+ can be found in /usr/share/common-licenses/GPL-3.
+
+Files: assets/fonts/IBMPlex-*
+Copyright: 2017 IBM Corp. with Reserved Font Name "Plex"
+License: OFL-1.1
+ The license text is in /usr/share/doc/gitweft/IBMPlex-OFL.txt.
+
+Files: assets/fonts/Inter-*
+Copyright: 2016 The Inter Project Authors (https://github.com/rsms/inter)
+License: OFL-1.1
+ The license text is in /usr/share/doc/gitweft/Inter-OFL.txt.
+
+Files: assets/fonts/JetBrainsMono-*
+Copyright: 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+License: OFL-1.1
+ The license text is in /usr/share/doc/gitweft/JetBrainsMono-OFL.txt.
+
+Files: assets/icons/*
+Copyright: Gitweft contributors
+License: GPL-3.0-or-later
+ Drawn for Gitweft, not taken from a third-party icon set. The full text of the
+ GNU General Public License version 3 is in /usr/share/common-licenses/GPL-3.
+
+Files: vendor/*
+Copyright: The authors of each crate
+License: various
+ Gitweft is built with the Rust crates listed in
+ /usr/share/doc/gitweft/THIRD-PARTY-LICENSES.txt, each with its version, its
+ license (SPDX) and its license texts.
+
+Files: vendor/two-face*
+Copyright: The bat project and the authors of each syntax definition and theme
+License: various
+ two-face compiles in bat's collection of syntax definitions and themes. Each has
+ its own license (MIT, Apache-2.0, BSD, Sublime's own and others); the texts are in
+ /usr/share/doc/gitweft/THIRD-PARTY-LICENSES.txt, under "Syntax definitions and
+ themes".

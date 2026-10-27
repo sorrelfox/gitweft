@@ -1,0 +1,57 @@
+# Flatpak of the release sources (scripts/dist/sources.py), built offline in the SDK with
+# scripts/dist/build.sh: `scripts/dist/flatpak.sh` builds, bundles and smoke-tests it.
+# A template, like the DEB's control.in: flatpak.sh puts Cargo.toml's version into the
+# tarballs' names below (scripts/dist/check-version.sh checks they keep the placeholder).
+# The Freedesktop Platform has no git (only the SDK does): the SDK's git is copied into the
+# app. ssh comes from the Platform.
+app-id: io.github.sorrelfox.Gitweft
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: gitweft
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # Repositories live anywhere in the home folder (and on other drives).
+  - --filesystem=home
+  - --filesystem=/media
+  - --filesystem=/run/media
+  - --filesystem=/mnt
+  # git itself talks to the remotes; Gitweft opens no connections of its own.
+  - --share=network
+  - --socket=ssh-auth
+  # Terminal, file manager, editor and diff tools run on the host (flatpak-spawn --host).
+  - --talk-name=org.freedesktop.Flatpak
+  # The copied git's helpers and templates (it was built for /usr).
+  - --env=GIT_EXEC_PATH=/app/libexec/git-core
+  - --env=GIT_TEMPLATE_DIR=/app/share/git-core/templates
+modules:
+  - name: git
+    buildsystem: simple
+    build-commands:
+      - install -Dm0755 /usr/bin/git /app/bin/git
+      - mkdir -p /app/libexec /app/share
+      - cp -a /usr/libexec/git-core /app/libexec/
+      - cp -a /usr/share/git-core /app/share/
+  - name: gitweft
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+    build-commands:
+      - bash scripts/dist/build.sh
+      - install -Dm0755 target/dist/gitweft /app/bin/gitweft
+      - install -Dm0644 packaging/linux/io.github.sorrelfox.Gitweft.desktop /app/share/applications/io.github.sorrelfox.Gitweft.desktop
+      - install -Dm0644 packaging/linux/io.github.sorrelfox.Gitweft.metainfo.xml /app/share/metainfo/io.github.sorrelfox.Gitweft.metainfo.xml
+      # The SVGs, and PNGs rendered by the SDK's rsvg-convert.
+      - bash scripts/dist/icons.sh /app/share
+      - install -Dm0644 -t /app/share/licenses/io.github.sorrelfox.Gitweft LICENSE THIRD-PARTY-LICENSES.txt assets/fonts/IBMPlex-OFL.txt assets/fonts/Inter-OFL.txt assets/fonts/JetBrainsMono-OFL.txt
+    sources:
+      # Both tarballs unpack into the same folder (their top folder is stripped).
+      - type: archive
+        path: ../../target/dist-src/gitweft-@VERSION@.tar.xz
+      - type: archive
+        path: ../../target/dist-src/gitweft-@VERSION@-vendor.tar.xz

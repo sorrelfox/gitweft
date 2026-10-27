@@ -1,0 +1,17 @@
+[package]
+name = "gitweft-graph"
+description = "Commit graph lane layout for Gitweft (pure, UI-independent)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+
+[[bench]]
+name = "layout"
+harness = false

@@ -1,0 +1,27 @@
+[package]
+name = "gitweft-core"
+description = "Gitweft application core (no UI): repository loading, background jobs, file watching"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+async-channel.workspace = true
+gitweft-git.workspace = true
+gitweft-graph.workspace = true
+libc.workspace = true
+notify.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[features]
+# Lets another crate's tests keep Gitweft's own files out of the user's data dir.
+test-support = []
+
+[dev-dependencies]
+gitweft-testkit.workspace = true
+proptest.workspace = true
+tempfile.workspace = true
