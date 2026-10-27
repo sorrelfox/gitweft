@@ -151,6 +151,8 @@ flathub dir="target/dist-src":
 
 # Every package, tested, with SHA256SUMS, in target/release/VERSION (scripts/dist/release.sh:
 # sources, RPM, DEB, AppImage, Flatpak; the release workflow on GitHub runs the same steps on
-# a `v*` tag and drafts a Release). `--worktree` takes uncommitted files.
+# a `v*` tag and drafts a Release). `--worktree` takes uncommitted files; `--aarch64` adds
+# the aarch64 RPM, DEB and AppImage (under QEMU emulation here). The single packages'
+# recipes build for GITWEFT_ARCH (x86_64 or aarch64) when it is set.
 release *flags:
     bash scripts/dist/release.sh {{flags}}

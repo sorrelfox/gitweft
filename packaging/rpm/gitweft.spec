@@ -15,7 +15,7 @@ Summary:        A fast, offline Git client
 # Gitweft is GPL-3.0-or-later; the bundled IBM Plex, Inter and JetBrains Mono fonts are OFL-1.1.
 License:        GPL-3.0-or-later AND OFL-1.1 AND %{bundled_license}
 URL:            https://github.com/sorrelfox/gitweft
-ExclusiveArch:  x86_64
+ExclusiveArch:  x86_64 aarch64
 
 Source0:        gitweft-%{version}.tar.xz
 Source1:        gitweft-%{version}-vendor.tar.xz

@@ -18,10 +18,10 @@ Writes to OUT_DIR:
                                   and %bundled_provides (Provides: bundled(crate(…)))
   THIRD-PARTY-LICENSES.txt        the notices, also for the DEB, AppImage and Flatpak
 
-Crates that no x86_64 Linux build compiles (Windows, macOS, wasm …) stay in vendor/ as
-stubs: their Cargo.toml and empty .rs files, so cargo still resolves Cargo.lock. Every file
-gets the last commit's time and root ownership, and xz runs single-threaded: the same
-commit gives the same bytes.
+Crates that no x86_64 or aarch64 Linux build compiles (Windows, macOS, wasm …) stay in
+vendor/ as stubs: their Cargo.toml and empty .rs files, so cargo still resolves Cargo.lock.
+Every file gets the last commit's time and root ownership, and xz runs single-threaded: the
+same commit gives the same bytes.
 """
 
 import io
@@ -35,7 +35,7 @@ import tarfile
 import tomllib
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-TARGET = "x86_64-unknown-linux-gnu"
+TARGETS = ("x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu")
 # Left out of the source tarball: every path .gitattributes marks export-ignore (the files
 # that belong to the development repository alone), as `git archive` leaves them out too.
 # What the package builds take from the tarball (scripts/dist/build.sh, the RPM spec,
@@ -116,10 +116,11 @@ def check_contents(files):
 
 
 def linux_packages():
-    """(name, version) → package metadata, for every crates.io package an x86_64 Linux build uses."""
+    """(name, version) → package metadata, for every crates.io package a Linux build uses
+    (on any of TARGETS)."""
+    platforms = [arg for target in TARGETS for arg in ("--filter-platform", target)]
     meta = json.loads(run(
-        "cargo", "metadata", "--offline", "--locked", "--format-version", "1",
-        "--filter-platform", TARGET,
+        "cargo", "metadata", "--offline", "--locked", "--format-version", "1", *platforms,
     ))
     used = {node["id"] for node in meta["resolve"]["nodes"]}
     return {

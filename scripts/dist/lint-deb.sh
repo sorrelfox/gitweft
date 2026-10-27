@@ -2,12 +2,14 @@
 # Checks the DEB with lintian, Debian's package checker, in a Debian 13 container.
 # Errors fail; warnings are printed. The tags this package has on purpose are named below
 # with the reason, and nothing else is hidden.
-# Usage: scripts/dist/lint-deb.sh [DEB]   (default: target/deb/gitweft_*_amd64.deb)
+# Usage: scripts/dist/lint-deb.sh [DEB]   (default: target/deb/gitweft_*_ARCH.deb, for
+# GITWEFT_ARCH: scripts/dist/arch.sh). lintian reads a package of any architecture.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-deb=$(realpath "${1:-$(ls target/deb/gitweft_*_amd64.deb | head -1)}")
 engine=${CONTAINER:-podman}
 . scripts/dist/pins.env
+. scripts/dist/arch.sh
+deb=$(realpath "${1:-$(ls target/deb/gitweft_*_"$deb_arch".deb | head -1)}")
 # Debian's first upload of a package closes its ITP bug; this package isn't uploaded to
 # Debian (it's built from our own tree), so there is none to close.
 suppress=(

@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 digest() { printf 'sha256:%s' "$(skopeo inspect --raw "docker://$1" | sha256sum | cut -d' ' -f1)"; }
 commit() { flatpak remote-info flathub "runtime/$1/x86_64/25.08" | sed -n 's/^ *Commit: //p'; }
 rustup=$(curl -fsS https://static.rust-lang.org/rustup/release-stable.toml | sed -n "s/^version = '\(.*\)'/\1/p")
-rustup_sum=$(curl -fsS "https://static.rust-lang.org/rustup/archive/$rustup/x86_64-unknown-linux-gnu/rustup-init.sha256" | cut -d' ' -f1)
+rustup_sum() { curl -fsS "https://static.rust-lang.org/rustup/archive/$rustup/$1-unknown-linux-gnu/rustup-init.sha256" | cut -d' ' -f1; }
 new=$(mktemp)
 sed -n '1,/^GITWEFT_PIN/{/^GITWEFT_PIN/!p}' pins.env > "$new"
 cat >> "$new" <<PINS
@@ -17,7 +17,8 @@ GITWEFT_PIN_UBUNTU_24_04=docker.io/library/ubuntu:24.04@$(digest docker.io/libra
 GITWEFT_PIN_UBUNTU_26_04=docker.io/library/ubuntu:26.04@$(digest docker.io/library/ubuntu:26.04)
 GITWEFT_PIN_DEBIAN_13=docker.io/library/debian:13@$(digest docker.io/library/debian:13)
 GITWEFT_PIN_RUSTUP_VERSION=$rustup
-GITWEFT_PIN_RUSTUP_INIT_SHA256=$rustup_sum
+GITWEFT_PIN_RUSTUP_INIT_SHA256=$(rustup_sum x86_64)
+GITWEFT_PIN_RUSTUP_INIT_SHA256_AARCH64=$(rustup_sum aarch64)
 GITWEFT_PIN_FLATPAK_SDK=$(commit org.freedesktop.Sdk)
 GITWEFT_PIN_FLATPAK_PLATFORM=$(commit org.freedesktop.Platform)
 GITWEFT_PIN_FLATPAK_RUST=$(commit org.freedesktop.Sdk.Extension.rust-stable)

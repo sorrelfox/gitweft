@@ -2,8 +2,8 @@
 # Flathub's manifest for this version. Flathub builds the app itself, from sources it
 # downloads, so packaging/flatpak/io.github.sorrelfox.Gitweft.yml is written with the
 # release's tarballs as URLs on the GitHub Release, each with its SHA-256, in place of the
-# local paths. Also writes flathub.json: the vendored crates are those of an x86_64 build
-# (sources.py), so Flathub builds x86_64 only.
+# local paths. Also writes flathub.json, naming the architectures Flathub builds: those
+# whose crates the vendor tarball holds (sources.py's TARGETS).
 # Usage: scripts/dist/flathub.sh DIST_DIR [OUT_DIR]
 # DIST_DIR holds this version's two tarballs, exactly as published (the release workflow
 # runs this on the files it attaches). Writes OUT_DIR (default target/flathub)/
@@ -44,7 +44,7 @@ done
         { print }
     '
 } > "$out/$id.yml"
-printf '{\n  "only-arches": ["x86_64"]\n}\n' > "$out/flathub.json"
+printf '{\n  "only-arches": ["x86_64", "aarch64"]\n}\n' > "$out/flathub.json"
 
 grep -qE '^ *path: ' "$out/$id.yml" && { echo "flathub.sh: a local path is left in the manifest" >&2; exit 1; }
 echo "flathub.sh: $out/$id.yml and flathub.json, sources from $base/"

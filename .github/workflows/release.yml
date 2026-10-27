@@ -62,37 +62,56 @@ jobs:
       - name: Two builds at different paths, compared
         run: bash scripts/dist/repro-check.sh dist target/repro
 
+  # The RPM, the DEB and the AppImage for each architecture, each on a runner of its own
+  # (GitHub's arm64 runners for aarch64), so the scripts build natively, as on x86_64.
   rpm:
-    name: RPM (Fedora 44)
+    name: RPM (Fedora 44, ${{ matrix.arch }})
     needs: sources
-    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - { arch: x86_64, runner: ubuntu-24.04 }
+          - { arch: aarch64, runner: ubuntu-24.04-arm }
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: { name: sources, path: dist }
+      - name: podman
+        run: command -v podman || { sudo apt-get update -qq && sudo apt-get install -y -qq podman; }
       - name: Build as COPR does, install, smoke-test offline
-        run: bash scripts/dist/rpm.sh dist out/rpm
+        run: |
+          bash scripts/dist/rpm.sh dist out/rpm
+          # The source RPM is the same for both; the x86_64 run's is the one released.
+          [ "${{ matrix.arch }}" = x86_64 ] || rm out/rpm/*.src.rpm
       - uses: actions/upload-artifact@v4
         with:
-          name: rpm
+          name: rpm-${{ matrix.arch }}
           path: out/rpm/*.rpm
           if-no-files-found: error
 
   deb:
-    name: DEB (Debian, Ubuntu)
+    name: DEB (Debian, Ubuntu, ${{ matrix.arch }})
     needs: sources
-    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - { arch: x86_64, runner: ubuntu-24.04 }
+          - { arch: aarch64, runner: ubuntu-24.04-arm }
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: { name: sources, path: dist }
+      - name: podman
+        run: command -v podman || { sudo apt-get update -qq && sudo apt-get install -y -qq podman; }
       - name: Build in Ubuntu 24.04
         run: bash scripts/dist/deb.sh dist out/deb
       - name: Install on Debian 13, Ubuntu 24.04 and 26.04, smoke-test offline
-        run: bash scripts/dist/test-deb.sh out/deb/gitweft_*_amd64.deb
+        run: bash scripts/dist/test-deb.sh out/deb/gitweft_*.deb
       - uses: actions/upload-artifact@v4
         with:
-          name: deb
+          name: deb-${{ matrix.arch }}
           path: |
             out/deb/*.deb
             out/deb/gitweft
@@ -101,26 +120,32 @@ jobs:
           if-no-files-found: error
 
   appimage:
-    name: AppImage
+    name: AppImage (${{ matrix.arch }})
     needs: [sources, deb]
-    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - { arch: x86_64, runner: ubuntu-24.04 }
+          - { arch: aarch64, runner: ubuntu-24.04-arm }
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: { name: sources, path: dist }
       - uses: actions/download-artifact@v4
-        with: { name: deb, path: out/deb }
+        with: { name: "deb-${{ matrix.arch }}", path: out/deb }
       - name: Pack
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq squashfs-tools
+          command -v podman || sudo apt-get install -y -qq podman
           chmod +x out/deb/gitweft
           bash scripts/dist/appimage.sh out/deb/gitweft dist out/appimage
       - name: Start it where only libxcb and git exist, smoke-test offline
-        run: bash scripts/dist/test-appimage.sh out/appimage/Gitweft-*-x86_64.AppImage
+        run: bash scripts/dist/test-appimage.sh out/appimage/Gitweft-*.AppImage
       - uses: actions/upload-artifact@v4
         with:
-          name: appimage
+          name: appimage-${{ matrix.arch }}
           path: out/appimage/*.AppImage
           if-no-files-found: error
 
@@ -167,8 +192,8 @@ jobs:
       - name: Files and checksums
         run: |
           mkdir files
-          cp artifacts/sources/gitweft-*.tar.xz artifacts/rpm/*.rpm artifacts/deb/*.deb \
-            artifacts/appimage/*.AppImage artifacts/flatpak/*.flatpak files/
+          cp artifacts/sources/gitweft-*.tar.xz artifacts/rpm-*/*.rpm artifacts/deb-*/*.deb \
+            artifacts/appimage-*/*.AppImage artifacts/flatpak/*.flatpak files/
           (cd files && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
       - name: Build provenance attestations
         uses: actions/attest-build-provenance@v2

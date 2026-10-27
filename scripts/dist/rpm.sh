@@ -4,8 +4,8 @@
 # (`dnf builddep`: Fedora's own Rust), and a normal user rebuilds it. The RPM is installed
 # there, and its binary then runs the smoke test in a container with no network at all.
 # Usage: scripts/dist/rpm.sh [DIST_DIR] [OUT_DIR]
-# Writes OUT_DIR (default target/rpm): gitweft-VERSION-1.fc44.src.rpm, …x86_64.rpm and
-# rpmbuild.log. Needs podman (CONTAINER=docker works too) and the Fedora 44 image at the
+# Writes OUT_DIR (default target/rpm): gitweft-VERSION-1.fc44.src.rpm, …ARCH.rpm (x86_64 or
+# aarch64, for GITWEFT_ARCH: scripts/dist/arch.sh) and rpmbuild.log. Needs podman (CONTAINER=docker works too) and the Fedora 44 image at the
 # digest in pins.env (GITWEFT_RPM_IMAGE picks another); dnf downloads the dependencies inside
 # the container.
 set -euo pipefail
@@ -15,6 +15,7 @@ dist=$(realpath "${1:-target/dist-src}")
 out=$(mkdir -p "${2:-target/rpm}" && realpath "${2:-target/rpm}")
 version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
 . scripts/dist/pins.env
+. scripts/dist/arch.sh
 image=${GITWEFT_RPM_IMAGE:-$GITWEFT_PIN_FEDORA_44}
 name=gitweft-rpm-$$
 cleanup() {
@@ -24,8 +25,8 @@ cleanup() {
 trap cleanup EXIT
 rm -f "$out"/gitweft-*.rpm
 
-"$engine" run --name "$name" -v "$dist:/dist:ro,z" -v "$out:/out:Z" -e VERSION="$version" \
-    "$image" bash -euc '
+"$engine" run --name "$name" --platform "$platform" -v "$dist:/dist:ro,z" -v "$out:/out:Z" \
+    -e VERSION="$version" "$image" bash -euc '
     dnf -y -q install rpm-build "dnf-command(builddep)" > /dev/null
     useradd -m builder
     top=/home/builder/rpmbuild
@@ -41,14 +42,14 @@ rm -f "$out"/gitweft-*.rpm
     echo "rustc: $(rustc --version) (from $(rpm -qf "$(command -v rustc)"))"
     su builder -c "rpmbuild --rebuild $top/SRPMS/gitweft-*.src.rpm" > /out/rpmbuild.log 2>&1 \
         || { tail -40 /out/rpmbuild.log; exit 1; }
-    cp $top/SRPMS/gitweft-*.src.rpm $top/RPMS/x86_64/gitweft-*.rpm /out/
-    dnf -y -q install $top/RPMS/x86_64/gitweft-*.rpm > /dev/null
+    cp $top/SRPMS/gitweft-*.src.rpm $top/RPMS/$(uname -m)/gitweft-*.rpm /out/
+    dnf -y -q install $top/RPMS/$(uname -m)/gitweft-*.rpm > /dev/null
     git init -q /tmp/repo
     git -C /tmp/repo -c user.name=T -c user.email=t@example.com commit -q --allow-empty -m first
 '
 "$engine" commit "$name" "localhost/$name" > /dev/null
 echo "--- installed, no network:"
-"$engine" run --rm --network none "localhost/$name" bash -euc '
+"$engine" run --rm --platform "$platform" --network none "localhost/$name" bash -euc '
     rpm -q gitweft
     gitweft --version
     gitweft --headless-smoke /tmp/repo | tail -1

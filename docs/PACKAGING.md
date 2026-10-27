@@ -64,6 +64,20 @@ last commit; `just rpm --worktree` (and the same for the others) takes the worki
 to try a packaging change before committing it. `just appimage` reuses the DEB's binary when one
 is there; run `just deb` first to rebuild it.
 
+### x86_64 and aarch64
+
+The RPM, the DEB and the AppImage are built for x86_64 and for aarch64 (64-bit ARM). The
+scripts build for the machine's own architecture, or for `GITWEFT_ARCH` (`x86_64` or `aarch64`)
+when it is set; their containers then run as that architecture. On an x86_64 machine that needs
+QEMU user-mode emulation (`sudo dnf install qemu-user-static` on Fedora), and the build is
+several times slower. `just release --aarch64`, after a `just release`, builds and tests the
+aarch64 packages and adds them to `target/release/VERSION/`. The release workflow builds each
+architecture natively, the aarch64 packages on GitHub's arm64 runners.
+
+The vendor tarball holds the crates of both builds (aarch64 needs a few fewer), so one pair of
+tarballs serves every package. The Flatpak bundle is built for x86_64 only; Flathub builds its
+own for both architectures.
+
 ## The scripts
 
 | Script | What it does |
@@ -76,13 +90,14 @@ is there; run `just deb` first to rebuild it.
 | `appimage.sh` | The DEB's binary, desktop file, metainfo, icons, the bundled libraries in `usr/lib` and the licenses in a zstd squashfs behind the AppImage type-2 runtime, which is pinned by tag and checksum and downloaded once into `target/tools/`. git comes from the host. |
 | `test-appimage.sh` | Starts the AppImage in a Debian 13 container that has only libxcb1 and git installed, prints where each library came from (the bundle or the host), and runs the smoke test offline. A library the bundle forgot fails the start here, as it would on a user's machine. |
 | `flatpak.sh` | Builds `packaging/flatpak/io.github.sorrelfox.Gitweft.yml` with flatpak-builder, bundles it, installs the bundle for the user and runs the smoke test with `flatpak run --unshare=network`. The SDK's git is copied into the app, because the Freedesktop Platform has none. |
-| `flathub.sh` | Writes Flathub's copy of the Flatpak manifest: the same file, with the release's two tarballs as URLs on the GitHub Release and their SHA-256 in place of the local paths, and `flathub.json`, which limits Flathub to x86_64 (the vendor tarball holds the crates of an x86_64 build). |
+| `flathub.sh` | Writes Flathub's copy of the Flatpak manifest: the same file, with the release's two tarballs as URLs on the GitHub Release and their SHA-256 in place of the local paths, and `flathub.json`, which names the architectures Flathub builds: x86_64 and aarch64, the two whose crates the vendor tarball holds. |
 | `release-notes.sh` | Prints a version's entry in `CHANGELOG.md`, the notes of its GitHub Release. |
 | `icons.sh` | Installs the SVG icons and renders PNGs from 16 to 512 px with rsvg-convert. |
 | `manpage.sh` | Writes `gitweft(1)` from the binary's own `--help`, so the options cannot drift. |
 | `validate-metadata.sh` | `desktop-file-validate` and `appstreamcli validate --pedantic` on the desktop file and the metainfo. |
 | `check-version.sh` | Every file that carries the version agrees with `Cargo.toml` (see "Making a release"). This is `just versions`. |
 | `release-entry.sh` | Prints the newest release's date and note from the metainfo, the one source the RPM and DEB changelogs follow. |
+| `arch.sh` | Which architecture the other scripts build for (`GITWEFT_ARCH`, else the machine's), and the names the packages give it. |
 | `pins.env`, `update-pins.sh`, `flatpak-pins.sh`, `rustup-init.sh` | The pinned inputs, next. |
 
 ## Pinned inputs
@@ -91,8 +106,8 @@ What a build starts from is pinned in `scripts/dist/pins.env`, so that rebuildin
 starts from the same inputs:
 
 - the container images (Fedora 44, Ubuntu 24.04 and 26.04, Debian 13) by digest;
-- rustup by version, and `rustup-init` by its SHA-256, instead of piping `sh.rustup.rs` into a
-  shell;
+- rustup by version, and `rustup-init` by its SHA-256 for each architecture, instead of piping
+  `sh.rustup.rs` into a shell;
 - the Flatpak SDK, Platform and Rust extension by commit.
 
 `scripts/dist/update-pins.sh` fetches the current digests and commits and rewrites the file; read

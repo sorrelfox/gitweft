@@ -4,15 +4,17 @@
 # libwayland-client, libEGL, glibc and libgcc_s on every host and nothing else, so a library
 # the image forgot fails the start here. Then the offline smoke test, in a container with no
 # network at all. Usage: scripts/dist/test-appimage.sh [APPIMAGE]
-# APPIMAGE defaults to target/appimage/Gitweft-*-x86_64.AppImage (scripts/dist/appimage.sh).
+# APPIMAGE defaults to target/appimage/Gitweft-*-ARCH.AppImage (scripts/dist/appimage.sh; the
+# containers run as its architecture, GITWEFT_ARCH: scripts/dist/arch.sh).
 # The image is debian:13 at pins.env's digest (GITWEFT_APPIMAGE_TEST_IMAGE picks another);
 # podman runs it (CONTAINER=docker works too), and it is removed afterwards. The runtime
 # extracts the image instead of mounting it, because a container has no FUSE.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-appimage=$(realpath "${1:-$(ls target/appimage/Gitweft-*-x86_64.AppImage | head -1)}")
 engine=${CONTAINER:-podman}
 . scripts/dist/pins.env
+. scripts/dist/arch.sh
+appimage=$(realpath "${1:-$(ls target/appimage/Gitweft-*-"$arch".AppImage | head -1)}")
 image=${GITWEFT_APPIMAGE_TEST_IMAGE:-$GITWEFT_PIN_DEBIAN_13}
 name=gitweft-appimage-test-$$
 cleanup() {
@@ -21,7 +23,7 @@ cleanup() {
 }
 trap cleanup EXIT
 echo "=== $image, with libxcb1 and git only"
-"$engine" run --name "$name" "$image" bash -euc '
+"$engine" run --name "$name" --platform "$platform" "$image" bash -euc '
     export DEBIAN_FRONTEND=noninteractive
     apt-get -qq update
     apt-get -qq install -y --no-install-recommends libxcb1 git > /dev/null
@@ -30,7 +32,8 @@ echo "=== $image, with libxcb1 and git only"
 '
 "$engine" commit "$name" "localhost/$name" > /dev/null
 "$engine" rm "$name" > /dev/null
-"$engine" run --rm --network none -v "$appimage:/Gitweft.AppImage:ro,Z" "localhost/$name" bash -euc '
+"$engine" run --rm --platform "$platform" --network none -v "$appimage:/Gitweft.AppImage:ro,Z" \
+    "localhost/$name" bash -euc '
     cd /tmp
     /Gitweft.AppImage --appimage-extract > /dev/null
     # Where each library comes from: the bundle, or the host (none may be missing).
