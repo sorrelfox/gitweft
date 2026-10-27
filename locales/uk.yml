@@ -973,6 +973,7 @@ commit.identity_edit: "Змінити ваше ім'я та адресу еле�
 commit.identity_from: "Ім'я та адреса електронної пошти з %{place} · клацніть, щоб змінити"
 commit.identity_from_each: "Ім'я з %{name_place}; адреса електронної пошти з %{email_place} · клацніть, щоб змінити"
 commit.identity_not_in_config: "середовище або здогад git"
+commit.identity_from_env: "Із середовища (%{variables}) замість налаштованого %{name} <%{email}> · клацніть, щоб змінити налаштування"
 commit.config_place: "%{file}, %{scope}"
 config_scope.system: "системна конфігурація"
 config_scope.global: "ваша загальна конфігурація"

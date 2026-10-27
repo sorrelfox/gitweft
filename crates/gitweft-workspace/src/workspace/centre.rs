@@ -485,14 +485,15 @@ impl Workspace {
             return;
         };
         let compare = compare.downgrade();
-        // The comment's author: git's user.name, as the commit box shows it.
+        // The comment's author: the name a commit would record, as the commit box shows it.
         let author = self
             .staging_view
             .read(cx)
             .identity()
-            .name
-            .clone()
-            .unwrap_or_default();
+            .author()
+            .0
+            .unwrap_or_default()
+            .to_owned();
         let spec = TextDialog {
             title: t!(
                 "review.comment_title",

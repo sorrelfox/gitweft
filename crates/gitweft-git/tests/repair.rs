@@ -363,12 +363,13 @@ fn identity_from_config_env_or_nowhere() {
     assert_eq!(id.email.as_deref(), Some("author@example.invalid"));
     assert!(!id.guessed);
 
-    // From the environment: no config file to name.
+    // From the environment: no config file to name, and nothing it overrides.
     assert_eq!((id.name_origin, id.email_origin), (None, None));
+    assert_eq!((id.env_name, id.env_email), (None, None));
 
-    // Configured: the configuration's values (git itself would prefer the environment),
-    // and where each is set: the name in the repository, the email in a file it
-    // includes.
+    // Configured: the configuration's values, and where each is set: the name in the
+    // repository, the email in a file it includes. The sandbox's GIT_AUTHOR_* still win
+    // in a commit, so they come beside them.
     sb.run(&repo, &["config", "user.name", "Ada Lovelace"]);
     std::fs::write(
         sb.path().join("work identity"),
@@ -384,6 +385,16 @@ fn identity_from_config_env_or_nowhere() {
     assert_eq!(id.name.as_deref(), Some("Ada Lovelace"));
     assert_eq!(id.email.as_deref(), Some("ada@example.invalid"));
     assert!(!id.guessed);
+    assert_eq!(
+        id.author(),
+        (Some("Test Author"), Some("author@example.invalid"))
+    );
+    sb.commit_file(&repo, "a.txt", "a\n", "first");
+    assert_eq!(
+        sb.run(&repo, &["log", "-1", "--format=%an <%ae>"]).trim(),
+        "Test Author <author@example.invalid>",
+        "what git wrote"
+    );
     let origin = |o: Option<ConfigOrigin>| o.map(|o| (o.scope, o.file));
     assert_eq!(
         origin(id.name_origin),
@@ -400,6 +411,27 @@ fn identity_from_config_env_or_nowhere() {
     let id = identity(&bare, &repo, &cancel);
     assert_eq!(id.name.as_deref(), Some("Ada Lovelace"));
     assert!(!id.guessed);
+    // Without GIT_AUTHOR_*, the configuration is what a commit records; one variable
+    // overrides only its own half.
+    assert_eq!(
+        id.author(),
+        (Some("Ada Lovelace"), Some("ada@example.invalid"))
+    );
+    let mut named = bare.clone();
+    named.set_env("GIT_AUTHOR_NAME", "Ada at Home");
+    let id = identity(&named, &repo, &cancel);
+    assert_eq!(
+        (
+            id.name.as_deref(),
+            id.env_name.as_deref(),
+            id.env_email.as_deref()
+        ),
+        (Some("Ada Lovelace"), Some("Ada at Home"), None)
+    );
+    assert_eq!(
+        id.author(),
+        (Some("Ada at Home"), Some("ada@example.invalid"))
+    );
 
     // Nothing configured and guessing disabled: git can't tell.
     let fresh = sb.init_repo("fresh");

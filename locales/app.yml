@@ -2292,6 +2292,8 @@ commit.identity_from_each:
   en: "Name from %{name_place}; email from %{email_place} · click to change them"
 commit.identity_not_in_config:
   en: "the environment or git's guess"
+commit.identity_from_env:
+  en: "From the environment (%{variables}), over the configured %{name} <%{email}> · click to change the configuration"
 commit.config_place:
   en: "%{file}, %{scope}"
 config_scope.system:

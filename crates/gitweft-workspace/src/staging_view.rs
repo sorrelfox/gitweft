@@ -1380,7 +1380,7 @@ impl StagingView {
 
     /// "Co-authors" button; its popover lists recent authors to credit in the commit.
     fn render_co_authors(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let own = self.identity.email.as_deref().map(str::to_lowercase);
+        let own = self.identity.author().1.map(str::to_lowercase);
         let candidates: Vec<Person> = self
             .co_author_candidates
             .iter()
@@ -1503,7 +1503,7 @@ impl StagingView {
         };
         // Clicking it sets the name and email; a guessed or missing one says so in the
         // modified color.
-        let identity = match (&self.identity.name, &self.identity.email) {
+        let identity = match self.identity.author() {
             (Some(name), Some(email)) if self.identity.guessed => (
                 t!("commit.identity_guessed", name = name, email = email).into_owned(),
                 p.modified,
@@ -1801,8 +1801,24 @@ fn section_header(
 }
 
 /// The identity link's tooltip: where git's configuration sets the name and the email,
-/// then what a click does.
+/// or which environment variables override it, then what a click does.
 fn identity_tooltip(identity: &Identity) -> String {
+    let overriding: Vec<&str> = [
+        ("GIT_AUTHOR_NAME", &identity.env_name),
+        ("GIT_AUTHOR_EMAIL", &identity.env_email),
+    ]
+    .into_iter()
+    .filter_map(|(key, value)| value.as_ref().map(|_| key))
+    .collect();
+    if !overriding.is_empty() {
+        return t!(
+            "commit.identity_from_env",
+            variables = crate::util::join_list(overriding),
+            name = identity.name.as_deref().unwrap_or_default(),
+            email = identity.email.as_deref().unwrap_or_default()
+        )
+        .into_owned();
+    }
     let place = |origin: &Option<ConfigOrigin>| origin.as_ref().map(config_place);
     match (place(&identity.name_origin), place(&identity.email_origin)) {
         (None, None) => t!("commit.identity_edit"),
@@ -1880,6 +1896,22 @@ mod identity_tests {
         assert_eq!(
             identity_tooltip(&id),
             "Name from .git/config, this repository's config; email from the environment or git's guess · click to change them"
+        );
+        id.name = Some("Ada".into());
+        id.email = Some("ada@example.invalid".into());
+        id.env_email = Some("ada@work.example.invalid".into());
+        assert_eq!(
+            identity_tooltip(&id),
+            "From the environment (GIT_AUTHOR_EMAIL), over the configured Ada <ada@example.invalid> · click to change the configuration"
+        );
+        id.env_name = Some("Ada at Work".into());
+        assert_eq!(
+            identity_tooltip(&id),
+            "From the environment (GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL), over the configured Ada <ada@example.invalid> · click to change the configuration"
+        );
+        assert_eq!(
+            id.author(),
+            (Some("Ada at Work"), Some("ada@work.example.invalid"))
         );
     }
 

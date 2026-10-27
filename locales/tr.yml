@@ -973,6 +973,7 @@ commit.identity_edit: "İşlemeler için adınızı ve e-postanızı değiştiri
 commit.identity_from: "Ad ve e-posta %{place} kaynağından · değiştirmek için tıklayın"
 commit.identity_from_each: "Ad %{name_place} kaynağından; e-posta %{email_place} kaynağından · değiştirmek için tıklayın"
 commit.identity_not_in_config: "ortam ya da git'in tahmini"
+commit.identity_from_env: "Ortamdan (%{variables}), yapılandırılmış %{name} <%{email}> yerine · yapılandırmayı değiştirmek için tıklayın"
 commit.config_place: "%{file}, %{scope}"
 config_scope.system: "sistem yapılandırması"
 config_scope.global: "genel yapılandırmanız"

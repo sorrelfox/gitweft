@@ -534,6 +534,21 @@ pub struct Identity {
     /// that comes from the environment or git's guess.
     pub name_origin: Option<ConfigOrigin>,
     pub email_origin: Option<ConfigOrigin>,
+    /// What `GIT_AUTHOR_NAME` and `GIT_AUTHOR_EMAIL` set over a configured name or email.
+    /// Git writes these into a commit, while `name` and `email` stay the configuration's,
+    /// which is what the identity dialogs change. `None` when unset or the same.
+    pub env_name: Option<String>,
+    pub env_email: Option<String>,
+}
+
+impl Identity {
+    /// The name and email a commit records: the environment's over the configuration's.
+    pub fn author(&self) -> (Option<&str>, Option<&str>) {
+        (
+            self.env_name.as_deref().or(self.name.as_deref()),
+            self.env_email.as_deref().or(self.email.as_deref()),
+        )
+    }
 }
 
 /// Where git read a configuration value (`git config --show-scope --show-origin`).
@@ -558,8 +573,16 @@ const IDENTITY_ENV: [&str; 5] = [
 
 /// The identity from the configuration. Only when that lacks the name or the email does
 /// git fill them in (`git var GIT_AUTHOR_IDENT`, which resolves exactly as a commit would:
-/// environment, then git's guess); when git can't either, they stay `None`.
+/// environment, then git's guess); when git can't either, they stay `None`. A configured
+/// value the environment overrides is kept, with the environment's beside it.
 pub fn identity(git: &GitCli, workdir: &Path, cancel: &CancelToken) -> Identity {
+    let env = |key: &str| {
+        git.env_var(key)
+            .map(ToOwned::to_owned)
+            .or_else(|| std::env::var_os(key))
+            .filter(|value| !value.is_empty())
+            .map(|value| value.to_string_lossy().into_owned())
+    };
     let get = |key: &str| {
         git.command(workdir)
             .args([
@@ -578,7 +601,15 @@ pub fn identity(git: &GitCli, workdir: &Path, cancel: &CancelToken) -> Identity 
     };
     let (name, name_origin) = get("user.name").unzip();
     let (email, email_origin) = get("user.email").unzip();
+    let over = |configured: &Option<String>, key: &str| {
+        configured
+            .as_ref()
+            .and(env(key))
+            .filter(|value| Some(value) != configured.as_ref())
+    };
     let mut identity = Identity {
+        env_name: over(&name, "GIT_AUTHOR_NAME"),
+        env_email: over(&email, "GIT_AUTHOR_EMAIL"),
         name,
         email,
         guessed: false,
@@ -605,12 +636,7 @@ pub fn identity(git: &GitCli, workdir: &Path, cancel: &CancelToken) -> Identity 
             filled = true;
         }
     }
-    let from_env = IDENTITY_ENV.iter().any(|key| {
-        git.env_var(key)
-            .map(ToOwned::to_owned)
-            .or_else(|| std::env::var_os(key))
-            .is_some_and(|value| !value.is_empty())
-    });
+    let from_env = IDENTITY_ENV.iter().any(|key| env(key).is_some());
     identity.guessed = filled && !from_env;
     identity
 }
