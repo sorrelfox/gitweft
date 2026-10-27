@@ -82,8 +82,9 @@ impl GitError {
         }
     }
 
-    /// The most informative single line: git's `fatal:`/`error:` message if any. A hook
-    /// that failed speaks for itself: its last line, not git's "failed to push some refs".
+    /// The most informative single line: git's `fatal:`/`error:` message if any, with what
+    /// it lists on the lines below (see [`with_listed`]). A hook that failed speaks for
+    /// itself: its last line, not git's "failed to push some refs".
     pub fn summary(&self) -> String {
         let lines = || self.stderr.lines().map(str::trim).filter(|l| !l.is_empty());
         let from_git = |l: &&str| {
@@ -96,15 +97,49 @@ impl GitError {
         {
             return line.to_owned();
         }
+        let raw: Vec<&str> = self.stderr.lines().collect();
+        if let Some(at) = raw.iter().position(|l| {
+            let l = l.trim();
+            l.starts_with("fatal:") || l.starts_with("error:")
+        }) {
+            return with_listed(raw[at].trim(), &raw[at + 1..]);
+        }
         lines()
-            .find(|l| l.starts_with("fatal:") || l.starts_with("error:"))
-            .or_else(|| lines().next_back())
+            .next_back()
             .map(|l| l.to_owned())
             .unwrap_or_else(|| match self.exit_code {
                 Some(code) => format!("`{}` failed with exit code {code}", self.command),
                 None => format!("`{}` failed", self.command),
             })
     }
+}
+
+/// How many of a message's listed items [`with_listed`] names before it counts the rest.
+const LISTED_NAMED: usize = 3;
+
+/// `line` with what it introduces, when it ends in a colon: git lists the files a checkout
+/// or merge would overwrite on the indented lines `after` it, and the line alone names none
+/// ("…would be overwritten by merge:"). The first few join the line, the rest are counted:
+/// "…by merge: a.txt, b.txt, c.txt (+2)".
+fn with_listed(line: &str, after: &[&str]) -> String {
+    if !line.ends_with(':') {
+        return line.to_owned();
+    }
+    let listed: Vec<&str> = after
+        .iter()
+        .take_while(|l| l.starts_with([' ', '\t']))
+        .map(|l| l.trim())
+        .filter(|l| !l.is_empty())
+        .collect();
+    if listed.is_empty() {
+        return line.to_owned();
+    }
+    let named = listed.len().min(LISTED_NAMED);
+    let mut text = format!("{line} {}", listed[..named].join(", "));
+    if listed.len() > named {
+        text.push_str(&format!(" (+{})", listed.len() - named));
+    }
+    text
 }
 
 /// Maps git's output of a failed command to an error kind.
@@ -385,6 +420,45 @@ mod tests {
             ..GitError::new(GitErrorKind::Other, "git x", "")
         };
         assert_eq!(err.summary(), "`git x` failed with exit code 128");
+    }
+
+    #[test]
+    fn a_summary_names_what_its_line_lists() {
+        // git 2.56's `git stash apply` over a local change to the same file.
+        let err = GitError::new(
+            GitErrorKind::WouldOverwrite,
+            "git stash apply",
+            "error: Your local changes to the following files would be overwritten by merge:\n\
+             \tnotes.txt\n\
+             Please commit your changes or stash them before you merge.\n\
+             Aborting\n",
+        );
+        assert_eq!(
+            err.summary(),
+            "error: Your local changes to the following files would be overwritten by merge: \
+             notes.txt"
+        );
+        // Past three files, the rest are counted.
+        let many = GitError::new(
+            GitErrorKind::WouldOverwrite,
+            "git checkout main",
+            "error: The following untracked working tree files would be overwritten by checkout:\n\
+             \ta.txt\n\tb.txt\n\tc.txt\n\td.txt\n\te.txt\n\
+             Please move or remove them before you switch branches.\n\
+             Aborting\n",
+        );
+        assert_eq!(
+            many.summary(),
+            "error: The following untracked working tree files would be overwritten by checkout: \
+             a.txt, b.txt, c.txt (+2)"
+        );
+        // A colon with nothing indented after it stays as it is.
+        let bare = GitError::new(
+            GitErrorKind::Other,
+            "git x",
+            "fatal: unable to read:\nsomething else\n",
+        );
+        assert_eq!(bare.summary(), "fatal: unable to read:");
     }
 
     #[test]

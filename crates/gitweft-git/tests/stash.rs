@@ -423,6 +423,27 @@ fn a_conflicting_pop_keeps_the_stash() {
 }
 
 #[test]
+fn an_apply_over_local_changes_names_the_file() {
+    let sb = Sandbox::new();
+    let repo = sb.init_repo("r");
+    sb.commit_file(&repo, "notes.txt", "1\n", "first");
+    let cancel = CancelToken::new();
+    std::fs::write(repo.join("notes.txt"), "stashed\n").unwrap();
+    stash_push(sb.git(), &repo, &StashOptions::default(), &cancel).unwrap();
+    std::fs::write(repo.join("notes.txt"), "changed since\n").unwrap();
+
+    let err = stash_apply(sb.git(), &repo, &only_stash(&sb, &repo), false, &cancel).unwrap_err();
+    assert_eq!(err.kind, GitErrorKind::WouldOverwrite, "{}", err.stderr);
+    // git names the file on the line after its message; the summary carries it.
+    assert!(
+        err.summary().ends_with("by merge: notes.txt"),
+        "{}",
+        err.summary()
+    );
+    assert_eq!(read(&repo, "notes.txt").as_deref(), Some("changed since\n"));
+}
+
+#[test]
 fn a_dropped_stash_applies_by_its_commit() {
     let sb = Sandbox::new();
     let repo = sb.init_repo("r");
