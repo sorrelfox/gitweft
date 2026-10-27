@@ -126,7 +126,7 @@ impl TreeModel {
         }
     }
 
-    /// Left on node `ix` (#31): an expanded folder collapses and keeps the cursor; anything
+    /// Left on node `ix`: an expanded folder collapses and keeps the cursor; anything
     /// else sends the cursor to its folder. Returns where the cursor goes.
     pub fn collapse_or_parent(&mut self, ix: usize) -> usize {
         let node = &self.nodes[ix];
@@ -138,7 +138,7 @@ impl TreeModel {
         }
     }
 
-    /// Right on node `ix` (#31): a collapsed folder expands and keeps the cursor; an expanded
+    /// Right on node `ix`: a collapsed folder expands and keeps the cursor; an expanded
     /// one sends it to its first entry; a file stays. Returns where the cursor goes.
     pub fn expand_or_child(&mut self, ix: usize) -> usize {
         let node = &self.nodes[ix];
@@ -293,7 +293,7 @@ impl TreeView {
     }
 
     /// Left and Right: collapse or expand the folder under the cursor, or go to its folder
-    /// or its first entry (#31).
+    /// or its first entry.
     fn fold(&mut self, expand: bool, cx: &mut Context<Self>) {
         let (Content::Loaded(model), Some(ix)) = (&mut self.content, self.selected) else {
             return;
@@ -412,7 +412,7 @@ impl TreeView {
                                 .child(t!("tree.submodule").into_owned()),
                         )
                     });
-                // Built when the menu opens: it looks at the working tree (#24), which a
+                // Built when the menu opens: it looks at the working tree, which a
                 // frame mustn't.
                 let view = view.clone();
                 let (path, kind, commit) = (node.path.clone(), node.kind, self.commit);
@@ -454,7 +454,7 @@ impl Render for TreeView {
                 placeholder(t!("repo.loading").into_owned(), p.fg3, &m).into_any_element()
             }
             Content::Failed(message) => placeholder(message.clone(), p.del, &m).into_any_element(),
-            // A commit with no files (#44), like its peers' empty lists.
+            // A commit with no files, like its peers' empty lists.
             Content::Loaded(model) if model.visible().is_empty() => {
                 placeholder(t!("tree.empty").into_owned(), p.fg3, &m).into_any_element()
             }
@@ -497,7 +497,7 @@ impl Render for TreeView {
 /// The menu of the tree row at `path` (right click, Shift+F10). Every row can start a
 /// bisect; a file also opens its blame and history; a folder or file that's in the
 /// working tree (the tree may be an older commit's) opens in the user's programs. It
-/// looks at the working tree, so it's built when a menu opens, never in a frame (#24).
+/// looks at the working tree, so it's built when a menu opens, never in a frame.
 fn row_items(
     path: &BString,
     kind: TreeEntryKind,
@@ -584,7 +584,7 @@ mod tests {
             .unwrap()
     }
 
-    /// Left and Right on the tree (#31).
+    /// Left and Right on the tree.
     #[test]
     fn left_collapses_or_goes_up_and_right_expands_or_goes_in() {
         let mut model = TreeModel::new(vec![

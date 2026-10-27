@@ -64,7 +64,7 @@ impl Workspace {
                 cancel,
             )
             .map(|diff| {
-                // A block can leave one file of a diff and arrive in another (#69), so the
+                // A block can leave one file of a diff and arrive in another, so the
                 // diff's other files are read too: without context lines, and not at all
                 // when the whole diff is too big to hold as text.
                 let others = gitweft_git::read::whole_diff(&git, &cwd, &source, options, cancel)
@@ -80,7 +80,7 @@ impl Workspace {
                 // A binary image is shown as two pictures; both versions are read here too.
                 // An image kept in Git LFS diffs as its pointers: its pictures come from the
                 // local LFS store, when every side is there (never fetched; else the pointer
-                // panel stays, #36).
+                // panel stays).
                 let lfs = gitweft_git::lfs::pointer_sides(&diff).is_some();
                 if (diff.binary || lfs) && crate::diff_view::image_format(&path).is_some() {
                     let max = crate::diff_view::MAX_IMAGE_BYTES;
@@ -123,7 +123,7 @@ impl Workspace {
                 }
                 (diff, decorations)
             })
-            // A partial clone's missing contents, which only the user may fetch (#82).
+            // A partial clone's missing contents, which only the user may fetch.
             .map_err(|e| {
                 (
                     gitweft_git::partial::is_missing_objects(e.as_ref()),
@@ -142,7 +142,7 @@ impl Workspace {
         .detach();
     }
 
-    /// "Fetch missing contents" on a file a partial clone couldn't show (#87): that version,
+    /// "Fetch missing contents" on a file a partial clone couldn't show: that version,
     /// then the file view again.
     fn fetch_missing_file(&mut self, commit: ObjectId, path: BString, cx: &mut Context<Self>) {
         let RepoState::Loaded(repo) = &self.state else {
@@ -168,7 +168,7 @@ impl Workspace {
         .detach();
     }
 
-    /// "Fetch missing contents" on a blame a partial clone couldn't finish (#87): every
+    /// "Fetch missing contents" on a blame a partial clone couldn't finish: every
     /// version of the file along the history blamed, then the blame again.
     fn fetch_missing_blame(
         &mut self,
@@ -200,7 +200,7 @@ impl Workspace {
         .detach();
     }
 
-    /// "Fetch missing contents" on a diff a partial clone couldn't show (#82): downloads the
+    /// "Fetch missing contents" on a diff a partial clone couldn't show: downloads the
     /// blobs of its two versions from the promisor remote, then reads it again. The only
     /// place such a download happens, and only on request.
     fn fetch_missing_for_diff(&mut self, cx: &mut Context<Self>) {
@@ -485,7 +485,7 @@ impl Workspace {
             return;
         };
         let compare = compare.downgrade();
-        // The comment's author: git's user.name, as the commit box shows it (#35).
+        // The comment's author: git's user.name, as the commit box shows it.
         let author = self
             .staging_view
             .read(cx)
@@ -590,7 +590,7 @@ impl Workspace {
         } else {
             comment.body.clone()
         };
-        // Who wrote it and when (comments saved before #35 have no author).
+        // Who wrote it and when (comments saved by older versions have no author).
         let text = if comment.author.is_empty() {
             text
         } else {
@@ -1150,7 +1150,7 @@ impl Workspace {
                     gitweft_git::read::compare(&git, &cwd, &base_rev, &head, limit, cancel)
                         .map_err(|err| err.to_string());
                 // The session as the file holds it, when it's read here: the base the next
-                // save merges from (#7).
+                // save merges from.
                 let mut loaded = None;
                 let session = review_file.map(|(file, base)| {
                     let mut session = known
@@ -1259,7 +1259,7 @@ impl Workspace {
                 if let Some(file) = self.compare_review_file.clone() {
                     let session = session.clone();
                     // Merged onto the file as it is now: another Gitweft may have added or
-                    // changed comments meanwhile (#7). Nothing read yet: a fresh start.
+                    // changed comments meanwhile. Nothing read yet: a fresh start.
                     let base = self.compare_review_base.clone().unwrap_or_else(|| {
                         ReviewSession::new(session.branch.clone(), session.base.clone())
                     });
@@ -1271,7 +1271,7 @@ impl Workspace {
                         }
                     });
                     // A session file that couldn't be read is kept aside, one a newer
-                    // version wrote is left alone: either way the user hears of it (#4).
+                    // version wrote is left alone: either way the user hears of it.
                     cx.spawn(async move |this, cx| match job.join().await {
                         Some(Ok((sent, saved))) => {
                             this.update(cx, |this, cx| {
@@ -1406,7 +1406,7 @@ impl Workspace {
         self._file_events = Some(cx.subscribe(&view, Self::on_file_event));
         // Already in memory and short (one commit's patches), so no job. Each line is
         // shown without the interdiff's own `+`/`-`/` `: that becomes the row's tint and
-        // its numbers in the two patches (#69), and what is left is the patch line, which
+        // its numbers in the two patches, and what is left is the patch line, which
         // the diff highlighter then colours as the patch's own.
         let rows = gitweft_git::read::interdiff_rows(lines);
         let text = if rows.is_empty() {
@@ -1603,7 +1603,7 @@ impl Workspace {
                 let bytes =
                     gitweft_git::read::file_content(&git, &cwd, Some(commit), &path, cancel)
                         .map_err(|err| {
-                            // A partial clone's missing version: offered to fetch (#87).
+                            // A partial clone's missing version: offered to fetch.
                             let missing = gitweft_git::partial::is_missing_objects(err.as_ref());
                             (missing, err.to_string())
                         })?;
@@ -1717,7 +1717,7 @@ impl Workspace {
         }
     }
 
-    /// A comment picked on a line of an interdiff (#69). The interdiff has no line numbers
+    /// A comment picked on a line of an interdiff. The interdiff has no line numbers
     /// of the file (git prints none in its `@@`), so the file is read at the commit as it
     /// is now and the anchored line found in it; the comment is then an ordinary one on
     /// that file's new side, and shows up in the review and its export like any other.
@@ -1831,7 +1831,7 @@ impl Workspace {
         let job = self.jobs.spawn(
             Lane::Latest("blame"),
             move |cancel| -> Result<(), (bool, String)> {
-                // A partial clone's missing versions are offered to fetch (#87).
+                // A partial clone's missing versions are offered to fetch.
                 let missing = |err: gitweft_git::read::ReadError| -> (bool, String) {
                     (
                         gitweft_git::partial::is_missing_objects(err.as_ref()),

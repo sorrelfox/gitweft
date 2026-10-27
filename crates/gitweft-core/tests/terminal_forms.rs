@@ -1,4 +1,4 @@
-//! Real terminals told to run a command (#41): each is launched as `terminal_running` builds
+//! Real terminals told to run a command: each is launched as `terminal_running` builds
 //! it, with a command whose arguments hold a space and a quote, and must run it in the
 //! folder given. Terminals open windows, so this is ignored in `cargo test`; run it where
 //! they're installed and a display is at hand (a container that shares the desktop's

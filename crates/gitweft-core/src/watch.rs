@@ -14,7 +14,7 @@
 //! If the OS limit on watches is reached, working-tree watches are dropped, the watcher
 //! reports [`Update::Limited`] and sends [`Update::Poll`] every few seconds instead. It
 //! tries full watching again every minute and on [`RepoWatcher::retry`], and reports
-//! [`Update::Recovered`] once that works (#21).
+//! [`Update::Recovered`] once that works.
 
 use std::collections::{BTreeSet, HashSet};
 use std::ffi::OsStr;
@@ -81,10 +81,9 @@ pub enum Update {
     Limited(String),
     /// Limited mode: time to re-read the status.
     Poll,
-    /// Limited mode is over: the working tree is watched again (#21).
+    /// Limited mode is over: the working tree is watched again.
     Recovered,
-    /// The worker kept failing and watching has stopped: from now on only [`Update::Poll`]
-    /// arrives (#62).
+    /// The worker kept failing and watching has stopped: from now on only [`Update::Poll`] arrives.
     Stopped,
 }
 
@@ -152,7 +151,7 @@ impl RepoWatcher {
         std::thread::Builder::new()
             .name("gitweft-watch".into())
             .spawn(move || {
-                // A panic in a dependency (gix-index on a damaged index, #62) must not end
+                // A panic in a dependency (gix-index on a damaged index) must not end
                 // watching for good: the worker starts over, and after a few panics the tab
                 // is polled instead, and told so.
                 for _ in 0..WORKER_STARTS {
@@ -332,7 +331,7 @@ impl Worker {
         // Events come with real paths, and they're matched to these by prefix. A linked
         // worktree's common dir comes from its `commondir` file as `…/worktrees/<name>/../..`:
         // watching it works, but no event path starts with it, so every change to its refs
-        // was dropped (#21).
+        // was dropped.
         let real = |path: &Path| std::fs::canonicalize(path).unwrap_or_else(|_| path.to_owned());
         Self {
             git_dir: real(repo.git_dir()),
@@ -437,7 +436,7 @@ impl Worker {
 
     /// Watches the subdirectories of [`GIT_SUBDIRS`] that exist and aren't watched yet: at
     /// the start, and again when the git dir says something was made in it (an `info/`
-    /// created after the start holds an `exclude` that counts, #21).
+    /// created after the start holds an `exclude` that counts).
     fn watch_new_git_subdirs(&mut self) {
         let Some(watcher) = &mut self.watcher else {
             return;
@@ -801,7 +800,7 @@ mod tests {
     const WAIT: Duration = Duration::from_secs(5);
 
     /// At the watch limit the worker polls; a retry that still hits it says nothing more,
-    /// and one that works ends limited mode and re-reads everything (#21).
+    /// and one that works ends limited mode and re-reads everything.
     #[test]
     fn limited_mode_ends_once_watching_works_again() {
         let sb = Sandbox::new();
@@ -830,7 +829,7 @@ mod tests {
         tx.send(Msg::Stop).unwrap();
     }
 
-    /// Lost events (a watcher error) mean anything may have changed (#21).
+    /// Lost events (a watcher error) mean anything may have changed.
     #[test]
     fn lost_events_rescan_everything() {
         let sb = Sandbox::new();

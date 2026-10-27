@@ -360,7 +360,7 @@ impl Workspace {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        // Both by the names git has for them (#18); names shown alike can't be told apart.
+        // Both by the names git has for them; names shown alike can't be told apart.
         let heads = |bytes: &[u8]| {
             gitweft_git::undo::ref_name_text(&[b"refs/heads/".as_slice(), bytes].concat())
         };
@@ -413,7 +413,7 @@ impl Workspace {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        // The names git has for them (#18); `rebase_branch_checked` refused ambiguous ones.
+        // The names git has for them; `rebase_branch_checked` refused ambiguous ones.
         let (Ok(branch_git), Ok(onto_git)) = (
             self.local_branch_bytes(&branch),
             self.local_branch_bytes(&onto),

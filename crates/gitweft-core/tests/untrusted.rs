@@ -1,4 +1,4 @@
-//! Opening a folder another user owns (#40). The load succeeds: gix reads the repository
+//! Opening a folder another user owns. The load succeeds: gix reads the repository
 //! and doesn't refuse it. git refuses it ("dubious ownership") from the first command the
 //! window runs next, `git status`, so the refusal is met on a loaded repository, where the
 //! banner offers Trust; the start screen never sees it. The folder is found in git's

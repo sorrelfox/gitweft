@@ -41,7 +41,7 @@ const NUMBER_WIDTH: f32 = 44.;
 /// Files longer than this are shown without syntax colors.
 const MAX_HIGHLIGHT_LINES: usize = 5_000;
 pub(crate) const CONTEXT: &str = "ConflictView";
-/// The two panes' own context (#28): their line cursor's keys, Space among them, which the
+/// The two panes' own context: their line cursor's keys, Space among them, which the
 /// result box outside it keeps for typing.
 pub(crate) const PANES: &str = "ConflictPanes";
 
@@ -95,7 +95,7 @@ pub struct ConflictView {
     /// Replaces the result text on the next render (setting it needs the window).
     pending_result: Option<String>,
     /// Whether the box's text was typed (isn't the picks' text) and how many conflicts it
-    /// still has; read again only after the text or the picks change (#24), not per frame.
+    /// still has; read again only after the text or the picks change, not per frame.
     text_state: Option<(bool, usize)>,
     _result_events: Subscription,
     /// Debug builds: save as resolved on the first frame (`GITWEFT_DEBUG_CONFLICT_PICK`).
@@ -116,7 +116,7 @@ pub struct ConflictView {
     preview_list: ListState,
     /// The longest preview line, in columns.
     preview_longest: usize,
-    /// The number columns' width, for the largest number (from the last frame, #42).
+    /// The number columns' width, for the largest number (from the last frame).
     number_width: Pixels,
     /// How far the preview's text is scrolled sideways.
     preview_hscroll: HScroll,
@@ -131,13 +131,13 @@ pub struct ConflictView {
     side_spans: [Vec<Spans>; 2],
     /// Whether the colors were computed for the dark palette.
     dark: bool,
-    /// The tab width its lines are shown and colored with (#80).
+    /// The tab width its lines are shown and colored with.
     tab_width: usize,
-    /// Ctrl+F's bar (#43): it finds in the preview, the file as it resolves.
+    /// Ctrl+F's bar: it finds in the preview, the file as it resolves.
     find: FindSlot,
     _preview_task: Option<Task<()>>,
     _sides_task: Option<Task<()>>,
-    /// The line the panes' keys are on: a side and a line of the current conflict (#28).
+    /// The line the panes' keys are on: a side and a line of the current conflict.
     cursor: Option<(PaneSide, usize)>,
     /// Each pane's scroll, and the next frame's order to scroll the cursor's line into view.
     pane_scroll: [ScrollHandle; 2],
@@ -147,7 +147,7 @@ pub struct ConflictView {
     /// Whether the panes had the focus when last drawn (the cursor shows then).
     focused: bool,
     focus: FocusHandle,
-    /// The size of the file's conflict markers (`conflict-marker-size`, else 7; #16).
+    /// The size of the file's conflict markers (`conflict-marker-size`, else 7).
     marker_size: usize,
 }
 
@@ -486,7 +486,7 @@ impl ConflictView {
         }));
     }
 
-    /// Ctrl+F: the find bar (#43).
+    /// Ctrl+F: the find bar.
     fn open_find(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.find.open(window, cx, Self::on_find);
     }
@@ -1009,7 +1009,7 @@ impl ConflictView {
                                 .id((row_id, ix))
                                 .cursor_pointer()
                                 .when(state == LineState::Dropped, |row| row.opacity(p.dim))
-                                // The keys' cursor, kept in view (#28): outlined too, since
+                                // The keys' cursor, kept in view: outlined too, since
                                 // the conflict's own stripe hides a bar at the edge.
                                 .when(self.focused && self.cursor == Some((side, ix)), |row| {
                                     row.relative()
@@ -1301,7 +1301,7 @@ impl Render for ConflictView {
             self.highlight_sides(cx);
             self.highlight_preview(cx);
         }
-        // A Tab width change: the lines again, and their colors (#80).
+        // A Tab width change: the lines again, and their colors.
         let tab = code_scroll::tab_width(cx);
         if tab != self.tab_width && !self.resolutions.is_empty() {
             self.tab_width = tab;
@@ -1322,7 +1322,7 @@ impl Render for ConflictView {
             );
             self.wrapped = wrap;
         }
-        // Wide enough for the largest number, with the column's 12 px after it (#42).
+        // Wide enough for the largest number, with the column's 12 px after it.
         self.number_width = code_scroll::number_width(
             window,
             m.text.mono,
@@ -1425,7 +1425,7 @@ impl Render for ConflictView {
                 .min_h_0()
                 .items_stretch()
                 .gap(px(1.))
-                // The panes hold the keys: the cursor's, Space among them (#28).
+                // The panes hold the keys: the cursor's, Space among them.
                 .key_context(PANES)
                 .track_focus(&self.focus)
                 .on_action(cx.listener(|this, _: &NextRow, _, cx| this.move_cursor(Step::Next, cx)))
@@ -1645,8 +1645,8 @@ fn pane_header(p: &Palette, m: &Metrics) -> Div {
 }
 
 /// A text control in the file bar ("↑ Previous"); dimmed and inert when not `enabled`.
-/// The file bar's words (Previous, Next, Close): tab stops, clicked with Enter or Space too
-/// (#30); a disabled one ignores clicks.
+/// The file bar's words (Previous, Next, Close): tab stops, clicked with Enter or Space too;
+/// a disabled one ignores clicks.
 fn link(
     id: &'static str,
     label: String,
@@ -1898,7 +1898,7 @@ mod tests {
         assert_eq!(pane_longest(&regions, 2, 4), 0);
     }
 
-    /// The number column fits the longer side's last line, or the preview's (#42).
+    /// The number column fits the longer side's last line, or the preview's.
     #[test]
     fn the_largest_number_is_the_longer_sides_last_line() {
         let regions = parse_conflicts(TEXT);

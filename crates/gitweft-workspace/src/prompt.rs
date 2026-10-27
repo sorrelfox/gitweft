@@ -45,7 +45,7 @@ impl ThemedPrompt {
 
 /// Escape picks Cancel. Enter picks the first button that isn't Cancel, except on a
 /// Warning or Critical prompt (ours ask before something is thrown away): there Enter
-/// picks Cancel as well, so a stray Enter never discards, deletes or resets (#13).
+/// picks Cancel as well, so a stray Enter never discards, deletes or resets.
 fn key_choice(level: PromptLevel, actions: &[PromptButton], key: &str) -> Option<usize> {
     let cancel = actions.iter().position(PromptButton::is_cancel);
     match key {

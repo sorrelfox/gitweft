@@ -326,7 +326,7 @@ fn hash_files(
         return Ok(Vec::new());
     }
     // As arguments, not `--stdin-paths`: git C-unquotes a line that starts with `"` there,
-    // and a line can't hold a newline (#15). Chunked to stay well under the argument limit.
+    // and a line can't hold a newline. Chunked to stay well under the argument limit.
     const CHUNK_BYTES: usize = 64 * 1024;
     let bad = |what: String| GitError::new(GitErrorKind::Other, "git hash-object", what);
     let mut ids = Vec::with_capacity(paths.len());
@@ -530,7 +530,7 @@ pub struct Identity {
     /// A value is git's own guess (from the account's full name or the hostname), not
     /// something the user configured or set in the environment: worth confirming.
     pub guessed: bool,
-    /// Where git's configuration sets the name and the email (#45); `None` for a value
+    /// Where git's configuration sets the name and the email; `None` for a value
     /// that comes from the environment or git's guess.
     pub name_origin: Option<ConfigOrigin>,
     pub email_origin: Option<ConfigOrigin>,

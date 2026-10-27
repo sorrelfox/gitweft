@@ -45,12 +45,12 @@ pub struct GraphModel {
     pub labels: HashMap<ObjectId, Vec<RefLabel>>,
     /// Every row, ordered by its commit's id, for [`Self::row_of`]'s binary search. Four
     /// bytes a commit: a map from id to row took about 55 for the ids it copied and its
-    /// table, 82 MB on the Linux kernel's 1.48 million commits (#64).
+    /// table, 82 MB on the Linux kernel's 1.48 million commits.
     by_id: Vec<u32>,
 }
 
 /// Commit ids by row, as their bytes one after the other: 20 bytes a SHA-1 commit, where an
-/// `ObjectId` takes 33 to hold a SHA-256 one too (18 MB less on the Linux kernel, #64).
+/// `ObjectId` takes 33 to hold a SHA-256 one too (18 MB less on the Linux kernel).
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct CommitIds {
     bytes: Vec<u8>,
@@ -171,7 +171,7 @@ pub struct LoadedRepo {
     pub walk: WalkOptions,
     /// The refs left out of the walk's tips.
     pub tips: TipFilter,
-    /// A shallow clone: git ignores a commit-graph file there, so none is offered (#14).
+    /// A shallow clone: git ignores a commit-graph file there, so none is offered.
     pub shallow: bool,
 }
 
@@ -212,14 +212,14 @@ fn bridge_to_host(git: &mut GitCli, cwd: &Path, cancel: &CancelToken) {
 
 /// What a load reads besides the repository: Gitweft's data dir (the repository's
 /// settings, see [`repo_settings`]) and whether gix, which reads git config in this
-/// process, may read the user's and the system's (#50).
+/// process, may read the user's and the system's.
 #[derive(Debug, Clone)]
 pub struct LoadEnv {
     pub data_dir: PathBuf,
     /// The repository alone: no global or system config, no `GIT_*` environment. For
     /// tests, whose sandbox environment reaches only git children.
     pub isolated: bool,
-    /// Give the repository a `gitweft.id` if it has none (the app's loads, #19); a
+    /// Give the repository a `gitweft.id` if it has none (the app's loads); a
     /// check like `--headless-smoke` leaves its config alone.
     pub assign_id: bool,
 }
@@ -296,7 +296,7 @@ pub fn load_repo_in(
         }
     };
     timings.open = stopwatch.lap();
-    // A reftable repository's refs come from git: gix can't read them (#17).
+    // A reftable repository's refs come from git: gix can't read them.
     let refs = read_refs_with(&repo, &git, cancel).map_err(|e| e.to_string())?;
     timings.refs = stopwatch.lap();
     let mut tips = graph_tips(&repo, &refs, &walk, &filter);
@@ -365,7 +365,7 @@ fn load_metas(repo: &gix::Repository, ids: &[ObjectId]) -> Vec<CommitMeta> {
     ids.iter()
         .map(|id| {
             commit_meta(repo, *id).unwrap_or_else(|err| {
-                // The row shows empty rather than the load failing; the log says why (#12).
+                // The row shows empty rather than the load failing; the log says why.
                 eprintln!("gitweft: reading commit {id} failed: {err}");
                 CommitMeta {
                     summary: Box::default(),
@@ -526,7 +526,7 @@ mod tests {
         ObjectId::from_bytes_or_panic(&[n; 20])
     }
 
-    /// Ids read back as pushed, SHA-1 and SHA-256 alike; rows past the end have none (#64).
+    /// Ids read back as pushed, SHA-1 and SHA-256 alike; rows past the end have none.
     #[test]
     fn commit_ids_read_back_by_row() {
         for width in [20, 32] {
@@ -614,7 +614,7 @@ mod tests {
     }
 
     /// `row_of` finds every commit by binary search over the rows ordered by id, whatever
-    /// order the walk gave, and nothing else (#64). Ids sharing their first eight bytes are
+    /// order the walk gave, and nothing else. Ids sharing their first eight bytes are
     /// told apart by the rest.
     #[test]
     fn every_commit_is_found_at_its_row() {

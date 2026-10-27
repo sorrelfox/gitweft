@@ -35,13 +35,13 @@ pub fn trash_dir() -> PathBuf {
 }
 
 /// Our files about the repository at `root` (its working tree, or git dir when bare):
-/// `<data dir>/repos/<its gitweft.id>` (#19, see [`crate::repo_id`]), or before it has
+/// `<data dir>/repos/<its gitweft.id>` (see [`crate::repo_id`]), or before it has
 /// one, `<data dir>/repos/<folder name>-<hash of the path>`.
 pub fn repo_data_dir(root: &Path) -> PathBuf {
     repo_data_dir_in(&data_dir(), root)
 }
 
-/// [`repo_data_dir`] under the data dir `data` (tests pass their own, #50).
+/// [`repo_data_dir`] under the data dir `data` (tests pass their own).
 pub fn repo_data_dir_in(data: &Path, root: &Path) -> PathBuf {
     match crate::repo_id::repo_key(root) {
         Some(key) => data.join("repos").join(key),
@@ -93,7 +93,7 @@ fn xdg(variable: &str, fallback: &str) -> PathBuf {
 }
 
 /// This user's home directory as the password database has it (`getpwuid_r`): for a
-/// process started without `HOME` (#20).
+/// process started without `HOME`.
 fn passwd_home() -> Option<OsString> {
     let mut buf = vec![0 as libc::c_char; 16 * 1024];
     // SAFETY: a zeroed passwd is a valid value for getpwuid_r to fill in.
@@ -122,7 +122,7 @@ fn passwd_home() -> Option<OsString> {
 /// An XDG base directory: `value` if it's an absolute path (the spec says to ignore
 /// relative ones), otherwise `fallback` under `home`. With no home at all (neither `HOME`
 /// nor a passwd entry), a folder of this user's in the temp dir rather than the temp dir
-/// itself, which every user shares (#20).
+/// itself, which every user shares.
 fn xdg_from(value: Option<OsString>, home: Option<OsString>, fallback: &str) -> PathBuf {
     value
         .map(PathBuf::from)
@@ -154,7 +154,7 @@ mod tests {
             xdg_from(Some("cfg".into()), home(), ".config"),
             PathBuf::from("/home/u/.config")
         );
-        // No home at all: this user's own folder, not the shared temp dir (#20).
+        // No home at all: this user's own folder, not the shared temp dir.
         assert_eq!(
             xdg_from(None, None, ".config"),
             std::env::temp_dir()

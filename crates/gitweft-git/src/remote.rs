@@ -336,7 +336,7 @@ pub struct PushRequest {
 /// The upstream is taken as configured (`branch.<name>.remote` and `.merge`), so a branch
 /// named differently there, or a fetch refspec that maps names, pushes to the right one.
 /// A local upstream (`remote = .`) isn't a remote: the branch goes to a branch of its
-/// own name as when it has none, but that doesn't replace the upstream (#16).
+/// own name as when it has none, but that doesn't replace the upstream.
 pub fn push_target(branch: &str, tracking: &[Tracking], remotes: &[String]) -> Option<PushRequest> {
     let entry = tracking.iter().find(|t| t.branch == branch);
     let local_upstream = entry.is_some_and(|t| t.upstream_remote.as_deref() == Some("."));
@@ -407,7 +407,7 @@ pub fn push(
         command = command.args(["--force-with-lease", "--force-if-includes"]);
     }
     // The branch names as bytes: they may be encoded (`undo::ref_name_text`) for a name
-    // that isn't UTF-8 (#18); any other text is taken as it is.
+    // that isn't UTF-8; any other text is taken as it is.
     use std::os::unix::ffi::OsStringExt as _;
     let mut refspec = b"refs/heads/".to_vec();
     refspec.extend(crate::undo::ref_name_bytes(&request.branch));

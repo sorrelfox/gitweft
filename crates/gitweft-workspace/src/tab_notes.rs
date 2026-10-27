@@ -68,7 +68,7 @@ pub(crate) fn note_soon(notification: Toast, cx: &mut Context<Workspace>) {
     cx.notify();
 }
 
-/// A failure the user should hear of, not only the log (#12): an error toast (through
+/// A failure the user should hear of, not only the log: an error toast (through
 /// [`note_soon`], so no window is needed), and the same line on stderr.
 pub(crate) fn note_failure(text: String, cx: &mut Context<Workspace>) {
     eprintln!("gitweft: {text}");

@@ -1,4 +1,4 @@
-//! Moves between files, against git's own answer (#69).
+//! Moves between files, against git's own answer.
 //!
 //! `moved_lines_across` looks for a block that left one file and arrived in another, as
 //! `git diff --color-moved=blocks` does. Git says which lines it thinks moved by colouring

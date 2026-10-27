@@ -245,7 +245,7 @@ impl Workspace {
                                 background,
                                 Box::new(ToggleBackgroundFetch),
                             )
-                            // How often, per repository (#36): until now only in its file.
+                            // How often, per repository: until now only in its file.
                             .submenu(
                                 t!("background_fetch.interval_menu").into_owned(),
                                 window,

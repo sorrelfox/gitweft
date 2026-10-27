@@ -226,7 +226,7 @@ pub(super) fn tag_actions(
     actions
 }
 
-/// Whether a ref is left out of the graph's tips, or is the only one (G8c).
+/// Whether a ref is left out of the graph's tips, or is the only one.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(super) struct TipState {
     pub hidden: bool,

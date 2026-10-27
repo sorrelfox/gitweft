@@ -467,7 +467,7 @@ pub fn terminal(setting: &str, dir: &Path, env: &Environment) -> Result<Launch, 
     Ok(env.on_host(launch))
 }
 
-/// Where a terminal command of one's own takes the command to run (#41): a word of its own
+/// Where a terminal command of one's own takes the command to run: a word of its own
 /// is replaced by the command's arguments, a part of a word by the command as one quoted
 /// line (`sh -c '{command}'`).
 const COMMAND_PLACEHOLDER: &str = "{command}";
@@ -805,7 +805,7 @@ mod tests {
         let xterm = run("xterm").unwrap();
         assert_eq!(args(&xterm), ["-e", "git", "mergetool", "--", "a b.txt"]);
         assert_eq!(xterm.cwd, dir);
-        // Tilix takes the command as one line it splits itself, quotes kept (#41).
+        // Tilix takes the command as one line it splits itself, quotes kept.
         assert_eq!(
             args(&run("tilix").unwrap()),
             [

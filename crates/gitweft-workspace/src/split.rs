@@ -1,4 +1,4 @@
-//! Dividers between the right panel's stacked sections (#92): dragged, they move the line
+//! Dividers between the right panel's stacked sections: dragged, they move the line
 //! between two sections; a double click puts it back where it was by default. The views
 //! keep the dragged value while the mouse is down and save it to the layout settings when
 //! it is released.

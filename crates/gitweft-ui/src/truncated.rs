@@ -1,4 +1,4 @@
-//! Text cut to its width with "…" whose whole text shows on hover (#93). Only a text that
+//! Text cut to its width with "…" whose whole text shows on hover. Only a text that
 //! was actually cut gets the tooltip: the last frame measured it (the text's natural width
 //! in the text style it is drawn with, against the room it had).
 

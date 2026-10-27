@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Writes locales/LANG.yml from a checked translation (#46).
+"""Writes locales/LANG.yml from a checked translation.
 
 Usage: scripts/i18n/build.py LANG [JSON]   (default target/i18n/LANG.json)
 The file is rust-i18n's one-language format (`_version: 1`, the locale is the file name):

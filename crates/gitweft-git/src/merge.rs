@@ -89,7 +89,7 @@ pub fn merge_revision(full_name: &str, tags: &[&str], local_branches: &[&str]) -
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct MergePreview {
     /// Paths that would conflict, as bytes (a name need be neither UTF-8 nor free of tabs,
-    /// quotes or newlines, #15); empty for a clean merge.
+    /// quotes or newlines); empty for a clean merge.
     pub conflicts: Vec<BString>,
 }
 
@@ -108,7 +108,7 @@ pub fn merge_preview(
     theirs: impl AsRef<std::ffi::OsStr>,
     cancel: &CancelToken,
 ) -> Result<MergePreview, GitError> {
-    // `theirs` as bytes: a branch's name needn't be UTF-8 (#18).
+    // `theirs` as bytes: a branch's name needn't be UTF-8.
     let output = git
         .command(workdir)
         .args([
@@ -123,7 +123,7 @@ pub fn merge_preview(
         .read_only()
         .allow_exit_codes(&[1])
         .run(cancel)?;
-    // NUL-terminated (`-z`), so names come as they are, not C-quoted (#15): the merged tree
+    // NUL-terminated (`-z`), so names come as they are, not C-quoted: the merged tree
     // first, then with conflicts (exit status 1) each conflicted path, then an empty entry.
     let mut conflicts: Vec<BString> = if output.status == 1 {
         output
@@ -296,7 +296,7 @@ const COMMENT_STRINGS: GitVersion = GitVersion::new(2, 45, 0);
 /// message) and empty values also give `#`: merges, cherry-picks and the like write `#`
 /// with `auto`, and git refuses to run with an empty value.
 ///
-/// Git before 2.45 (`git`, #79) knows only `core.commentChar`, and only one character: it
+/// Git before 2.45 (`git`) knows only `core.commentChar`, and only one character: it
 /// ignores `core.commentString` and refuses to run with a longer `core.commentChar`.
 pub fn comment_prefix(repo: &gix::Repository, git: GitVersion) -> String {
     let strings = git >= COMMENT_STRINGS;

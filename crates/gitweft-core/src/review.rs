@@ -35,8 +35,7 @@ pub struct ReviewSession {
     pub viewed: Vec<ViewedFile>,
     #[serde(default)]
     pub comments: Vec<Comment>,
-    /// Comments deleted lately, the newest first (at most [`DELETED_KEPT`]): one can be
-    /// restored (#35).
+    /// Comments deleted lately, the newest first (at most [`DELETED_KEPT`]): one can be restored.
     #[serde(default)]
     pub deleted: Vec<Comment>,
     /// The id the next comment gets.
@@ -55,7 +54,7 @@ pub struct ReviewedRange {
 
 /// A file's path as a review keeps it (in [`ViewedFile`] and [`Comment`]): itself when it's
 /// UTF-8, else encoded so the saved JSON holds its bytes (a NUL and hex, as the undo log
-/// keeps names). Two names that only show alike stay two files (#63).
+/// keeps names). Two names that only show alike stay two files.
 pub fn path_key(path: &[u8]) -> String {
     gitweft_git::branch::config_value_text(path)
 }
@@ -97,7 +96,7 @@ pub struct Comment {
     /// The line and its surroundings, to find it again after the branch changes.
     pub anchor: Anchor,
     pub body: String,
-    /// Who wrote it: git's `user.name` then (#35); empty for comments saved before.
+    /// Who wrote it: git's `user.name` then; empty for comments saved before.
     #[serde(default)]
     pub author: String,
     /// The branch head the comment was written against.
@@ -228,7 +227,7 @@ impl ReviewSession {
         }
     }
 
-    /// Carries viewed marks over renames (#35): a file of `files` (the files the compared
+    /// Carries viewed marks over renames: a file of `files` (the files the compared
     /// ref has, each with its current blob; not the deleted ones) without a mark of its own
     /// takes a mark with the same content from a path that isn't among `files` any more, so
     /// a `git mv` keeps it viewed. A file renamed and changed has no such mark: it's
@@ -340,8 +339,8 @@ impl ReviewSession {
     }
 
     /// This instance's changes since `base` (the session it last read or saved) applied onto
-    /// `theirs` (the file as another Gitweft may have left it), so neither undoes the other
-    /// (#7): comments by id (added, changed or removed here since `base` wins, theirs
+    /// `theirs` (the file as another Gitweft may have left it), so neither undoes the other:
+    /// comments by id (added, changed or removed here since `base` wins, theirs
     /// otherwise; one changed on one side and removed on the other stays; a comment added
     /// here under an id another one took gets a new id), viewed marks by file (the files
     /// whose mark changed here take ours), the reviewed range if it changed here.
@@ -737,7 +736,7 @@ pub fn load(file: &Path) -> Option<ReviewSession> {
 
 /// Writes the session through [`crate::datafile::write_json`]: a file [`load`] couldn't
 /// read is kept as a backup first, and one written by a newer version is left alone, so a
-/// fresh session made in its place never replaces its comments (#4).
+/// fresh session made in its place never replaces its comments.
 pub fn save(file: &Path, session: &ReviewSession) -> io::Result<crate::datafile::Saved> {
     let text = serde_json::to_string_pretty(session).map_err(io::Error::other)?;
     crate::datafile::write_json(file, u64::from(VERSION), &text)
@@ -811,7 +810,7 @@ mod merge_tests {
         session.comments.iter().map(|c| c.body.as_str()).collect()
     }
 
-    /// Two instances on one review, each saving from the session it read (#7).
+    /// Two instances on one review, each saving from the session it read.
     #[test]
     fn two_instances_keep_each_others_comments_and_marks() {
         let dir = tempfile::tempdir().unwrap();
@@ -1036,7 +1035,7 @@ mod tests {
         assert_eq!(ids(&merged.deleted), [kept]);
     }
 
-    /// Latin-1 names that show alike ("caf\u{fffd}") stay two files, through a save (#63).
+    /// Latin-1 names that show alike ("caf\u{fffd}") stay two files, through a save.
     #[test]
     fn paths_that_arent_utf8_keep_their_bytes() {
         let (e_acute, e_grave) = (b"caf\xe9.txt".as_slice(), b"caf\xe8.txt".as_slice());

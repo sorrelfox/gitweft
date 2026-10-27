@@ -45,12 +45,12 @@ pub struct Palette {
     pub theirs_bg: Hsla,
     pub moved_from_bg: Hsla,
     pub moved_to_bg: Hsla,
-    /// Behind the matches of Find in the code views (#43); the current one is drawn stronger.
+    /// Behind the matches of Find in the code views; the current one is drawn stronger.
     pub find_bg: Hsla,
     /// Behind dialogs.
     pub scrim: Hsla,
     /// The opacity of dimmed content: search misses in the graph, a conflict's dropped
-    /// lines, a compared file marked viewed. High contrast keeps it readable (#32).
+    /// lines, a compared file marked viewed. High contrast keeps it readable.
     pub dim: f32,
 }
 
@@ -107,7 +107,7 @@ fn selection_alpha(dark: bool) -> f32 {
 
 impl Palette {
     /// Graphite as designed (the design's CSS variables), with fg3 and the dark accent's
-    /// text brought to WCAG AA (#68, the user's choice).
+    /// text brought to WCAG AA (the user's choice).
     pub fn graphite(dark: bool) -> Self {
         if dark {
             Self {
@@ -118,10 +118,10 @@ impl Palette {
                 line: c(0x2a2f38),
                 fg: c(0xe6e8ec),
                 fg2: c(0x9aa3b2),
-                // The design's #6b7280 was 3.2–3.8:1 on the grounds; lifted to WCAG AA (#68).
+                // The design's #6b7280 was 3.2–3.8:1 on the grounds; lifted to WCAG AA.
                 fg3: c(0x858b96),
                 acc: c(0x5b9dff),
-                // White on this blue was 2.7:1 (#68): the dark ink, 6.8:1.
+                // White on this blue was 2.7:1: the dark ink, 6.8:1.
                 acc_fg: ink_on(c(0x5b9dff)),
                 sel: ca(0x5b9dff, selection_alpha(true)),
                 hover: ca(0xffffff, 0.04),
@@ -158,7 +158,7 @@ impl Palette {
                 line: c(0xdbe0e7),
                 fg: c(0x1a1d23),
                 fg2: c(0x5b6472),
-                // The design's #8a93a1 was 2.6–3.1:1 on the grounds; darkened to WCAG AA (#68).
+                // The design's #8a93a1 was 2.6–3.1:1 on the grounds; darkened to WCAG AA.
                 fg3: c(0x656b76),
                 acc: c(0x2f6fe4),
                 acc_fg: c(0xffffff),

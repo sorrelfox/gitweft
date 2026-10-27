@@ -191,8 +191,8 @@ fn plural_forms_come_in_sets_with_the_same_placeholders() {
 }
 
 /// `format!` with a `t!` or `tn!` among its arguments glues a translated text to other text in
-/// code, which a translation can't reorder or reword: a message is one key with placeholders
-/// (#47). Where the key only names something that isn't text for people (never so far), the
+/// code, which a translation can't reorder or reword: a message is one key with placeholders.
+/// Where the key only names something that isn't text for people (never so far), the
 /// call gets `// i18n: not text` on the line above.
 ///
 /// A translation first put in a variable and then glued (`format!("{by} {text}")`) isn't
@@ -264,7 +264,7 @@ fn macro_args(rest: &str) -> &str {
 }
 
 /// The languages besides English and the plural forms each uses (as `plural::category`
-/// picks them; `scripts/i18n/langs.py` has the same table), #46.
+/// picks them; `scripts/i18n/langs.py` has the same table).
 const TRANSLATIONS: [(&str, &[&str]); 12] = [
     ("de", &["_one", "_other"]),
     ("fr", &["_one", "_other"]),

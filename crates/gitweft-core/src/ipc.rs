@@ -52,14 +52,14 @@ fn socket_path_in(runtime: Option<PathBuf>, data_dir: &Path) -> PathBuf {
 
 /// Hands `paths` (absolute) to the Gitweft listening on `socket`. An error means the
 /// caller starts the app itself: none is running there, or one took the connection but
-/// didn't answer in time, which [`is_no_answer`] tells apart (#22).
+/// didn't answer in time, which [`is_no_answer`] tells apart.
 pub fn send(socket: &Path, paths: &[PathBuf]) -> io::Result<()> {
     send_within(socket, paths, TIMEOUT)
 }
 
 fn send_within(socket: &Path, paths: &[PathBuf], timeout: Duration) -> io::Result<()> {
     // Only to a socket in a folder of our own: another user may have made the fallback
-    // folder in /tmp to receive our repositories' paths (#20).
+    // folder in /tmp to receive our repositories' paths.
     if let Some(dir) = socket.parent() {
         check_private(dir, crate::paths::own_uid())?;
     }
@@ -111,7 +111,7 @@ impl std::error::Error for NoAnswer {}
 
 /// Whether [`send`] failed because a Gitweft is running but didn't answer (hung, or too
 /// busy), rather than because none is running: then starting another one means two
-/// windows the next `gitweft PATH` can't both reach, which is worth saying (#22).
+/// windows the next `gitweft PATH` can't both reach, which is worth saying.
 pub fn is_no_answer(err: &io::Error) -> bool {
     err.get_ref().is_some_and(|inner| inner.is::<NoAnswer>())
 }
@@ -180,10 +180,10 @@ impl IpcServer {
         let shutdown = Arc::new(AtomicBool::new(false));
         let (tx, rx) = async_channel::unbounded();
         // One start at a time from the stale check until it serves: two that both found a
-        // stale socket would each remove and bind it, and both run (#20). And everything
+        // stale socket would each remove and bind it, and both run. And everything
         // that can still fail after the bind happens under the lock too: a start that bound,
         // let the lock go and then failed (its accept thread not spawned, under load) had
-        // meanwhile refused the next start as in use, so neither ran (#65). A failure after
+        // meanwhile refused the next start as in use, so neither ran. A failure after
         // the bind removes the socket, which is this start's own, for the next start.
         crate::datafile::with_lock(socket, || {
             let listener = match UnixListener::bind(socket) {
@@ -243,7 +243,7 @@ impl Drop for IpcServer {
 }
 
 /// `dir` holds our socket only if it's a real folder (not a link), owned by `uid`, that
-/// no one else may enter (#20).
+/// no one else may enter.
 fn check_private(dir: &Path, uid: u32) -> io::Result<()> {
     let meta = std::fs::symlink_metadata(dir)?;
     let refused = |why: &str| {
@@ -317,7 +317,7 @@ mod tests {
     }
 
     /// A Gitweft that takes the connection and never answers (hung) is told apart from none
-    /// running, so the new one can say why there are two (#22).
+    /// running, so the new one can say why there are two.
     #[test]
     fn a_running_app_that_doesnt_answer_is_told_apart() {
         let dir = short_dir();
@@ -402,7 +402,7 @@ mod tests {
             .create(&folder)
             .unwrap();
         check_private(&folder, uid).unwrap();
-        // Another user's folder (#20): the owner is someone else.
+        // Another user's folder: the owner is someone else.
         let err = check_private(&folder, uid.wrapping_add(1)).unwrap_err();
         assert_eq!(err.kind(), io::ErrorKind::PermissionDenied);
         // Open to others.
@@ -444,7 +444,7 @@ mod tests {
                 .collect();
             let results: Vec<_> = starts.into_iter().map(|t| t.join().unwrap()).collect();
             let started = results.iter().filter(|result| result.is_ok()).count();
-            // What each start returned, so a failure says which step went wrong (#65).
+            // What each start returned, so a failure says which step went wrong.
             let outcomes: Vec<String> = results
                 .iter()
                 .map(|result| match result {
@@ -452,12 +452,9 @@ mod tests {
                     Err(err) => format!("{:?}: {err}", err.kind()),
                 })
                 .collect();
-            assert_eq!(
-                started, 1,
-                "one server, the other refused (#20): {outcomes:?}"
-            );
+            assert_eq!(started, 1, "one server, the other refused: {outcomes:?}");
             // The other was refused as in use, or, on a machine out of threads, failed to
-            // start its own accept thread before the one that serves took the socket (#65).
+            // start its own accept thread before the one that serves took the socket.
             let refused = results.iter().find_map(|result| result.as_ref().err());
             assert!(
                 matches!(
@@ -471,7 +468,7 @@ mod tests {
 
     /// A start that bound, then failed to spawn its accept thread (as under load), leaves
     /// the socket to a start waiting behind it, instead of refusing it as in use and
-    /// failing too: exactly one serves (#65).
+    /// failing too: exactly one serves.
     #[test]
     fn a_start_that_fails_after_binding_leaves_the_socket_to_the_next() {
         let dir = short_dir();

@@ -49,7 +49,7 @@ impl Widths {
 
 /// The message column takes the room left, the author shrinks in a narrow panel (down to
 /// the graph's minimum), and the date and SHA keep their widths.
-/// Each cell's text is cut to fit, and shows whole on hover when it is (#93).
+/// Each cell's text is cut to fit, and shows whole on hover when it is.
 fn message(w: &Widths, text: impl Into<SharedString>) -> Truncated {
     truncated("message", text).flex_1().min_w(w.min_message)
 }

@@ -235,7 +235,7 @@ impl Workspace {
             return None;
         };
         let branch = repo.refs.head.branch_name()?.to_owned();
-        // By its bytes when a branch of that name is listed (#63).
+        // By its bytes when a branch of that name is listed.
         let key = repo
             .refs
             .local_branches
@@ -378,7 +378,7 @@ impl Workspace {
         cx: &mut Context<Self>,
     ) {
         if self.remote_op.is_some() {
-            // One network operation at a time: say so, rather than drop the request (#12).
+            // One network operation at a time: say so, rather than drop the request.
             note(Toast::info(t!("remote.busy").into_owned()), cx);
             return;
         }
@@ -498,7 +498,7 @@ impl Workspace {
                         let branch =
                             branch.ok_or_else(|| failed(t!("remote.detached").into_owned()))?;
                         // HEAD's branch by its bytes when its name isn't UTF-8: the name
-                        // shown is lossy, and push takes such a name encoded (#18).
+                        // shown is lossy, and push takes such a name encoded.
                         let branch = match gitweft_git::undo::checked_out_ref(&git, &cwd, cancel)? {
                             full if full.starts_with('\0') => {
                                 let bytes = gitweft_git::undo::ref_name_bytes(&full);
@@ -601,7 +601,7 @@ impl Workspace {
                 _ => self.show_git_error(kind.failed_title(), &err, window, cx),
             },
             // The job panicked (it was logged): its result is lost, and the user hears of it
-            // rather than nothing (#12).
+            // rather than nothing.
             None => note(
                 Toast::error(t!("job.lost").into_owned()).title(kind.failed_title()),
                 cx,

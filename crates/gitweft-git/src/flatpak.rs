@@ -81,8 +81,8 @@ fn credential_entries(state: &Path, spawn: &Path) -> Result<Vec<(&'static str, O
 }
 
 /// The first free `GIT_CONFIG_KEY_<n>`: after the ones `git` passes already (its own
-/// environment, which counts this process's too, else this process's). Before #16 only the
-/// process's were counted, so entries added to a handle that had some overwrote them.
+/// environment, which counts this process's too, else this process's). An earlier version
+/// counted only the process's, so entries added to a handle that had some overwrote them.
 fn first_index(git: &GitCli) -> usize {
     git.env_var("GIT_CONFIG_COUNT")
         .map(OsStr::to_owned)
@@ -229,7 +229,7 @@ mod tests {
     fn entries_follow_the_ones_the_handle_passes_already() {
         let mut git = GitCli::discover().unwrap();
         let state = std::env::temp_dir().join(format!("gitweft-flatpak-{}", std::process::id()));
-        // A handle with two entries already, as after `credential_env` (#16).
+        // A handle with two entries already, as after `credential_env`.
         git.set_env("GIT_CONFIG_COUNT", "2");
         let env = credential_env(&git, &state, Path::new("/usr/bin/flatpak-spawn")).unwrap();
         let _ = std::fs::remove_dir_all(&state);

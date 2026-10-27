@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Checks a translation against the English source (#46).
+"""Checks a translation against the English source.
 
 Usage: scripts/i18n/check.py LANG [FILE]
 FILE is the translation as JSON ({key: text}, default target/i18n/LANG.json) or as the

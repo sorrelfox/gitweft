@@ -103,7 +103,7 @@ pub struct FileDiff {
     /// Mode of a file the diff creates: `100644`, `100755`, or `120000` for a symlink.
     pub new_file_mode: Option<String>,
     /// A changed mode (old, new), e.g. `100644` → `100755` after a chmod: with no hunks,
-    /// the only change (#16).
+    /// the only change.
     pub mode_change: Option<(String, String)>,
     pub binary: bool,
     pub hunks: Vec<Hunk>,
@@ -230,7 +230,7 @@ pub fn file_diff(
 
 /// Every file of the same comparison as [`file_diff`], with no pathspec and no context
 /// lines (`-U0`): what the moved-line detection needs to find a block that left one file
-/// and arrived in another (#69). Context lines are left out because they only serve to keep
+/// and arrived in another. Context lines are left out because they only serve to keep
 /// runs of changes apart, and with `-U0` the hunk boundaries do that already.
 ///
 /// An untracked file is not part of any such diff, so it gets an empty list. The result is
@@ -338,8 +338,7 @@ pub fn file_versions(
         }
     };
     let (old, new) = match source {
-        // The index is `:0:<path>`: a bare `:<path>` reads a file named `1:x` as stage 1 of
-        // `x` (#15).
+        // The index is `:0:<path>`: a bare `:<path>` reads a file named `1:x` as stage 1 of `x`.
         DiffSource::Unstaged => (blob(spec(":0", old_path))?, worktree()?),
         DiffSource::Staged => (blob(spec("HEAD", old_path))?, blob(spec(":0", path))?),
         DiffSource::Untracked => (None, worktree()?),
@@ -552,7 +551,7 @@ fn header_name(raw: &[u8], prefix: &[u8]) -> Option<BString> {
 }
 
 /// Undoes git's C-style path quoting; input that isn't quoted (or is quoted in a way git
-/// never writes) comes back unchanged. The strict parsing is `files.rs`'s, shared (#15).
+/// never writes) comes back unchanged. The strict parsing is `files.rs`'s, shared.
 pub(super) fn unquote(raw: &[u8]) -> Vec<u8> {
     crate::files::unquote_c_style(raw).unwrap_or_else(|| raw.to_vec())
 }

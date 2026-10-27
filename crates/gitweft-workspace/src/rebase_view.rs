@@ -5,7 +5,7 @@
 //! Autosquash moves `fixup!`/`squash!` commits under the commits they name. Start hands
 //! the plan to the workspace, which runs it.
 //!
-//! By keyboard (#29): the arrows, Home and End move the selected row (shown in the
+//! By keyboard: the arrows, Home and End move the selected row (shown in the
 //! details), P/R/E/S/F/D set its action (git's todo letters; a reword's message box keeps
 //! its letters: text input comes before bindings), Shift+F10 lists its commands, Escape
 //! leaves a message box, then closes (asking when the plan was changed).
@@ -64,7 +64,7 @@ pub fn bind_keys(cx: &mut App) {
     cx.bind_keys([
         KeyBinding::new("alt-up", MoveUp, context),
         KeyBinding::new("alt-down", MoveDown, context),
-        // git's todo letters on the selected row (#29).
+        // git's todo letters on the selected row.
         KeyBinding::new("p", PickRow, context),
         KeyBinding::new("r", RewordRow, context),
         KeyBinding::new("e", EditRow, context),
@@ -121,7 +121,7 @@ struct Row {
     /// What the box was last filled with (the commit's message and its squashes'): while
     /// its text is still that, it follows the squashes as they change.
     filled: Option<String>,
-    /// A picked commit that squashes are folded into (#37): its box holds the message it
+    /// A picked commit that squashes are folded into: its box holds the message it
     /// ends up with, which it gets as a reword does.
     combined: bool,
 }
@@ -136,11 +136,11 @@ pub struct RebaseView {
     original: Vec<ObjectId>,
     rows: Vec<Row>,
     selected: Option<usize>,
-    /// The rows as drawn: only those on screen are built (#23). A reword's row grows with
+    /// The rows as drawn: only those on screen are built. A reword's row grows with
     /// its message box, so they are measured rather than all one height.
     list: ListState,
-    /// What `check` and `autosquash` make of the plan, worked out once per change (#23:
-    /// each frame used to copy every item two or three times).
+    /// What `check` and `autosquash` make of the plan, worked out once per change
+    /// (each frame used to copy every item two or three times).
     status: RefCell<Option<PlanStatus>>,
     focus: FocusHandle,
     focus_on_render: bool,
@@ -376,7 +376,7 @@ impl RebaseView {
         cx: &mut Context<Self>,
     ) {
         // Whether this row's message box has the keys: they come back to the rows when the
-        // box goes (a focused element that disappears leaves nothing focused, #61).
+        // box goes (a focused element that disappears leaves nothing focused).
         let box_focused = self
             .rows
             .get(index)
@@ -426,7 +426,7 @@ impl RebaseView {
     }
 
     /// The arrows, Home and End move the selected row, shown in the details as a click
-    /// does, and keep it in view (#29).
+    /// does, and keep it in view.
     fn move_cursor(&mut self, to: Step, cx: &mut Context<Self>) {
         let Some(ix) = list_keys::step(self.rows.len(), self.selected, to) else {
             return;
@@ -470,7 +470,7 @@ impl RebaseView {
     }
 
     /// Escape: out of a message box first (back to the rows); then closes, asking first
-    /// when the plan was changed (Enter answers Cancel, as on every warning, #13).
+    /// when the plan was changed (Enter answers Cancel, as on every warning).
     fn escape(&mut self, _: &CloseRebase, window: &mut Window, cx: &mut Context<Self>) {
         if !self.focus.is_focused(window) {
             self.focus.focus(window, cx);
@@ -947,7 +947,7 @@ impl Render for RebaseView {
             .on_action(cx.listener(Self::escape))
             .child(header)
             .child(note)
-            // Only the rows on screen are built (#23).
+            // Only the rows on screen are built.
             .child(
                 div()
                     .flex_1()
@@ -979,7 +979,7 @@ struct PlanStatus {
 /// The most commits the preview lists (the newest); the rest are counted.
 const PREVIEW_ROWS: usize = 50;
 
-/// The branch as the plan leaves it (#37), newest first as the graph shows it: one row per
+/// The branch as the plan leaves it, newest first as the graph shows it: one row per
 /// commit kept, on the branch's lane, with how many are folded into it and where the rebase
 /// stops, down to the base.
 fn preview(
@@ -1096,7 +1096,7 @@ fn preview(
         )
 }
 
-/// The editor in a GPUI test window (#51), driven by keystrokes through the app's own key
+/// The editor in a GPUI test window, driven by keystrokes through the app's own key
 /// bindings, and judged by the events it emits.
 #[cfg(test)]
 mod tests {

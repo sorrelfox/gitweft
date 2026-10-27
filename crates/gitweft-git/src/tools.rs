@@ -65,7 +65,7 @@ pub fn tools_git(git: &GitCli) -> Result<GitCli, ToolError> {
     tools_git_with(git, Path::new("/.flatpak-info"), Path::new("flatpak-spawn"))
 }
 
-/// [`tools_git`] with the Flatpak marker file and the spawner given (tests, #50).
+/// [`tools_git`] with the Flatpak marker file and the spawner given (tests).
 pub fn tools_git_with(
     git: &GitCli,
     flatpak_info: &Path,
@@ -190,7 +190,7 @@ pub fn is_terminal_tool(name: &str) -> bool {
 }
 
 /// The merge tool [`run_mergetool`] starts: `tool`, or the configured one. Fails with
-/// [`ToolError::MergeToolMissing`] when git can't find the tool's program (#84).
+/// [`ToolError::MergeToolMissing`] when git can't find the tool's program.
 pub fn merge_tool(
     git: &GitCli,
     cwd: &Path,

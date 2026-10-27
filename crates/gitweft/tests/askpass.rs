@@ -86,7 +86,7 @@ fn a_prompt_that_isnt_utf8_reaches_the_app() {
 
     // ssh runs SSH_ASKPASS with its prompt as the argument, and a key's path in it needn't
     // be UTF-8. (git's own prompts don't show this: it percent-encodes a URL's bytes.)
-    // Before #18 the helper read the argument with `std::env::args`, which panics on that.
+    // An earlier helper read the argument with `std::env::args`, which panics on that.
     let prompt = std::ffi::OsStr::from_bytes(b"Enter passphrase for key '/home/caf\xe9/id': ");
     #[allow(clippy::disallowed_methods)] // The helper binary under test, not git.
     let out = std::process::Command::new(HELPER)
@@ -126,7 +126,7 @@ fn cancelled_prompt_fails_as_auth_error() {
     assert_eq!(err.kind, GitErrorKind::AuthFailed, "{}", err.stderr);
 }
 
-/// The helper's failures, each without asking anyone (#50): prompts turned off for the
+/// The helper's failures, each without asking anyone: prompts turned off for the
 /// operation, a socket but no token (not started by Gitweft), nothing listening.
 #[test]
 fn the_helper_fails_without_asking_when_it_cant_or_mustnt() {

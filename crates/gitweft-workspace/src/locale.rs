@@ -58,7 +58,7 @@ fn base_name(name: &str) -> String {
 }
 
 /// The language of `available` that the locale name `wanted` asks for: the same region, else
-/// the same language, else another region of it (pt_PT gets pt-BR, #46; not for Chinese,
+/// the same language, else another region of it (pt_PT gets pt-BR; not for Chinese,
 /// whose regions are written in different scripts). The pseudo-language only when asked
 /// for by name (`explicit`).
 fn pick(wanted: &str, available: &[String], explicit: bool) -> Option<String> {
@@ -159,7 +159,7 @@ mod tests {
             pick("pt_BR.UTF-8", &available(), false).as_deref(),
             Some("pt-BR")
         );
-        // Another region of the language rather than English (#46), but not across Chinese
+        // Another region of the language rather than English, but not across Chinese
         // scripts.
         assert_eq!(pick("pt_PT", &available(), false).as_deref(), Some("pt-BR"));
         let chinese = ["en".to_owned(), "zh-CN".to_owned()];

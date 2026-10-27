@@ -1,4 +1,4 @@
-"""The languages Gitweft ships besides English (#46), and the plural forms each needs.
+"""The languages Gitweft ships besides English, and the plural forms each needs.
 
 The forms are CLDR's categories for whole numbers, as `plural::category` in
 crates/gitweft-workspace/src/plural.rs picks them; the locale-keys test holds each file to

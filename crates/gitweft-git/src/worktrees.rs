@@ -21,8 +21,8 @@ pub struct WorktreeInfo {
     pub path: PathBuf,
     /// `None` for a bare main worktree (or an unborn branch).
     pub head: Option<ObjectId>,
-    /// Full ref name of its branch (`refs/heads/x`), as git names it (it needn't be UTF-8,
-    /// #63); `None` when detached.
+    /// Full ref name of its branch (`refs/heads/x`), as git names it (it needn't be
+    /// UTF-8); `None` when detached.
     pub branch: Option<BString>,
     pub bare: bool,
     /// The main worktree (the first one listed).

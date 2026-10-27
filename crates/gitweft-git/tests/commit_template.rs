@@ -1,5 +1,5 @@
 //! `commit_template`: the `commit.template` file found as `git commit` finds it, split
-//! into summary and description (#50: only the splitting was tested).
+//! into summary and description (only the splitting was tested).
 
 use gitweft_git::CancelToken;
 use gitweft_git::ops::commit_template;

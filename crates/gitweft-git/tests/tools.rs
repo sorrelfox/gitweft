@@ -246,7 +246,7 @@ fn a_host_without_git_is_refused() {
 }
 
 /// `tools_git` goes to the host only in a Flatpak, which it knows by the marker file at
-/// the sandbox's root (#50). The askpass variables tell the two apart: the host's git
+/// the sandbox's root. The askpass variables tell the two apart: the host's git
 /// doesn't get them.
 #[test]
 fn the_tools_git_is_the_hosts_only_in_a_flatpak() {
@@ -557,7 +557,7 @@ fn a_failed_merge_leaves_the_conflict() {
     assert!(unmerged(&sb, &repo).contains("a.txt"));
 }
 
-/// A tool git knows but can't find the program of (vimdiff without vim, #84) is refused
+/// A tool git knows but can't find the program of (vimdiff without vim) is refused
 /// before git starts: git would write its temporary files first and leave them. One given
 /// its own program (`mergetool.<tool>.path`) is started as before.
 #[test]

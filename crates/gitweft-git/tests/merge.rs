@@ -62,7 +62,7 @@ fn a_branch_whose_name_isnt_utf8_is_previewed_and_merged() {
     sb.run(&repo, &["switch", "-q", "main"]);
     sb.commit_file(&repo, "c.txt", "c\n", "ours");
 
-    // By its full name's bytes (#18): the lossy text names nothing to git.
+    // By its full name's bytes: the lossy text names nothing to git.
     let full = OsStr::from_bytes(b"refs/heads/caf\xe9");
     assert!(
         merge_preview(sb.git(), &repo, "HEAD", full, &cancel)
@@ -332,7 +332,7 @@ fn a_conflicting_merge_prepares_its_message_and_lists_its_conflicts() {
 fn the_comment_prefix_is_the_one_git_wrote_with() {
     let cancel = CancelToken::new();
     // Settings made in the repository, in this order, and the prefix git then uses: git
-    // 2.45 and later, and older git (#79), where `None` is a setting it refuses to run with.
+    // 2.45 and later, and older git, where `None` is a setting it refuses to run with.
     type Case<'a> = (&'a [(&'a str, &'a str)], &'a str, Option<&'a str>);
     let cases: [Case; 9] = [
         (&[], "#", Some("#")),

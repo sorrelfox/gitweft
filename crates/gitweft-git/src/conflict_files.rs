@@ -182,7 +182,7 @@ fn unmerged_entries(
 
 /// The size of the conflict markers git writes in `path` (relative to `workdir`): its
 /// `conflict-marker-size` attribute, else 7. Read from HEAD's attributes like
-/// [`binary_merge_paths`] (the working tree's on git before 2.40); any failure gives 7 (#16).
+/// [`binary_merge_paths`] (the working tree's on git before 2.40); any failure gives 7.
 pub fn conflict_marker_size(
     git: &GitCli,
     workdir: &Path,

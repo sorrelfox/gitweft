@@ -271,7 +271,7 @@ fn commits_among(
 
 /// The lines ignored commits shaped: the same blame (`args`) in git's default format, with
 /// its marks switched on. Porcelain shows them as `ignored` / `unblamable` lines only in
-/// newer git (2.43 has none); the default format's `?` and `*` are there since 2.23 (#79). `None`
+/// newer git (2.43 has none); the default format's `?` and `*` are there since 2.23. `None`
 /// when it fails: the marks are extra, the streamed blame reports errors.
 fn line_marks(
     git: &GitCli,
@@ -380,8 +380,8 @@ pub fn file_content(
         .run(cancel);
     match output {
         Ok(output) => Ok(output.stdout),
-        // A partial clone without this version: said so, so the view offers to fetch it
-        // (#87); cat-file itself only says the name isn't valid.
+        // A partial clone without this version: said so, so the view offers to fetch it;
+        // cat-file itself only says the name isn't valid.
         Err(mut err) => {
             let files = [(rev.to_string(), path.into())];
             if crate::partial::missing_blobs(git, cwd, &files, cancel)

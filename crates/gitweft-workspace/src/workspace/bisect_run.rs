@@ -27,7 +27,7 @@ const OUTPUT_LINES: usize = 2000;
 
 /// A run's lines (the first ones dropped past [`OUTPUT_LINES`]), drawn in the output
 /// dialog. The run adds to it, so an open dialog follows the run: it stays at the bottom
-/// while it was there, and keeps its place when scrolled up (#39).
+/// while it was there, and keeps its place when scrolled up.
 pub(super) struct BisectLog {
     lines: Vec<String>,
     scroll: ScrollHandle,

@@ -1,12 +1,12 @@
 //! Text as the code views show it: tabs at tab stops, and widths in columns of the code
-//! font, where wide characters (CJK, most emoji) take two (#42).
+//! font, where wide characters (CJK, most emoji) take two.
 
 use std::borrow::Cow;
 
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 /// `text` with each tab replaced by the spaces to the next tab stop, `width` columns apart
-/// (the code views' Tab width setting, #80), counted in columns.
+/// (the code views' Tab width setting), counted in columns.
 pub fn expand_tabs(text: &str, width: usize) -> Cow<'_, str> {
     if !text.contains('\t') {
         return Cow::Borrowed(text);

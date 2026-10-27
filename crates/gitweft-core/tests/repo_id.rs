@@ -1,4 +1,4 @@
-//! Per-repository data keyed by `gitweft.id` (#19): assigned on the first load, the old
+//! Per-repository data keyed by `gitweft.id`: assigned on the first load, the old
 //! path-named folder moved under it, kept through a move, and a copy gets its own.
 
 use std::path::Path;

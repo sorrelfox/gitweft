@@ -1,4 +1,4 @@
-//! Paths git quotes, or reads as something else (#15): a newline, a leading quote and a tab in
+//! Paths git quotes, or reads as something else: a newline, a leading quote and a tab in
 //! a name, and a name that looks like an index stage (`1:x`). Each goes through the reads and
 //! writes that used to lose or misread it.
 

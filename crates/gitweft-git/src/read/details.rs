@@ -105,7 +105,7 @@ impl ChangeKind {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FileChange {
     pub kind: ChangeKind,
-    /// As git has it: a path needn't be UTF-8 (#18). Shown with `to_str_lossy`.
+    /// As git has it: a path needn't be UTF-8. Shown with `to_str_lossy`.
     pub path: gix::bstr::BString,
     /// Source path of a rename or copy.
     pub old_path: Option<gix::bstr::BString>,
@@ -201,9 +201,9 @@ pub fn commit_details(
         }
         Ok(run(&args)?.stdout)
     };
-    // The changes and their line counts in one run (`--raw` then `--numstat`, #25). In a
-    // partial clone the versions' contents may be missing, and reads don't fetch them
-    // (#82): then renames are found by identical content only (no `-M` on contents), and
+    // The changes and their line counts in one run (`--raw` then `--numstat`). In a
+    // partial clone the versions' contents may be missing, and reads don't fetch them:
+    // then renames are found by identical content only (no `-M` on contents), and
     // the files are listed without line counts.
     let missing = |err: &ReadError| crate::partial::is_missing_objects(err.as_ref());
     let changes = match diff_tree(&["-M", "--raw", "--numstat"]) {

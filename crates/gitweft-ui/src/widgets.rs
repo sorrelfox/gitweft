@@ -264,7 +264,7 @@ pub fn bind_keys(cx: &mut App) {
     ]);
 }
 
-/// A text link that Tab reaches (#30), for the clickable words the views are full of
+/// A text link that Tab reaches, for the clickable words the views are full of
 /// ("Stage", "Restore", "Browse files"). It keeps a focus handle across frames by its id and
 /// is a tab stop; while it has the focus it's outlined in the accent color, inside its own
 /// bounds, so the layout doesn't move and a clipping row can't cut the outline off. Enter and
@@ -289,7 +289,7 @@ pub struct LinkButton {
     /// Takes the width it's given and cuts its text short with an ellipsis.
     truncate: bool,
     tooltip: Option<SharedString>,
-    /// The scroll container to keep the link visible in while it has the focus (#67).
+    /// The scroll container to keep the link visible in while it has the focus.
     reveal_in: Option<ScrollHandle>,
 }
 
@@ -367,7 +367,7 @@ impl LinkButton {
 
     /// Keeps the link in view inside `scroll` while it has the focus. GPUI doesn't scroll
     /// the focus into view, so Tab could land below the fold of a scrolling panel and Enter
-    /// would act on something the user can't see (#67).
+    /// would act on something the user can't see.
     pub fn reveal_in(mut self, scroll: &ScrollHandle) -> Self {
         self.reveal_in = Some(scroll.clone());
         self
@@ -515,7 +515,7 @@ impl RenderOnce for LinkButton {
 }
 
 /// Scrolls `scroll` the least it takes for `child` to be inside it, up or down. GPUI leaves
-/// the focus where it is, so Tab could land below a panel's fold (#67, #77).
+/// the focus where it is, so Tab could land below a panel's fold.
 pub fn scroll_into_view(scroll: &ScrollHandle, child: Bounds<Pixels>, window: &mut Window) {
     let view = scroll.bounds();
     if view.size.height <= px(0.) {

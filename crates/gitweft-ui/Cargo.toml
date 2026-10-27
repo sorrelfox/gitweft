@@ -15,5 +15,5 @@ gpui-kit.workspace = true
 [dev-dependencies]
 serde_json.workspace = true
 tempfile.workspace = true
-# GPUI's test context (#51); dev-only, so the app itself never gets it.
+# GPUI's test context; dev-only, so the app itself never gets it.
 gpui-kit = { workspace = true, features = ["test-support"] }

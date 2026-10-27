@@ -149,7 +149,7 @@ impl Workspace {
     }
 
     /// The buttons of the view shown in the centre, listed first: the conflict tool, else
-    /// the rebase editor, else a blame (its cursor line's items, #29), else a diff.
+    /// the rebase editor, else a blame (its cursor line's items), else a diff.
     fn centre_commands(&self, commands: &mut Vec<PaletteCommand>, cx: &App) {
         if let Some(view) = &self.conflict_view {
             commands.extend(view.read(cx).palette_commands(&view.downgrade()));
@@ -548,7 +548,7 @@ impl Workspace {
             );
             return;
         }
-        // Each with the action that runs it from the keyboard (#33).
+        // Each with the action that runs it from the keyboard.
         let mut remote = |label: Cow<'_, str>, kind: RemoteOpKind, action: Box<dyn Action>| {
             let command = command(this, &group, label, move |w, window, cx| {
                 w.run_remote(kind, window, cx)
@@ -629,7 +629,7 @@ impl Workspace {
         );
     }
 
-    /// Identity profiles (#45): use each in this repository, delete it, and save this
+    /// Identity profiles: use each in this repository, delete it, and save this
     /// repository's identity as a new one.
     fn identity_commands(
         &self,
@@ -875,7 +875,7 @@ impl Workspace {
             t!("lfs.sizes_all"),
             |w, window, cx| w.show_lfs_sizes(true, window, cx),
         ));
-        // History rewrites of the checked-out branch (#71).
+        // History rewrites of the checked-out branch.
         commands.push(command(
             this,
             &group,
@@ -958,7 +958,7 @@ impl Workspace {
 }
 
 /// The palette's label for `action` on the operation in progress, when it can take it: one
-/// sentence per operation, not its name put into one (#46: "Continue the Rebase" read
+/// sentence per operation, not its name put into one ("Continue the Rebase" read
 /// wrong even in English).
 fn operation_command_label(operation: Operation, action: OperationAction) -> Option<String> {
     use Operation::*;

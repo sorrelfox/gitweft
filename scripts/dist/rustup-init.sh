@@ -1,6 +1,6 @@
 #!/bin/sh
 # Installs rustup (no toolchain) from rustup-init of the pinned version, checked against its
-# pinned SHA-256 before it runs (#58), instead of piping sh.rustup.rs into sh.
+# pinned SHA-256 before it runs, instead of piping sh.rustup.rs into sh.
 # Usage: rustup-init.sh VERSION SHA256 [RUSTUP-INIT OPTIONS…]   (x86_64 Linux; needs curl)
 set -eu
 version=$1 sum=$2

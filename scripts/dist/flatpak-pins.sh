@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Puts the Flatpak build's SDK, Platform and Rust extension at the commits pins.env pins
-# (#58), so every Flatpak build of a version uses the same toolchain and runtime.
+# Puts the Flatpak build's SDK, Platform and Rust extension at the commits pins.env pins,
+# so every Flatpak build of a version uses the same toolchain and runtime.
 # What isn't installed at all is installed for the user from Flathub (GITWEFT_FLATPAK_DEPS
 # names another remote). What is installed at another commit is moved to the pinned one
 # only with GITWEFT_FLATPAK_DEPS set; without it, that difference is an error that says

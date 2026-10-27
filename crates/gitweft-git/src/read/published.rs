@@ -31,7 +31,7 @@ pub fn published_commits(
     keep: Option<&std::ffi::OsStr>,
     cancel: &CancelToken,
 ) -> Result<Published, GitError> {
-    // Names as bytes: a branch's name needn't be UTF-8 (#18).
+    // Names as bytes: a branch's name needn't be UTF-8.
     let excluded = keep.map(|keep| {
         let mut arg = std::ffi::OsString::from("^");
         arg.push(keep);
@@ -49,7 +49,7 @@ pub fn published_commits(
             .run(cancel)?;
         Ok(output.stdout_str().into_owned())
     };
-    // Counts first: a branch's whole history is never held as ids (#25).
+    // Counts first: a branch's whole history is never held as ids.
     let count = |extra: &[&str]| -> Result<usize, GitError> {
         let mut args = vec!["--count"];
         args.extend_from_slice(extra);

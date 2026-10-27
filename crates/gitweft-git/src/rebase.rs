@@ -158,7 +158,7 @@ pub fn check(items: &[TodoItem]) -> Result<(), TodoProblem> {
 /// one `break`.
 ///
 /// `git`: the program the rewords' `exec` runs, quoted for `sh` (the configured git, not
-/// whatever `git` is on PATH, #16).
+/// whatever `git` is on PATH).
 pub fn compile(
     items: &[TodoItem],
     git: &str,
@@ -593,7 +593,7 @@ pub fn rebase_interactive(
         }
     }
     // The configured git (`GITWEFT_GIT`, or `git` on the host in the Flatpak, where the
-    // rebase runs too), not whatever `git` is on PATH (#16).
+    // rebase runs too), not whatever `git` is on PATH.
     let not_text = || problem(TodoProblem::PathNotUtf8);
     let program = shell_quote(git.program()).ok_or_else(not_text)?;
     let todo = compile(&plan.items, &program, message_file).map_err(problem)?;
@@ -681,7 +681,7 @@ fn parse_plan(text: &str) -> Option<(Vec<String>, &str)> {
 }
 
 /// `path` in single quotes for `sh`; `None` when it isn't UTF-8 (the todo is text, and a
-/// lossy path would name another file, #16).
+/// lossy path would name another file).
 fn shell_quote(path: &Path) -> Option<String> {
     Some(format!("'{}'", path.to_str()?.replace('\'', "'\\''")))
 }
@@ -838,7 +838,7 @@ mod tests {
         use std::os::unix::ffi::OsStrExt as _;
         let items = [item(1, TodoAction::Reword)];
         let file = |index| PathBuf::from(format!("/g/{index}.msg"));
-        // The program comes quoted, as `rebase_interactive` gives it (#16).
+        // The program comes quoted, as `rebase_interactive` gives it.
         let todo = compile(&items, "'/opt/my git/bin/git'", file).unwrap();
         assert!(
             todo.contains("exec '/opt/my git/bin/git' commit --amend"),

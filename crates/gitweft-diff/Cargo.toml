@@ -13,7 +13,7 @@ similar.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
-# Only for the tests against git's own --color-moved (#69).
+# Only for the tests against git's own --color-moved.
 gitweft-testkit.workspace = true
 proptest.workspace = true
 

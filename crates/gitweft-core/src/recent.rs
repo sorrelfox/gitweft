@@ -30,7 +30,7 @@ pub fn load(file: &Path) -> Vec<PathBuf> {
 
 /// Moves `repo` to the front (adding it if new) and returns the new list. A read-modify-write
 /// under a lock (`<file>.lock`), so two Gitweft instances opening repositories at once both
-/// land in the list (#7).
+/// land in the list.
 pub fn remember(file: &Path, repo: &Path) -> io::Result<Vec<PathBuf>> {
     // A newline can't be stored in a line-based file; such a path just isn't listed.
     if !repo.is_absolute() || repo.as_os_str().as_bytes().contains(&b'\n') {
@@ -73,7 +73,7 @@ fn save(file: &Path, list: &[PathBuf]) -> io::Result<()> {
 mod tests {
     use super::*;
 
-    /// Writers at once (threads here, instances in real life) each land in the list (#7).
+    /// Writers at once (threads here, instances in real life) each land in the list.
     #[test]
     fn writers_at_once_all_land() {
         let dir = tempfile::tempdir().unwrap();

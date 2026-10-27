@@ -1,7 +1,7 @@
 //! Headless UI tests: the app's own window (a `Root` around the shell, every key binding
 //! the app registers) on sandbox repositories, driven by keys and typed text, checked
 //! against git and the views' state. They take the place of desktop click-tests for what
-//! doesn't need a real desktop (#60): no screenshots, no coordinates, run by `cargo test`.
+//! doesn't need a real desktop: no screenshots, no coordinates, run by `cargo test`.
 //!
 //! Git work runs on worker threads, which `run_until_parked` doesn't wait for: [`Ui::wait`]
 //! draws and polls until a condition holds.
@@ -456,7 +456,7 @@ mod tests {
     }
 
     /// Prompts, dialogs and toasts (`gitweft_ui::flow`) break their lines at spaces only:
-    /// "(Ctrl+Z)" goes down whole where GPUI split it before "+" (#101). A blank line keeps
+    /// "(Ctrl+Z)" goes down whole where GPUI split it before "+". A blank line keeps
     /// its height.
     #[test]
     fn flow_breaks_at_spaces_and_keeps_blank_lines() {
@@ -644,7 +644,7 @@ mod tests {
         assert_eq!(subjects(&sb, &repo), "c4|c3|c2|c1");
     }
 
-    /// Tab to a link below the details' fold scrolls the panel to it (#67, #83). The
+    /// Tab to a link below the details' fold scrolls the panel to it. The
     /// checked-out commit's long body pushes the facts under the fold; from the file list,
     /// Shift+Tab twice ("Show more") and Tab reach the parent's SHA, which must then lie
     /// inside the visible part. (Was graphite-reveal-focus-test.sh.)
@@ -665,7 +665,7 @@ mod tests {
         ui.wait("the details with the parent", |ui| {
             ui.window.debug_bounds("details-parent-0").is_some()
         });
-        // The whole body ("Show more"): taller than the details' 60 % (#94), so the parent
+        // The whole body ("Show more"): taller than the details' 60 %, so the parent
         // is below the fold.
         let at = ui
             .window
@@ -949,7 +949,7 @@ mod tests {
         ui.wait("the diff takes the keys", |ui| {
             ui.read(|w, cx| w.diff().is_some_and(|d| d.read(cx).has_focus()))
         });
-        // By keyboard (#85): the cursor to +line 5, and C comments on it; the palette
+        // By keyboard: the cursor to +line 5, and C comments on it; the palette
         // offers the same.
         ui.keys("home down down down down down down");
         assert!(
@@ -1174,7 +1174,7 @@ mod tests {
     }
 
     /// "Git LFS: the largest kinds of files in this branch's history" from the palette
-    /// opens the report (#71): the kinds in plain git, one row each. Needs git-lfs.
+    /// opens the report: the kinds in plain git, one row each. Needs git-lfs.
     #[test]
     fn the_lfs_size_report_lists_the_kinds_of_files() {
         let sb = Sandbox::new();
@@ -1204,7 +1204,7 @@ mod tests {
         assert!(ui.window.debug_bounds("lfs-size-2").is_none(), "two kinds");
     }
 
-    /// A partial clone (#82): an old commit's diff isn't downloaded by itself; the view says
+    /// A partial clone: an old commit's diff isn't downloaded by itself; the view says
     /// so, and "Fetch missing contents" gets the two versions and shows the diff.
     #[test]
     fn a_partial_clone_fetches_a_diffs_contents_only_when_asked() {
@@ -1262,7 +1262,7 @@ mod tests {
         assert_eq!(missing(), 0);
     }
 
-    /// Three toasts in a row are all on screen (#38: gpui-kit's stack showed only the
+    /// Three toasts in a row are all on screen (gpui-kit's stack showed only the
     /// newest); closing one leaves the others.
     #[test]
     fn toasts_in_a_row_are_all_shown() {
@@ -1289,7 +1289,7 @@ mod tests {
         );
     }
 
-    /// The side panels (#91, #48). Dragged by their dividers they have only minimums: the
+    /// The side panels. Dragged by their dividers they have only minimums: the
     /// sidebar goes past the old 520 px maximum and stops where the centre is at its minimum,
     /// the other panel never changes; the widths are saved in design pixels, so the zoom
     /// scales them.
@@ -1410,7 +1410,7 @@ mod tests {
         f32::from(ui.window.debug_bounds(name).expect(name).size.height).round()
     }
 
-    /// The right panel's sections (#92): the line between Unstaged and Staged, the commit
+    /// The right panel's sections: the line between Unstaged and Staged, the commit
     /// box's top, a commit's message and facts and the file preview are dragged; the sizes
     /// are saved (to the file too), and a double click puts one back.
     #[test]
@@ -1514,7 +1514,7 @@ mod tests {
         assert!(layout(&mut ui).preview_share.is_some());
     }
 
-    /// Cut text shows its whole text on hover (#93): a long branch name in its graph pill
+    /// Cut text shows its whole text on hover: a long branch name in its graph pill
     /// is cut and has the tooltip; a short one is whole.
     #[test]
     fn a_cut_branch_name_is_known_to_be_cut_and_a_short_one_is_not() {
@@ -1554,7 +1554,7 @@ mod tests {
         );
     }
 
-    /// The settings window (#88, #89, #90): each sidebar entry shows its own page. Theme
+    /// The settings window: each sidebar entry shows its own page. Theme
     /// and Text differ; Colors sits under Appearance, and Saved colors, Surfaces and Saved
     /// colors again each show their own; a search finds a setting on any page.
     #[test]
@@ -1628,7 +1628,7 @@ mod tests {
         );
     }
 
-    /// Tab to a control below a settings page's fold scrolls the page to it (#77). On the
+    /// Tab to a control below a settings page's fold scrolls the page to it. On the
     /// Keyboard page, Tab walks the commands' Record and Remove buttons down past the
     /// window's bottom; the last command's row must come into view on the way. The page is
     /// scrolled only when the focus enters a row, so the wheel can still move it after.
@@ -1706,7 +1706,7 @@ mod tests {
     }
 
     /// A commit's message and facts take the room they need, up to 60 % of the details
-    /// panel (#94): a short message with branches shows its refs row whole, not under the
+    /// panel: a short message with branches shows its refs row whole, not under the
     /// fold; a long body stops at 60 % of the panel under its header.
     #[test]
     fn the_details_top_is_as_tall_as_it_needs_up_to_sixty_percent() {
@@ -1758,7 +1758,7 @@ mod tests {
         );
     }
 
-    /// Identity profiles (#45): this repository's identity saved as "Home" from the
+    /// Identity profiles: this repository's identity saved as "Home" from the
     /// palette; a "Work" profile applied puts its name, email and key in the repository's
     /// own config.
     #[test]
@@ -1811,7 +1811,7 @@ mod tests {
         assert_eq!(config("user.signingkey"), "KEY1");
     }
 
-    /// Git LFS migrate on the checked-out branch (#71): from the palette, the patterns,
+    /// Git LFS migrate on the checked-out branch: from the palette, the patterns,
     /// "Rewrite" confirmed; git has the file in LFS, and Undo takes the branch back.
     #[test]
     fn a_branch_is_moved_into_lfs_and_undone() {
@@ -1857,7 +1857,7 @@ mod tests {
         });
     }
 
-    /// The file history's row menu opens the file as of that commit (#44).
+    /// The file history's row menu opens the file as of that commit.
     #[test]
     fn a_history_row_opens_the_file_as_of_its_commit() {
         let sb = Sandbox::new();
@@ -1883,7 +1883,7 @@ mod tests {
         });
     }
 
-    /// A comparison's commit row has the graph's items (#44): its menu cherry-picks it
+    /// A comparison's commit row has the graph's items: its menu cherry-picks it
     /// onto the checked-out branch.
     #[test]
     fn a_compared_commit_is_cherry_picked_from_its_row_menu() {
@@ -1908,7 +1908,7 @@ mod tests {
         });
     }
 
-    /// A partial clone's blame and old file version (#87): each says the contents are
+    /// A partial clone's blame and old file version: each says the contents are
     /// missing and fetches them only when asked, then shows.
     #[test]
     fn a_partial_clone_fetches_blame_and_file_contents_only_when_asked() {

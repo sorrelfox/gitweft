@@ -73,7 +73,7 @@ pub struct DanglingView {
     focus: FocusHandle,
     /// Take keyboard focus on the next frame, so Esc works.
     focus_on_render: bool,
-    /// "Show all" was chosen: the next search lists every commit it finds (#44).
+    /// "Show all" was chosen: the next search lists every commit it finds.
     show_all: bool,
 }
 
@@ -150,7 +150,7 @@ impl DanglingView {
         self.select(ix, cx);
     }
 
-    /// A commit's menu, for its right-click menu and Shift+F10 (#27). A dropped stash is a
+    /// A commit's menu, for its right-click menu and Shift+F10. A dropped stash is a
     /// merge of the work and the index: applied as a stash, not picked.
     fn row_items(commit: &DanglingCommit) -> Vec<(String, DanglingEvent)> {
         let id = commit.id;
@@ -260,7 +260,7 @@ impl Render for DanglingView {
         let capped =
             matches!(&self.content, Content::Loaded { commits, total } if commits.len() < *total);
         let header = centre_header(t!("dangling.title").into_owned(), count, &p, &m)
-            // The rest of a capped list (#44): the search again, uncapped.
+            // The rest of a capped list: the search again, uncapped.
             .when(capped, |this| {
                 this.child(
                     Button::new("show-all-dangling")

@@ -208,7 +208,7 @@ pub fn set_identity(
     Ok(())
 }
 
-/// Sets an identity profile in the repository's own config (#45): `user.name`,
+/// Sets an identity profile in the repository's own config: `user.name`,
 /// `user.email`, and `user.signingKey` when the profile has one (a profile without one
 /// leaves the repository's signing setup as it is).
 pub fn apply_identity(

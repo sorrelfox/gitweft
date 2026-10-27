@@ -217,7 +217,7 @@ impl Workspace {
         let git = repo.git.clone();
         let cwd = repo.cwd();
         let job = self.jobs.spawn(Lane::Write, move |cancel| {
-            // The names may be encoded (`undo::ref_name_text`): git gets their bytes (#18).
+            // The names may be encoded (`undo::ref_name_text`): git gets their bytes.
             let os = |text: &str| -> std::ffi::OsString {
                 use std::os::unix::ffi::OsStringExt as _;
                 std::ffi::OsString::from_vec(gitweft_git::undo::ref_name_bytes(text))

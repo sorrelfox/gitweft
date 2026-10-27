@@ -1,4 +1,4 @@
-//! Text that wraps at its spaces only (#101). GPUI's wrapper also breaks before `+`, `/` and
+//! Text that wraps at its spaces only. GPUI's wrapper also breaks before `+`, `/` and
 //! `(`, which split "(Ctrl+Z)" and "(~/.gitconfig)" across lines, and no glue character stops
 //! it. This one picks the breaks itself: the last frame measured each word in the text style
 //! it is drawn with, against the width it had, and the text is drawn with a newline at each

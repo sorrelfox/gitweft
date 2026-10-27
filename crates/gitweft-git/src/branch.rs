@@ -51,7 +51,7 @@ pub fn create_branch(
     Ok(())
 }
 
-/// Renames `old` (as git names it: bytes, since a branch's name needn't be UTF-8, #18) to
+/// Renames `old` (as git names it: bytes, since a branch's name needn't be UTF-8) to
 /// `new` (typed, so text).
 pub fn rename_branch(
     git: &GitCli,
@@ -68,7 +68,7 @@ pub fn rename_branch(
     Ok(())
 }
 
-/// Deletes a local branch (its name as bytes, #18). Without `force`, git refuses when the
+/// Deletes a local branch (its name as bytes). Without `force`, git refuses when the
 /// branch has commits that are in neither its upstream nor HEAD
 /// ([`crate::GitErrorKind::NotFullyMerged`]).
 pub fn delete_branch(
@@ -88,8 +88,8 @@ pub fn delete_branch(
 
 /// The `branch.<name>.*` keys and values of the repository's own config (`--local`: where
 /// `git branch` writes them and `git branch -d` removes them), in git's order. A value
-/// that isn't UTF-8 comes as [`config_value_text`] keeps it (before #16 it was left out,
-/// and undo wrote the config back without it); a key without a value reads as `true`,
+/// that isn't UTF-8 comes as [`config_value_text`] keeps it (an earlier version left it
+/// out, and undo wrote the config back without it); a key without a value reads as `true`,
 /// as git does.
 pub fn branch_config(
     git: &GitCli,
@@ -146,7 +146,7 @@ pub fn config_value_bytes(text: &str) -> Vec<u8> {
 /// Replaces the branch's `branch.<name>.*` config with `entries` (none: removes it), as
 /// [`branch_config`] gives them. The new values are written before the keys they don't
 /// have go, so a failure halfway leaves the old config, partly updated, rather than none
-/// (before #16 the section was removed first, then each key added).
+/// (an earlier version removed the section first, then added each key).
 pub fn set_branch_config(
     git: &GitCli,
     workdir: &Path,
@@ -195,7 +195,7 @@ pub fn set_branch_config(
     Ok(())
 }
 
-/// Switches to a local branch (its name as bytes: git refuses a lossy one, #18). Local
+/// Switches to a local branch (its name as bytes: git refuses a lossy one). Local
 /// changes that don't conflict come along; ones the switch would overwrite make git
 /// refuse ([`crate::GitErrorKind::WouldOverwrite`]).
 pub fn switch_branch(
@@ -210,7 +210,7 @@ pub fn switch_branch(
 
 /// Checks out a remote-tracking branch (`origin/feature`) as a local branch that tracks
 /// it (`feature`), or switches to that local branch if it already exists. The branch is
-/// named by its bytes, which needn't be UTF-8 (#63). Returns the local branch name as text
+/// named by its bytes, which needn't be UTF-8. Returns the local branch name as text
 /// to show.
 pub fn switch_to_remote_branch(
     git: &GitCli,

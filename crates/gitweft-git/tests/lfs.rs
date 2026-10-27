@@ -406,7 +406,7 @@ fn pointer_sides_of_real_diffs() {
     assert_eq!(sides(DiffSource::Staged, "p.txt"), None);
 }
 
-/// The LFS image preview (#36) reads a pointer's content from the local store only: the
+/// The LFS image preview reads a pointer's content from the local store only: the
 /// repository that committed it has it; a clone that skipped the download doesn't, and
 /// nothing is fetched to get it.
 #[test]
@@ -744,7 +744,7 @@ fn a_server_without_the_locking_api() {
     assert_eq!(left, 0);
 }
 
-/// `lfs migrate info` (#71): the kinds of files in plain git, largest first, over this
+/// `lfs migrate info`: the kinds of files in plain git, largest first, over this
 /// branch or every branch; files already in LFS aren't counted. Nothing is rewritten.
 #[test]
 fn migrate_info_reports_the_largest_kinds_of_files() {
@@ -808,7 +808,7 @@ fn migrate_info_reports_the_largest_kinds_of_files() {
     );
 }
 
-/// `lfs migrate` on the checked-out branch only (#71): into LFS and back out, the side
+/// `lfs migrate` on the checked-out branch only: into LFS and back out, the side
 /// branch untouched, the file's bytes the same at the end.
 #[test]
 fn migrate_rewrites_the_branch_into_lfs_and_back() {

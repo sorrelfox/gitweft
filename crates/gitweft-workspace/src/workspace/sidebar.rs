@@ -84,7 +84,7 @@ impl Workspace {
         let mut lists: Vec<AnyElement> = Vec::new();
         // The keyboard's cursor, while the lists have the focus: an accent bar on its row.
         let cursor = if self.sidebar_focused {
-            // On the row it was on, even when a reload or the filter moved it (#10).
+            // On the row it was on, even when a reload or the filter moved it.
             let rows = self.sidebar_rows(false, cx);
             self.sidebar_cursor_now(&rows)
                 .and_then(|at| rows.into_iter().nth(at))

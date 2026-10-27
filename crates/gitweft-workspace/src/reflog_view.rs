@@ -46,9 +46,9 @@ pub enum ReflogEvent {
     ShowInGraph(ObjectId),
     /// Look for the commits even the reflogs lost (`git fsck`).
     ShowDangling,
-    /// Cherry-pick the entry's commit onto the checked-out branch (with its summary, #44).
+    /// Cherry-pick the entry's commit onto the checked-out branch (with its summary).
     CherryPick(ObjectId, String),
-    /// The entry's commit's files (#44).
+    /// The entry's commit's files.
     BrowseFiles(ObjectId),
 }
 
@@ -93,7 +93,7 @@ impl Columns {
         }
     }
 
-    /// A column that keeps its width; its text is cut to fit, whole on hover (#93).
+    /// A column that keeps its width; its text is cut to fit, whole on hover.
     fn fixed(id: &'static str, width: Pixels, text: impl Into<SharedString>) -> Truncated {
         truncated(id, text).w(width).flex_shrink_0()
     }
@@ -253,7 +253,7 @@ impl ReflogView {
             t!("history.show_in_graph").into_owned(),
             ReflogEvent::ShowInGraph(id),
         ));
-        // As the dangling commits' rows have them (#44).
+        // As the dangling commits' rows have them.
         items.push((
             t!("rewrite.cherry_pick").into_owned(),
             ReflogEvent::CherryPick(id, summary.to_owned()),

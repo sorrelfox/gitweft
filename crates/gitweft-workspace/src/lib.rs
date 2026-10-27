@@ -80,7 +80,7 @@ struct Instance(#[allow(dead_code)] IpcServer);
 
 impl Global for Instance {}
 
-/// What the command line prints, in the user's language (#22). Usable before [`run`]: each
+/// What the command line prints, in the user's language. Usable before [`run`]: each
 /// chooses the language first.
 pub mod cli_text {
     use rust_i18n::t;
@@ -107,7 +107,7 @@ pub mod cli_text {
 /// `single_instance`, later `gitweft PATH` commands open their paths in it.
 /// `started` is the process start, used by `GITWEFT_TRACE_STARTUP` (see
 /// `Workspace::trace_startup`). `other_unanswered`: a Gitweft is running but didn't answer
-/// the hand-off, which the new window says (#22).
+/// the hand-off, which the new window says.
 ///
 /// Returns whether the window opened: `false` makes the process exit with a failure.
 pub fn run(
@@ -180,7 +180,7 @@ pub(crate) fn bind_keys(cx: &mut gpui_kit::App) {
 
 /// Opens the main window with a tab per path (the start screen when there are none),
 /// showing tab `active`, at `size` (the default size when `None`).
-/// `other_unanswered`: say in the window that another Gitweft didn't answer (#22). A window
+/// `other_unanswered`: say in the window that another Gitweft didn't answer. A window
 /// that can't open is reported, `opened` set to false, and the app quits.
 fn open_main_window(
     tabs: Vec<PathBuf>,

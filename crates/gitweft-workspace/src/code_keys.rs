@@ -1,4 +1,4 @@
-//! Keys for the code views (#28): the diff, the file and the blame, and the conflict tool's
+//! Keys for the code views: the diff, the file and the blame, and the conflict tool's
 //! Alt+Down/Up. The line cursor's keys are the lists' ([`crate::list_keys`]): the arrows,
 //! Home and End (and in the diff, Shift with them to select lines). Here: a page up or down
 //! and the text scrolled sideways in every code view, and the next or previous hunk (in a

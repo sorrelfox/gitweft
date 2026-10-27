@@ -56,7 +56,7 @@ pub struct MovedBetween {
 }
 
 /// Lines that moved, looked for across all the files of one diff, as git's `--color-moved`
-/// does: a block that left one file and arrived in another counts too (#69). `files` holds
+/// does: a block that left one file and arrived in another counts too. `files` holds
 /// each file's whole diff, in order, as [`moved_lines`] takes it.
 ///
 /// Returns one `Option<move id>` per line of each file, and for each id the files its two
@@ -388,7 +388,7 @@ mod tests {
     }
 
     /// git's `--color-moved=blocks` tints a blank line inside a moved block (checked against
-    /// git 2.5x on this very diff, #35): it moves with the block, on both sides.
+    /// git 2.5x on this very diff): it moves with the block, on both sides.
     #[test]
     fn a_blank_line_inside_a_moved_block_moves_with_it() {
         let function = [

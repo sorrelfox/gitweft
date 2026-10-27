@@ -53,7 +53,7 @@ impl Workspace {
     /// conflict leaves it to the operation banner); plain diffs change the files
     /// (`git apply`, not undoable). A plain diff that conflicts leaves markers and unmerged
     /// files with no operation in progress: that is said as such and the working changes
-    /// are shown, where the conflicted files are listed (#34); the diffs after it aren't
+    /// are shown, where the conflicted files are listed; the diffs after it aren't
     /// applied.
     pub(super) fn apply_patch_files(
         &mut self,
@@ -428,7 +428,7 @@ impl Workspace {
             }
         };
         // The file as it really is: a linked worktree's `info/exclude` is in the common git
-        // folder, not in its own `.git` file's folder (#47). Shown relative to the working
+        // folder, not in its own `.git` file's folder. Shown relative to the working
         // tree when it's under it.
         let file = match scope {
             IgnoreScope::Shared => ".gitignore".to_owned(),

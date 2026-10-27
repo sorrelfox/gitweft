@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Checks the DEB with lintian, Debian's package checker, in a Debian 13 container (#56).
+# Checks the DEB with lintian, Debian's package checker, in a Debian 13 container.
 # Errors fail; warnings are printed. The tags this package has on purpose are named below
 # with the reason, and nothing else is hidden.
 # Usage: scripts/dist/lint-deb.sh [DEB]   (default: target/deb/gitweft_*_amd64.deb)

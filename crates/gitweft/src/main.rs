@@ -12,7 +12,7 @@ use gitweft_workspace::cli_text;
 /// glibc gives threads that allocate at the same time arenas of their own, up to eight per
 /// core, and freed memory stays in them. On the Linux kernel's history the job threads'
 /// arenas kept about 25 MB resident after the load; two arenas keep it to a few, with no
-/// measurable cost to load time (#64). Called first, before any thread starts. A limit the
+/// measurable cost to load time. Called first, before any thread starts. A limit the
 /// user set (`MALLOC_ARENA_MAX`, or `arena_max` in `GLIBC_TUNABLES`) is left alone.
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 fn limit_malloc_arenas() {
@@ -58,7 +58,7 @@ fn main() -> ExitCode {
     // the socket variable is only ever set in the environment of git children we spawn.
     if std::env::var_os(gitweft_git::askpass::ENV_SOCKET).is_some() {
         // `args_os`: `args` panics on a prompt that isn't UTF-8 (a Latin-1 user name in
-        // a URL, #18); the prompt is only shown, so lossy text is enough.
+        // a URL); the prompt is only shown, so lossy text is enough.
         let prompt = std::env::args_os()
             .nth(1)
             .map(|prompt| prompt.to_string_lossy().into_owned())
@@ -99,7 +99,7 @@ fn main() -> ExitCode {
             if !new_instance {
                 match gitweft_core::ipc::send(&gitweft_core::ipc::socket_path(), &paths) {
                     Ok(()) => return ExitCode::SUCCESS,
-                    // A Gitweft is there but hung: two windows, so say why (#22).
+                    // A Gitweft is there but hung: two windows, so say why.
                     Err(err) if gitweft_core::ipc::is_no_answer(&err) => {
                         eprintln!("{}", cli_text::no_answer(&err));
                         other_unanswered = true;
@@ -134,7 +134,7 @@ enum Invocation {
 
 /// The arguments after the program's name. `--version`, `--help` and `--headless-smoke`
 /// count only as the first argument; otherwise options and paths mix, and every argument
-/// after `--` is a path, even one that starts with `-` (#22). An unknown option is the
+/// after `--` is a path, even one that starts with `-`. An unknown option is the
 /// error.
 fn parse(args: impl IntoIterator<Item = OsString>) -> Result<Invocation, OsString> {
     let mut args = args.into_iter().peekable();

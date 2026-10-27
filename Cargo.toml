@@ -41,7 +41,7 @@ rust-i18n = "4.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
-# How many columns a character takes in the code font (CJK and emoji take two, #42); already
+# How many columns a character takes in the code font (CJK and emoji take two); already
 # in the tree through GPUI's text input.
 unicode-width = "0.2.2"
 
@@ -58,7 +58,7 @@ gitweft-ui = { path = "crates/gitweft-ui" }
 # Dev
 proptest = "1"
 tempfile = "3"
-# Benchmarks (`just bench`, #26): no plots, no rayon.
+# Benchmarks (`just bench`): no plots, no rayon.
 criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
 
 [profile.dev.package."*"]

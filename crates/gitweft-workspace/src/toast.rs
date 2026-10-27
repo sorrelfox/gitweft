@@ -1,4 +1,4 @@
-//! Toasts of our own (#38): gpui-kit 0.6.1's notification stack draws only the newest
+//! Toasts of our own: gpui-kit 0.6.1's notification stack draws only the newest
 //! one, so a second operation's result hid the first's. Here every toast stays visible,
 //! stacked in the bottom-left corner (newest at the bottom), each with its own close
 //! button; they go after a while, which hovering the stack pauses. The Activity panel

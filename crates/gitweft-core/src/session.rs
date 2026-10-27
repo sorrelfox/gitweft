@@ -143,7 +143,7 @@ pub fn save(file: &Path, session: &Session) -> io::Result<()> {
         bytes.extend(format!("active {active}\n").bytes());
     }
     // The last window's tabs win (by design), but two instances saving at once each write
-    // their own temporary file (#7).
+    // their own temporary file.
     crate::datafile::atomic_write(file, &bytes)
 }
 

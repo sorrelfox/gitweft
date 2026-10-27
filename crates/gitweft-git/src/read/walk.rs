@@ -40,7 +40,7 @@ pub struct WalkOptions {
 }
 
 /// Display data of a commit, for its graph row. A graph keeps one per commit, 1.5 million on
-/// the Linux kernel, so it's small (#64): the summary is a boxed `str` (no spare capacity),
+/// the Linux kernel, so it's small: the summary is a boxed `str` (no spare capacity),
 /// and the author an `Arc` a graph shares between that author's commits
 /// (`GraphView::append_metas` interns them).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -163,7 +163,7 @@ pub fn walk_history(
     }
     let (objects, commit_graph) = walk_source(repo)?;
     // The commit-graph knows about how many commits there are: one allocation instead of a
-    // doubling that leaves up to half of a large list unused (#64).
+    // doubling that leaves up to half of a large list unused.
     let expected = commit_graph
         .as_ref()
         .map_or(0, |graph| graph.num_commits() as usize);

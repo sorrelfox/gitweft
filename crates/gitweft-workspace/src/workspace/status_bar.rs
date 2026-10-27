@@ -135,7 +135,7 @@ impl Workspace {
 
     /// Changes (a stage, a commit…) queued behind a long job of the write lane: a bisect run,
     /// a fetch, pull or push, the background fetch. They run in order once it's done; until
-    /// then the status bar says they wait, so nothing seems to have been ignored (#9).
+    /// then the status bar says they wait, so nothing seems to have been ignored.
     fn render_waiting_writes(&self, p: &Palette) -> Option<Div> {
         let long = self.bisect_running.is_some()
             || self.remote_op.is_some()
@@ -235,7 +235,7 @@ mod tests {
         assert_eq!(thousands(1_247), "1,247");
         assert_eq!(thousands(74_123), "74,123");
         assert_eq!(thousands(1_000_000), "1,000,000");
-        // Other languages' separators, from their locale file (#46).
+        // Other languages' separators, from their locale file.
         assert_eq!(grouped(1_247, "."), "1.247");
         assert_eq!(grouped(1_000_000, "\u{202f}"), "1\u{202f}000\u{202f}000");
         assert_eq!(grouped(999, "."), "999");

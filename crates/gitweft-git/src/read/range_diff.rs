@@ -38,7 +38,7 @@ pub struct RangePair {
 
 /// A `--creation-factor` that pairs heavily reworked commits: at git's default (60) a
 /// commit with two thirds of its lines rewritten shows as removed plus added; at 100 it's
-/// one changed commit (#35).
+/// one changed commit.
 pub const HARDER_CREATION_FACTOR: u32 = 100;
 
 /// Pairs the commits `old_base..old_head` with `new_base..new_head`. `creation_factor`
@@ -54,7 +54,7 @@ pub fn range_diff(
 ) -> Result<Vec<RangePair>, GitError> {
     let output = git
         .command(workdir)
-        // Full ids, no colour, no notes. Git 2.39's range-diff ignores `--abbrev` (#79), but
+        // Full ids, no colour, no notes. Git 2.39's range-diff ignores `--abbrev`, but
         // not `core.abbrev=no`; newer git takes `--abbrev=64` (clamped to the hash length).
         .args([
             "-c",
@@ -98,7 +98,7 @@ pub fn parse_range_diff(text: &str) -> Vec<RangePair> {
     pairs
 }
 
-/// What an interdiff line is, in the diff of the two patches (#69).
+/// What an interdiff line is, in the diff of the two patches.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InterdiffKind {
     /// The diff-of-patches' own hunk header (`@@ Metadata`, `@@ path`): in neither patch.
@@ -127,7 +127,7 @@ pub struct InterdiffRow {
 }
 
 /// An interdiff ([`RangePair::interdiff`]) with a line number from each side: the line's
-/// place in the old commit's patch and in the new commit's patch (#69). A line only one
+/// place in the old commit's patch and in the new commit's patch. A line only one
 /// side has is numbered only there, and the interdiff's own `@@` headers have no number
 /// at all.
 pub fn interdiff_rows(lines: &[String]) -> Vec<InterdiffRow> {

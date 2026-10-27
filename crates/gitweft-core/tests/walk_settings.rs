@@ -1,5 +1,5 @@
 //! `load_repo_in` without explicit walk options reads them from the repository's settings,
-//! under the data dir it's given (the sandbox's: the user's is never read, #50).
+//! under the data dir it's given (the sandbox's: the user's is never read).
 
 use gitweft_core::repo::{LoadEnv, load_repo_in};
 use gitweft_core::repo_settings::{self, RepoSettings};

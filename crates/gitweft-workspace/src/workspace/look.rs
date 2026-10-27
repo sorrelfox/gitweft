@@ -1,6 +1,6 @@
 //! Following the settings in a tab. Syntax colors are computed on jobs for one palette, and
 //! the lines expanded with one tab width, so after a light/dark switch or a Tab width change
-//! the open diff, preview, file and blame are read again (#80).
+//! the open diff, preview, file and blame are read again.
 
 use super::*;
 

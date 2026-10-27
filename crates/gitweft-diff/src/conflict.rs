@@ -5,7 +5,7 @@
 //! the common ancestor after `|||||||`). Lines keep their own line endings, so CRLF files
 //! and a missing final newline survive, and a conflict left unresolved is written back
 //! byte for byte. Markers are git's default size of 7 characters, or the size the file's
-//! `conflict-marker-size` attribute gives ([`parse_conflicts_sized`], #16).
+//! `conflict-marker-size` attribute gives ([`parse_conflicts_sized`]).
 
 /// Git's marker size when no `conflict-marker-size` attribute says otherwise.
 pub const DEFAULT_MARKER_SIZE: usize = 7;
@@ -295,7 +295,7 @@ mod tests {
 
     #[test]
     fn markers_of_the_attributes_size_are_found_and_others_are_text() {
-        // `conflict-marker-size=10`, as for a file whose text has 7-character runs (#16).
+        // `conflict-marker-size=10`, as for a file whose text has 7-character runs.
         let text = "top\n<<<<<<<<<< HEAD\nours\n==========\ntheirs\n>>>>>>>>>> feature\n\
                     <<<<<<< not a marker here\n";
         let regions = parse_conflicts_sized(text, 10);

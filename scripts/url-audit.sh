@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# No URL in the app's code (docs/OFFLINE.md, #51): the Rust sources may hold no http(s) URL
+# No URL in the app's code (docs/OFFLINE.md): the Rust sources may hold no http(s) URL
 # literal, apart from the two LFS pointer spec versions, identifiers that git-lfs writes
 # into pointer files and nothing fetches. Tests are left out (a file's `#[cfg(test)] mod … {`
 # and all after it: it sits at the end of the file), and so are comment lines. A test-only
-# function or `#[cfg(test)] mod x;` higher up is scanned like the rest (#48: stopping at the
+# function or `#[cfg(test)] mod x;` higher up is scanned like the rest (stopping at the
 # first `#[cfg(test)]` left most of some files unread).
 #   url-audit.sh [ROOT…]     scan ROOT… (default: crates/*/src)
 #   url-audit.sh --self-test  prove a URL literal is caught, and tests, comments and the

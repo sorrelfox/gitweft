@@ -25,7 +25,7 @@ fn a_path_that_isnt_utf8_keeps_its_bytes_and_its_count() {
     sb.run(&repo, &["add", "."]);
     sb.run(&repo, &["commit", "-q", "-m", "Add a Latin-1 name"]);
 
-    // As git has it (#18); before, the text "caf\u{fffd}.txt" named no file, and its
+    // As git has it; before, the text "caf\u{fffd}.txt" named no file, and its
     // line count, matched by path, was lost.
     let d = details(&sb, &repo, "HEAD");
     assert_eq!(d.changes.len(), 1);

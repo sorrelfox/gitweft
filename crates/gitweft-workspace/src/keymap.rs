@@ -402,7 +402,7 @@ pub(crate) fn bindable() -> Vec<Bindable> {
             file_view::CloseFile,
             t!("keyboard.action.close_file"),
         ),
-        // Find in the code views (#43).
+        // Find in the code views.
         command_in(
             views,
             &[
@@ -704,7 +704,7 @@ impl KeymapStore {
         Self::init_with_file(cx, keymap_path());
     }
 
-    /// [`Self::init`] with the user's keymap in `path` (tests, #51).
+    /// [`Self::init`] with the user's keymap in `path` (tests).
     pub(crate) fn init_with_file(cx: &mut App, path: std::path::PathBuf) {
         let base = cx.key_bindings().borrow().bindings().cloned().collect();
         let (file, overrides) = KeymapFile::open(path);
@@ -892,7 +892,7 @@ fn record(event: &KeystrokeEvent, window: &mut Window, cx: &mut App) {
     };
     // Only keys pressed in the settings window are recorded. One pressed in another window
     // (the settings window closed, or behind the main window) ends the recording and does
-    // what it's bound to, instead of becoming a key without the user seeing it (#11).
+    // what it's bound to, instead of becoming a key without the user seeing it.
     if !crate::settings_window::is_settings_window(window, cx) {
         cx.defer(|cx| KeymapStore::record(cx, None));
         return;
@@ -940,7 +940,7 @@ pub(crate) fn keys_clash(a: &str, b: &str) -> bool {
     shared > 0 && a[..shared] == b[..shared]
 }
 
-/// The keymap store in a GPUI test context (#51): a changed key replaces the default in
+/// The keymap store in a GPUI test context: a changed key replaces the default in
 /// GPUI's keymap and in the file, a reset brings it back, and in a window the new keys do
 /// what the old ones did. The keymap file is the test's own (`init_with_file`).
 #[cfg(test)]

@@ -49,7 +49,7 @@ pub fn bind_keys(cx: &mut App) {
 #[derive(Clone)]
 pub enum BlameEvent {
     Close,
-    /// A partial clone lacks versions of the file blame needs: download its history (#87).
+    /// A partial clone lacks versions of the file blame needs: download its history.
     FetchMissing,
     /// Show this commit in the graph.
     ShowCommit(ObjectId),
@@ -96,7 +96,7 @@ pub struct BlameView {
     time_range: Option<(i64, i64)>,
     done: bool,
     error: Option<String>,
-    /// It failed because a partial clone lacks versions of the file (#87).
+    /// It failed because a partial clone lacks versions of the file.
     missing: bool,
     /// How many commits the user chose to ignore, and the repository's own list of
     /// commits to ignore (`blame.ignoreRevsFile`), as shown.
@@ -119,16 +119,16 @@ pub struct BlameView {
     hscroll: HScroll,
     /// The longest line, in characters.
     longest: usize,
-    /// The number column's width, for the last line's number (from the last frame, #42).
+    /// The number column's width, for the last line's number (from the last frame).
     number_width: Pixels,
     focus: FocusHandle,
     /// Take keyboard focus on the first frame, so Esc works right away.
     focus_on_render: bool,
     /// Whether it had the keyboard focus when last drawn (the cursor shows then).
     focused: bool,
-    /// The line the keys are on (#28).
+    /// The line the keys are on.
     cursor: Option<usize>,
-    /// Ctrl+F's bar (#43).
+    /// Ctrl+F's bar.
     find: FindSlot,
 }
 
@@ -168,7 +168,7 @@ impl BlameView {
         }
     }
 
-    /// Ctrl+F: the find bar (#43).
+    /// Ctrl+F: the find bar.
     fn open_find(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.find.open(window, cx, Self::on_find);
     }
@@ -318,7 +318,7 @@ impl BlameView {
     }
 
     /// The blame (or the file's text) stopped at versions this partial clone lacks, which
-    /// reads don't download (#87): says so, with "Fetch missing contents".
+    /// reads don't download: says so, with "Fetch missing contents".
     pub fn finish_missing(&mut self, cx: &mut Context<Self>) {
         self.done = true;
         self.missing = true;
@@ -351,7 +351,7 @@ impl BlameView {
         cx.notify();
     }
 
-    /// The arrows, Home and End move the cursor through the lines (#28).
+    /// The arrows, Home and End move the cursor through the lines.
     fn move_cursor(&mut self, to: Step, cx: &mut Context<Self>) {
         if let Some(ix) = list_keys::step(self.line_count(), self.cursor, to) {
             self.put_cursor(ix, cx);
@@ -432,7 +432,7 @@ impl BlameView {
         Some((detail, items))
     }
 
-    /// The blame's commands for the palette (#29): the cursor line's items, then Back to
+    /// The blame's commands for the palette: the cursor line's items, then Back to
     /// the later blame (when there is one) and Close.
     pub(crate) fn palette_commands(&self, this: &WeakEntity<Self>) -> Vec<PaletteCommand> {
         let group = t!("palette.group.blame").into_owned();
@@ -709,7 +709,7 @@ impl Render for BlameView {
             }
             self.wrapped = wrap;
         }
-        // Wide enough for the last line's number, with the column's `pr_2` (#42).
+        // Wide enough for the last line's number, with the column's `pr_2`.
         let lines = self.text.as_ref().map_or(0, |text| text.lines.len());
         self.number_width = code_scroll::number_width(
             window,

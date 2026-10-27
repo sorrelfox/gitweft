@@ -35,7 +35,7 @@ if { read -r release_date && read -r release_note; } < <(bash "$here/release-ent
         || problems+=("$spec: the newest %changelog entry is from ${entry_day:-no day}, the metainfo's newest <release> from $release_date")
     [ "$entry_note" = "$release_note" ] \
         || problems+=("$spec: the newest %changelog entry says \"$entry_note\", the metainfo's newest <release> \"$release_note\"")
-    # CHANGELOG.md: its newest "## <version> (<date>)" and the paragraph under it (#56).
+    # CHANGELOG.md: its newest "## <version> (<date>)" and the paragraph under it.
     news=CHANGELOG.md
     news_head=$(sed -n 's/^## \([^ ]*\) (\([0-9-]*\))$/\1 \2/p' "$news" 2> /dev/null | head -1)
     [ "$news_head" = "$version $release_date" ] \

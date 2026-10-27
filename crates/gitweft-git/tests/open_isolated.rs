@@ -1,5 +1,5 @@
 //! `open_repo_isolated` reads the repository's own config and nothing else, so the
-//! tests' in-process gix never sees the user's or the system's config (#50).
+//! tests' in-process gix never sees the user's or the system's config.
 
 use gitweft_git::gix::config::Source;
 use gitweft_git::read::open_repo_isolated;

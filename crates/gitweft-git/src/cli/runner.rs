@@ -397,8 +397,8 @@ impl GitCommand<'_> {
         }
         if self.read_only {
             put("GIT_OPTIONAL_LOCKS".as_ref(), "0".as_ref());
-            // In a partial clone, a read never downloads what's missing by itself (#82,
-            // OFFLINE.md); git 2.44 and newer honour it.
+            // In a partial clone, a read never downloads what's missing by itself
+            // (OFFLINE.md); git 2.44 and newer honour it.
             put("GIT_NO_LAZY_FETCH".as_ref(), "1".as_ref());
         }
         if self.non_interactive {
@@ -610,7 +610,7 @@ impl GitCommand<'_> {
         let mut kind = classify(&stderr, &stdout_text);
         // A local hook that fails speaks only in its own words: git adds nothing, or just
         // "failed to push some refs". A command that runs hooks, failing for no reason git
-        // gave while such a hook is in place, failed in that hook (#16).
+        // gave while such a hook is in place, failed in that hook.
         if kind == GitErrorKind::Other && has_blocking_hook(self.cli, &self.cwd, &self.args) {
             kind = GitErrorKind::HookFailed;
         }
@@ -664,8 +664,8 @@ fn forward_stdout(chunks: &mpsc::Receiver<Vec<u8>>, on_stdout: &mut Option<Stdou
 
 /// SIGTERM the whole process group, then SIGKILL it after a grace period, or as soon as git
 /// itself has gone: a child that ignores SIGTERM (a hook, a credential helper) would keep
-/// stderr open, and its reader waiting, forever (before #16 only a git that outlived the
-/// grace period got the SIGKILL). Git isn't reaped until then, so its pid, the group's
+/// stderr open, and its reader waiting, forever (an earlier version sent the SIGKILL only to a
+/// git that outlived the grace period). Git isn't reaped until then, so its pid, the group's
 /// id, can't be anybody else's meanwhile.
 fn kill_group(child: &mut Child) {
     let Ok(pid) = i32::try_from(child.id()) else {

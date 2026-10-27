@@ -127,7 +127,7 @@ impl UndoEntry {
 
 /// A ref's full name as the undo log keeps it: itself when it's UTF-8, else encoded as a
 /// config value that isn't (a NUL, then its bytes in hex), so the log stays text and git
-/// gets the name byte for byte (#18).
+/// gets the name byte for byte.
 pub fn ref_name_text(bytes: &[u8]) -> String {
     crate::branch::config_value_text(bytes)
 }
@@ -227,7 +227,7 @@ pub fn record_branch<T>(
     op: impl FnOnce() -> Result<T, GitError>,
 ) -> Result<(T, Vec<RefChange>, Option<BranchConfig>), GitError> {
     // `branch` may be encoded (`ref_name_text`); only a name that's text has config kept,
-    // since its keys are read as text (#18).
+    // since its keys are read as text.
     let full = ref_name_bytes(branch);
     let short = std::str::from_utf8(full.strip_prefix(b"refs/heads/").unwrap_or(&full))
         .ok()
@@ -459,7 +459,7 @@ fn has_local_changes(git: &GitCli, workdir: &Path, cancel: &CancelToken) -> Resu
 }
 
 /// `update-ref --stdin` lines that move every ref except `skip` back to `before`,
-/// each guarded by its `after` value. Bytes: a ref's name needn't be UTF-8 (#18).
+/// each guarded by its `after` value. Bytes: a ref's name needn't be UTF-8.
 fn transaction(changes: &[RefChange], skip: &str) -> Vec<u8> {
     let mut out = Vec::new();
     for change in changes.iter().filter(|change| change.name != skip) {
@@ -572,7 +572,7 @@ mod tests {
                 .starts_with(format!("update refs/heads/main {} {}\n", id(1), id(2)).as_bytes())
         );
 
-        // A name that isn't UTF-8, as the log keeps it, goes to git as its bytes (#18).
+        // A name that isn't UTF-8, as the log keeps it, goes to git as its bytes.
         let latin1 = [RefChange {
             name: ref_name_text(b"refs/heads/caf\xe9"),
             before: None,

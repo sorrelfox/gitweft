@@ -1,4 +1,4 @@
-//! Highlighting a large file (`just bench`, #26).
+//! Highlighting a large file (`just bench`).
 
 use std::hint::black_box;
 

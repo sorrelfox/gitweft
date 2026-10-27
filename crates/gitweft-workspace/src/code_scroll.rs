@@ -49,7 +49,7 @@ impl HScroll {
     }
 
     /// Scrolls by the least that shows the text from `start` to `end` (offsets into the line,
-    /// as `text_width` measures them): a found match (#43). Whether the offset changed.
+    /// as `text_width` measures them): a found match. Whether the offset changed.
     pub(crate) fn reveal(&mut self, start: Pixels, end: Pixels) -> bool {
         let before = self.offset;
         if start < self.offset {
@@ -93,7 +93,7 @@ impl HScroll {
     }
 }
 
-/// The Tab width setting: columns between tab stops in the code views (#80).
+/// The Tab width setting: columns between tab stops in the code views.
 pub(crate) fn tab_width(cx: &App) -> usize {
     gitweft_ui::SettingsStore::settings(cx).diff.tab_width()
 }
@@ -107,14 +107,14 @@ pub(crate) fn char_width(window: &Window, size: Pixels) -> Pixels {
 }
 
 /// The width `columns` columns of the code font take, plus a little room after them. Count
-/// them with `gitweft_git::display::columns`: a wide character takes two (#42).
+/// them with `gitweft_git::display::columns`: a wide character takes two.
 pub(crate) fn text_width(window: &Window, size: Pixels, columns: usize) -> Pixels {
     char_width(window, size) * (columns as f32 + 2.)
 }
 
 /// A line-number column for numbers up to `largest` in the code font at `size`, with
 /// `padding` beside them: at least `minimum` wide (the design's width, which fits four
-/// digits), wider for longer numbers (#42). Half a character more than the digits: with
+/// digits), wider for longer numbers. Half a character more than the digits: with
 /// exactly their width, rounding wraps the last digit onto a second line.
 pub(crate) fn number_width(
     window: &Window,

@@ -232,7 +232,7 @@ pub(crate) fn bind_keys(cx: &mut App) {
         KeyBinding::new("ctrl-y", RedoOperation, context),
         // The sidebar, the centre, the right panel.
         KeyBinding::new("f6", FocusNextPanel, context),
-        // Commit from anywhere in the tab (#33). In a text field too: the kit's own Ctrl+Enter
+        // Commit from anywhere in the tab. In a text field too: the kit's own Ctrl+Enter
         // puts a newline in a multi-line one (the description) and stops there, and this
         // binding, registered after the kit's, comes first.
         KeyBinding::new("ctrl-enter", Commit, context),
@@ -560,14 +560,14 @@ pub struct Workspace {
     /// Whether the open views' syntax colors were computed for the dark palette; a
     /// light/dark switch highlights them again (`look::settings_changed`).
     highlight_dark: bool,
-    /// The tab width the open views' lines were expanded with (#80).
+    /// The tab width the open views' lines were expanded with.
     highlight_tab: usize,
     /// Filters the sidebar's branches and tags by name.
     sidebar_filter: Entity<InputState>,
     _sidebar_filter_events: Subscription,
     /// Remotes whose branches the sidebar hides (not saved: all are open on every start).
     collapsed_remotes: HashSet<String>,
-    /// The side panels' widths while a divider is dragged (#91).
+    /// The side panels' widths while a divider is dragged.
     panels: panels::Panels,
     /// Latest working-tree status of the open repository.
     status: Option<Status>,
@@ -585,7 +585,7 @@ pub struct Workspace {
     _watch_task: Option<Task<()>>,
     /// The OS watch limit was hit: show the banner explaining the slower refresh.
     watch_limited: bool,
-    /// The watcher stopped (it kept failing, #62): the banner says so; the tab is polled.
+    /// The watcher stopped (it kept failing): the banner says so; the tab is polled.
     watch_stopped: bool,
     /// Git refuses the repository's folder (another user owns it): the folder to trust
     /// (`repair.rs`). Shown as a banner, or on the start screen when opening failed.
@@ -636,7 +636,7 @@ pub struct Workspace {
     /// checked-out one).
     compare_review_file: Option<PathBuf>,
     /// The review session as this tab last read or saved it: a save merges the tab's
-    /// changes since onto the file as another Gitweft may have left it (#7).
+    /// changes since onto the file as another Gitweft may have left it.
     compare_review_base: Option<ReviewSession>,
     /// The open diff came from the review, so its lines can be commented on.
     review_diff: bool,
@@ -680,7 +680,7 @@ pub struct Workspace {
     sidebar_focus: FocusHandle,
     sidebar_cursor: Option<usize>,
     /// The row the sidebar cursor is on, so a reload or a filter that moves the rows leaves
-    /// it on its branch (#10).
+    /// it on its branch.
     sidebar_cursor_row: Option<keyboard::SidebarRow>,
     /// The last reload's error while reloads keep failing: shown once, not on every retry.
     reload_error: Option<String>,
@@ -740,13 +740,13 @@ pub struct Workspace {
     clone_op: Option<CloneOp>,
     /// LFS and shallow-clone banners, and the background fetch.
     sync: sync::SyncState,
-    /// Gitweft's own files and how a repository loads (#74); a test's are its own.
+    /// Gitweft's own files and how a repository loads; a test's are its own.
     env: WorkspaceEnv,
-    /// The commit whose interdiff the file view shows, if it shows one (#69).
+    /// The commit whose interdiff the file view shows, if it shows one.
     interdiff_commit: Option<ObjectId>,
     /// The start screen's list of recent repositories scrolls on its own, and GPUI doesn't
     /// scroll a focused element into view: its scroll, a focus handle per row (not tab stops;
-    /// they only tell which row holds the focus) and the row last scrolled to (#67).
+    /// they only tell which row holds the focus) and the row last scrolled to.
     recent_scroll: ScrollHandle,
     recent_focus: Vec<FocusHandle>,
     recent_revealed: Option<usize>,
@@ -755,7 +755,7 @@ pub struct Workspace {
 /// What a workspace reads outside the repository it shows: Gitweft's own files (today the
 /// recently opened repositories) and how a repository is loaded. The app passes
 /// [`WorkspaceEnv::app`]; a test passes a folder of its own, so it never reads or writes
-/// the user's files (#74, as [`LoadEnv`] already did for the loader).
+/// the user's files (as [`LoadEnv`] already did for the loader).
 #[derive(Debug, Clone)]
 pub struct WorkspaceEnv {
     /// The recently opened repositories, shown on the start screen.
@@ -769,7 +769,7 @@ impl WorkspaceEnv {
     pub fn app() -> Self {
         Self {
             recent_file: recent::recent_file(),
-            // The app keeps its files under the repository's gitweft.id (#19).
+            // The app keeps its files under the repository's gitweft.id.
             load: LoadEnv {
                 assign_id: true,
                 ..LoadEnv::app()
@@ -1123,7 +1123,7 @@ impl Workspace {
 
     /// With `GITWEFT_TRACE_STARTUP=1`, prints the time from process start to the first
     /// frame showing a repository; with `=exit`, also quits (for startup benchmarks).
-    /// Whether this tab still has the startup time to trace (tests, #78).
+    /// Whether this tab still has the startup time to trace (tests).
     #[cfg(test)]
     pub(crate) fn traces_startup(&self) -> bool {
         self.started.is_some()
@@ -1234,7 +1234,7 @@ impl Workspace {
         if std::mem::replace(&mut self.visible, visible) || !visible {
             return;
         }
-        // A tab watched in limited mode tries full watching again as it comes into view (#21).
+        // A tab watched in limited mode tries full watching again as it comes into view.
         if self.watch_limited
             && !self.watch_stopped
             && let Some(watcher) = &self.watcher
@@ -1249,7 +1249,7 @@ impl Workspace {
 
     /// A fetch, pull, push or clone is running; closing the tab would cancel it.
     pub fn busy(&self) -> bool {
-        // A `git bisect run` checks out commit after commit: closing the tab stops it (#9).
+        // A `git bisect run` checks out commit after commit: closing the tab stops it.
         self.remote_op.is_some() || self.clone_op.is_some() || self.bisect_running.is_some()
     }
 
@@ -1284,7 +1284,7 @@ impl Workspace {
         self.undo_file = None;
         self.sync.reset();
         // What belonged to the last repository (or an earlier open of this one) goes too:
-        // a push's remembered choice must never apply to another repository's branch (#10).
+        // a push's remembered choice must never apply to another repository's branch.
         if let Some(running) = self.bisect_running.take() {
             running.cancel.cancel();
         }
@@ -1365,7 +1365,7 @@ impl Workspace {
                             GraphView::new(graph, metas, search, walk, tips, width, signatures, cx)
                         });
                         // Not in a shallow clone (git ignores the file there), and not
-                        // again once dismissed for the repository (#14; the settings'
+                        // again once dismissed for the repository (the settings'
                         // read hides it too, if it comes after).
                         if repo.timings.walk_via_git
                             && repo.graph.rows() >= COMMIT_GRAPH_HINT_ROWS
@@ -1466,7 +1466,7 @@ impl Workspace {
                         );
                         if matches!(this.state, RepoState::Loaded(_)) {
                             // A reload that failed (a lock, a half-written ref) keeps what's
-                            // shown, and the next change the watcher sees tries again (#10).
+                            // shown, and the next change the watcher sees tries again.
                             if this.reload_error.as_deref() != Some(message.as_str()) {
                                 let text =
                                     t!("repo.reload_failed", error = message.clone()).into_owned();
@@ -1536,7 +1536,7 @@ impl Workspace {
                     return;
                 }
                 Some(Err(err)) => {
-                    // Said once per error, not on every refresh (#12).
+                    // Said once per error, not on every refresh.
                     let message = err.summary();
                     this.update(cx, |this, cx| {
                         if this.status_error.as_deref() != Some(message.as_str()) {
@@ -1834,7 +1834,7 @@ impl Workspace {
                     self.refresh_status(cx);
                 }
             }
-            // The working tree is watched again: the banner goes (#21).
+            // The working tree is watched again: the banner goes.
             Update::Recovered => {
                 self.watch_limited = false;
                 cx.notify();
@@ -1854,7 +1854,7 @@ impl Workspace {
         let job = self
             .jobs
             .spawn(Lane::Coalesce("refs-check"), move |cancel| {
-                // A reftable repository's refs come from git (#17).
+                // A reftable repository's refs come from git.
                 read_refs_with(&shared.to_thread_local(), &git, cancel)
                     .map_or(true, |refs| refs != shown)
             });
@@ -2860,7 +2860,7 @@ impl Workspace {
                     .label(t!("graph.commit_graph_dismiss").into_owned())
                     .on_click(cx.listener(|this, _, _, cx| {
                         this.commit_graph_banner = CommitGraphBanner::Hidden;
-                        // Kept for the repository: reloads don't bring it back (#14).
+                        // Kept for the repository: reloads don't bring it back.
                         this.sync.settings.commit_graph_dismissed = true;
                         this.save_repo_settings(cx);
                         cx.notify();
@@ -2912,7 +2912,7 @@ impl Workspace {
                 cx,
             )
         });
-        // Continuing needs every file resolved, as in the conflict header (#13).
+        // Continuing needs every file resolved, as in the conflict header.
         let proceed = operation.can_continue().then(|| {
             operation_button(
                 "op-continue",
@@ -3155,7 +3155,7 @@ impl Workspace {
         cx: &mut Context<Self>,
     ) {
         // Aborting throws this step's conflict work away, and undo can't bring it back: ask
-        // first when the step stopped on conflicted files (#13).
+        // first when the step stopped on conflicted files.
         let files = self.conflict_panel.file_count();
         if action == OperationAction::Abort && files > 0 {
             self.confirm_abort(operation, files, window, cx);
@@ -3293,7 +3293,7 @@ impl Workspace {
         };
         let (tags, locals) = (names(&repo.refs.tags), names(&repo.refs.local_branches));
         // A branch whose name isn't UTF-8 goes by its full name, encoded (`git_arg` gives
-        // git its bytes): the text shown names nothing to git (#18).
+        // git its bytes): the text shown names nothing to git.
         let encoded = repo
             .refs
             .local_branches
@@ -3692,7 +3692,7 @@ fn with_rename_sources(entries: &[StatusEntry]) -> Vec<BString> {
 
 /// "↑2 ↓1" for a branch that differs from its upstream, "gone" when the upstream was
 /// deleted; `None` when it is in sync (or has no upstream).
-/// A local branch's name as `Tracking` has it, from its full name's bytes (#63).
+/// A local branch's name as `Tracking` has it, from its full name's bytes.
 pub(super) fn branch_key(full_name: &[u8]) -> String {
     gitweft_git::undo::ref_name_text(full_name.strip_prefix(b"refs/heads/").unwrap_or(full_name))
 }
@@ -4005,7 +4005,7 @@ fn remote_list(published: &Published) -> String {
 /// Why leaving `published` behind needs care, for a confirmation's detail.
 fn published_text(published: &Published) -> String {
     let remotes = remote_list(published);
-    // One counted message: "it" or "them" follows the count (#47).
+    // One counted message: "it" or "them" follows the count.
     tn!(
         "rewrite.published",
         count = published.count,
@@ -4050,8 +4050,8 @@ impl Render for Workspace {
         // The staging lists can stop being shown while they have the keys: the last change
         // discarded, committed or stashed leaves no working changes, so the panel shows the
         // checked-out commit instead. Their element isn't drawn any more, but the window
-        // still points at it, so every shortcut reached nothing until a view was clicked
-        // (#61). The graph takes them, as it does after a reload.
+        // still points at it, so every shortcut reached nothing until a view was clicked.
+        // The graph takes them, as it does after a reload.
         let staging_gone = !self.showing_wip
             && self
                 .staging_view
@@ -4274,7 +4274,7 @@ impl Drop for Workspace {
             cancel.cancel();
         }
         // Long jobs of a tab that's gone stop too: a bisect run would otherwise go on
-        // checking out commits with nothing left to show it (#9).
+        // checking out commits with nothing left to show it.
         if let Some(running) = &self.bisect_running {
             running.cancel.cancel();
         }

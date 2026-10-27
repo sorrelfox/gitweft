@@ -263,7 +263,7 @@ fn contents_of_a_stash_in_a_sha256_repository() {
         ..StashOptions::default()
     };
     // Ubuntu 24.04's git (2.43.0-1ubuntu7.3, in the CI container) can't stash in a SHA-256
-    // repository at all, even from a terminal; git 2.43.0 built from source can (#79).
+    // repository at all, even from a terminal; git 2.43.0 built from source can.
     if let Err(err) = stash_push(sb.git(), &repo, &options, &cancel) {
         if err.stderr.trim() == "Cannot save the current status" {
             eprintln!("note: this git can't stash in a SHA-256 repository; skipping this test");

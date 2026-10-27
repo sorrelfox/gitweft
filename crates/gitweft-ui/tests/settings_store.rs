@@ -1,4 +1,4 @@
-//! `SettingsStore` in a GPUI test context (#51, moved from #50): the debounced save, a
+//! `SettingsStore` in a GPUI test context: the debounced save, a
 //! change that changes nothing, the blocking save on quit, and a file from a newer version
 //! left alone. The settings file is the test's own (`init_with_file`), never the user's.
 

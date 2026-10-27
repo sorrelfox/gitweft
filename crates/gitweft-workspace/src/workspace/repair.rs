@@ -313,7 +313,7 @@ impl Workspace {
         self.open_text_dialog(spec, submit, window, cx);
     }
 
-    /// Sets the profile's name, email and signing key in this repository's config (#45).
+    /// Sets the profile's name, email and signing key in this repository's config.
     pub(super) fn apply_identity_profile(
         &mut self,
         profile: gitweft_core::settings::IdentityProfile,
@@ -359,7 +359,7 @@ impl Workspace {
     }
 
     /// Asks for a label, then keeps this repository's name, email and signing key as an
-    /// identity profile (#45); a profile with that label is replaced.
+    /// identity profile; a profile with that label is replaced.
     pub(super) fn save_identity_profile(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let identity = self.staging_view.read(cx).identity().clone();
         let (Some(name), Some(email)) = (identity.name, identity.email) else {

@@ -1,4 +1,4 @@
-//! Differential test of the two history walkers on generated histories (#51): gix's and
+//! Differential test of the two history walkers on generated histories: gix's and
 //! `git rev-list`'s must give the same graph order, as `walk_cli.rs` checks on one
 //! hand-made history. Branches, commits and `--no-ff` merges in random order; each commit
 //! adds its own file, so merges never conflict; times increase by a minute a commit.

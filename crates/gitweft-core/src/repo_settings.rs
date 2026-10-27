@@ -32,7 +32,7 @@ pub struct RepoSettings {
     /// The graph column's width as dragged, in design pixels; `None` = sized to the lanes.
     /// Kept here because it depends on the repository's lanes.
     pub graph_width: Option<f32>,
-    /// "Not now" on the offer to write a commit-graph file: not offered again (#14).
+    /// "Not now" on the offer to write a commit-graph file: not offered again.
     pub commit_graph_dismissed: bool,
 }
 
@@ -85,7 +85,7 @@ struct Stored {
     // The graph column's dragged width (also added within version 1).
     #[serde(default)]
     graph_width: Option<f32>,
-    // The commit-graph offer dismissed (also added within version 1, #14).
+    // The commit-graph offer dismissed (also added within version 1).
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     commit_graph_dismissed: bool,
 }
@@ -99,7 +99,7 @@ pub fn settings_file(root: &Path) -> PathBuf {
     repo_data_dir(root).join("settings.json")
 }
 
-/// [`settings_file`] under the data dir `data` (tests pass their own, #50).
+/// [`settings_file`] under the data dir `data` (tests pass their own).
 pub fn settings_file_in(data: &Path, root: &Path) -> PathBuf {
     repo_data_dir_in(data, root).join("settings.json")
 }
@@ -152,7 +152,7 @@ impl RepoSettings {
     /// changed by another Gitweft on the same repository) where `base` is what this instance
     /// last read or saved: each setting it changed since wins, every other one is theirs. A
     /// list merges by item: what this instance added or removed since `base` is added to, or
-    /// removed from, theirs (#7).
+    /// removed from, theirs.
     pub fn merged(base: &Self, ours: &Self, theirs: &Self) -> Self {
         fn pick<T: PartialEq + Clone>(base: &T, ours: &T, theirs: &T) -> T {
             if ours != base {
@@ -282,7 +282,7 @@ pub fn fetch_due(last: Option<Instant>, now: Instant, interval: Duration) -> boo
 /// The file in a repository's data dir that holds the start of its last background fetch.
 const FETCH_CLAIM: &str = "fetch-claim";
 
-/// Claims this interval's background fetch of the repository at `root` (#70): every tab
+/// Claims this interval's background fetch of the repository at `root`: every tab
 /// and every Gitweft on it has its own timer, and only the one that gets the claim fetches.
 /// False when another started one within this interval. Run it in a job: file I/O.
 pub fn claim_fetch(root: &Path, interval: Duration) -> io::Result<bool> {
@@ -397,7 +397,7 @@ mod tests {
             },
             blame_ignored: vec![ObjectId::from_hex(&[b'a'; 40]).unwrap()],
             graph_width: Some(180.0),
-            // Dismissed stays dismissed across loads (#14).
+            // Dismissed stays dismissed across loads.
             commit_graph_dismissed: true,
         };
         save_file(&file, &settings).unwrap();
@@ -408,7 +408,7 @@ mod tests {
         let newer = text.replace("\"version\": 1", "\"version\": 2");
         std::fs::write(&file, &newer).unwrap();
         assert_eq!(load_file(&file), RepoSettings::default());
-        // The defaults read from a newer version's file never replace it (#4).
+        // The defaults read from a newer version's file never replace it.
         assert_eq!(save_file(&file, &settings).unwrap(), Saved::NewerKept);
         assert_eq!(std::fs::read_to_string(&file).unwrap(), newer);
 
@@ -425,7 +425,7 @@ mod tests {
     }
 
     /// Two instances on one repository, each saving from what it read: neither undoes the
-    /// other's settings (#7).
+    /// other's settings.
     #[test]
     fn two_instances_keep_each_others_settings() {
         let dir = tempfile::tempdir().unwrap();

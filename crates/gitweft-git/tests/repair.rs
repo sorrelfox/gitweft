@@ -367,7 +367,7 @@ fn identity_from_config_env_or_nowhere() {
     assert_eq!((id.name_origin, id.email_origin), (None, None));
 
     // Configured: the configuration's values (git itself would prefer the environment),
-    // and where each is set (#45): the name in the repository, the email in a file it
+    // and where each is set: the name in the repository, the email in a file it
     // includes.
     sb.run(&repo, &["config", "user.name", "Ada Lovelace"]);
     std::fs::write(
@@ -542,7 +542,7 @@ fn a_diff_in_a_refused_folder_says_git_refuses_it() {
     assert!(!diff.unwrap().hunks.is_empty());
 }
 
-/// A profile goes into the repository's own config only (#45), signing key included; one
+/// A profile goes into the repository's own config only, signing key included; one
 /// without a key leaves the repository's key alone.
 #[test]
 fn an_identity_profile_is_set_in_the_repository_only() {

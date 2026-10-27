@@ -1,6 +1,6 @@
 //! Loading a repository with walk options: the graph built from a first-parent walk
 //! still marks merges, but draws no lines to the parents that weren't walked. Each load
-//! uses the sandbox's data dir and the repository's own config (#50).
+//! uses the sandbox's data dir and the repository's own config.
 
 use std::path::Path;
 

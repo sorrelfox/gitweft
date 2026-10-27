@@ -167,7 +167,7 @@ def spdx(expression):
 def syntax_notices():
     """bat's syntax definitions and themes (compiled in through two-face) and their licenses,
     from assets/notices/syntaxes-and-themes.md, as plain text. gitweft-syntax's test keeps
-    that file in step with the crate (#57)."""
+    that file in step with the crate."""
     lines = []
     for line in (ROOT / "assets/notices/syntaxes-and-themes.md").read_text().splitlines():
         if line in ("<details>", "</details>") or line.startswith("````"):

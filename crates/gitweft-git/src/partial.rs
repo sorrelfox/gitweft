@@ -1,5 +1,5 @@
 //! Partial clones (`--filter=blob:none` and the like): what a read found missing is fetched
-//! only when the user asks (#82). Read-only runs set `GIT_NO_LAZY_FETCH` (see the runner),
+//! only when the user asks. Read-only runs set `GIT_NO_LAZY_FETCH` (see the runner),
 //! so git never goes to the promisor remote by itself; a read that needed a missing object
 //! fails with [`GitErrorKind::MissingObjects`](crate::GitErrorKind::MissingObjects), and
 //! [`fetch_missing`] downloads just those objects, the way git's own lazy fetch would.
@@ -115,7 +115,7 @@ fn missing_of(
         .collect())
 }
 
-/// Every version of `path` along `rev`'s history (what blame reads, #87): the blob ids
+/// Every version of `path` along `rev`'s history (what blame reads): the blob ids
 /// `git log --raw` names for it, which needs only commits and trees. Renames aren't
 /// followed (blame doesn't either).
 pub fn history_blobs(
@@ -159,7 +159,7 @@ pub fn history_blobs(
 }
 
 /// Downloads every version of `path` along `rev`'s history that the partial clone lacks
-/// (for blame, #87). Returns how many were missing.
+/// (for blame). Returns how many were missing.
 pub fn fetch_history(
     git: &GitCli,
     cwd: &Path,

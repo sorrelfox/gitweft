@@ -75,7 +75,7 @@ pub fn open_repo(path: &std::path::Path) -> Result<gix::Repository, ReadError> {
 
 /// [`open_repo`] with the repository's own config only: no user, system or git-install
 /// config, and no environment. For tests: gix reads config in this process, which a
-/// sandbox's environment (set for git children) doesn't reach (#50).
+/// sandbox's environment (set for git children) doesn't reach.
 pub fn open_repo_isolated(path: &std::path::Path) -> Result<gix::Repository, ReadError> {
     let isolated = gix::open::Options::isolated();
     let trust = gix::sec::trust::Mapping {

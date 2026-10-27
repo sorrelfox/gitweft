@@ -1,5 +1,5 @@
 //! `record_discarded_blobs`: the blobs a partial discard saved become a trash entry, which
-//! keeps them from `git gc` (#50).
+//! keeps them from `git gc`.
 
 use gitweft_git::gix::bstr::BString;
 use gitweft_git::ops::{backup_worktree_file, record_discarded_blobs};

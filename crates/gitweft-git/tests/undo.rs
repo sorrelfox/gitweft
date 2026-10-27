@@ -271,7 +271,7 @@ fn a_config_value_that_isnt_utf8_comes_back_byte_for_byte() {
     })
     .unwrap();
     let kept = kept.unwrap();
-    // Kept, not left out (#16): encoded, since the undo log holds text.
+    // Kept, not left out: encoded, since the undo log holds text.
     assert_eq!(kept.entries.len(), 1, "{:?}", kept.entries);
     assert_eq!(config_value_bytes(&kept.entries[0].1), latin1);
     assert!(description().is_empty());
@@ -315,7 +315,7 @@ fn deleting_a_branch_whose_name_isnt_utf8_is_undone() {
             .to_owned()
     };
 
-    // The name as the undo log keeps it (#18); before, the text "caf\u{fffd}" named no ref.
+    // The name as the undo log keeps it; before, the text "caf\u{fffd}" named no ref.
     let full = ref_name_text(b"refs/heads/caf\xe9");
     let ((), changes, _) = record_branch(sb.git(), &repo, &full, &cancel, || {
         delete_branch(sb.git(), &repo, name, true, &cancel)

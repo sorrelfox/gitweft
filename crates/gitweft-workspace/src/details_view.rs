@@ -83,8 +83,7 @@ pub enum DetailsEvent {
         parent: Option<ObjectId>,
         change: FileChange,
     },
-    /// Show who last changed each line of `path` as of `commit` (bytes: a name needn't be
-    /// UTF-8, #63).
+    /// Show who last changed each line of `path` as of `commit` (bytes: a name needn't be UTF-8).
     Blame { commit: ObjectId, path: BString },
     /// List the commits that changed `path`, up to `commit`.
     History { commit: ObjectId, path: BString },
@@ -127,7 +126,7 @@ impl EventEmitter<DetailsEvent> for DetailsView {}
 pub struct DetailsView {
     state: DetailsState,
     /// The file the preview shows: the commit its diff is read from, and its path as bytes
-    /// (a path needn't be UTF-8, and the rows compare their own paths with it, #18).
+    /// (a path needn't be UTF-8, and the rows compare their own paths with it).
     selected: Option<(ObjectId, BString)>,
     /// Its diff once read; `None` while it loads.
     preview: Option<Result<Preview, String>>,
@@ -136,12 +135,12 @@ pub struct DetailsView {
     /// The file list's scroll: a key that moves the preview keeps its file in view.
     files_scroll: UniformListScrollHandle,
     /// The details above the file list, which are cut at 60% of the panel: a link Tab
-    /// reaches down there is scrolled into view (#83).
+    /// reaches down there is scrolled into view.
     top_scroll: ScrollHandle,
-    /// A section divider being dragged, and where to (#92); saved when it's released.
+    /// A section divider being dragged, and where to; saved when it's released.
     split_drag: Option<(Split, f32)>,
     /// The panel's height as drawn last: the message and facts' 60 % cap is taken of it
-    /// (#94; a percentage of the column flex sizes came out far too small).
+    /// (a percentage of the column flex sizes came out far too small).
     panel_height: Rc<Cell<Pixels>>,
     /// The preview's lines scrolled sideways (as in the code views).
     hscroll: HScroll,
@@ -332,7 +331,7 @@ impl DetailsView {
         }
     }
 
-    /// The list's rows `range`, the only ones `uniform_list` draws (#23): a commit's
+    /// The list's rows `range`, the only ones `uniform_list` draws: a commit's
     /// files, or a stash's tracked files, then a header row and its untracked files.
     fn file_rows(&self, range: Range<usize>, cx: &Context<Self>) -> Vec<AnyElement> {
         let look = cx.look().clone();
@@ -552,7 +551,7 @@ impl Render for DetailsView {
             _ => (0, 0),
         };
         // With its padding: 8 before the number, 10 after, and half a character of slack
-        // (with exactly the digits' width, rounding wrapped the last one, #42).
+        // (with exactly the digits' width, rounding wrapped the last one).
         let gutter = code_scroll::char_width(window, m.text.xs) * (digits.max(2) as f32 + 0.5)
             + px(18. * m.zoom);
         let content = if wrap {
@@ -613,7 +612,7 @@ impl Render for DetailsView {
                     .into_any_element(),
             ),
         };
-        // The preview's share of the panel, as its divider was dragged (#92).
+        // The preview's share of the panel, as its divider was dragged.
         let preview_share = split::current(Split::Preview, self.split_drag, cx);
         let preview = preview.map(|preview| match preview_share {
             Some(share) => v_flex()
@@ -939,7 +938,7 @@ fn render_commit(
 
 /// The message and facts above the file list: they scroll on their own, and take at most
 /// 60% of the room so a long message (shown whole) leaves the list some. `height`: as the
-/// user dragged its divider (design pixels, #92).
+/// user dragged its divider (design pixels).
 fn details_top(
     p: &Palette,
     m: &Metrics,
@@ -966,7 +965,7 @@ fn details_top(
         .border_color(p.line)
 }
 
-/// The list's `count` rows as a `uniform_list` (#23): only the rows on screen are drawn.
+/// The list's `count` rows as a `uniform_list`: only the rows on screen are drawn.
 /// As tall as its rows, or as the room left under the details.
 fn file_rows_list(
     count: usize,
@@ -1068,7 +1067,7 @@ fn facts(
 }
 
 /// The name of a commit's refs row by what it holds: branches, tags, or both ("Refs": the
-/// label column is too narrow for "Branches and tags") (#39).
+/// label column is too narrow for "Branches and tags").
 fn refs_label(refs: &[RefLabel]) -> String {
     let tags = refs.iter().any(|label| label.kind == RefKind::Tag);
     let branches = refs.iter().any(|label| label.kind != RefKind::Tag);
@@ -1445,7 +1444,7 @@ pub(crate) fn file_menu_items(
     parent: Option<ObjectId>,
     change: &FileChange,
 ) -> Vec<(String, DetailsEvent)> {
-    // As git names it, whatever its encoding (#63).
+    // As git names it, whatever its encoding.
     let path = change.path.clone();
     let deleted = change.kind == ChangeKind::Deleted;
     let mut items = Vec::new();

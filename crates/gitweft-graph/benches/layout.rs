@@ -1,4 +1,4 @@
-//! The lane layout of synthetic histories (`just bench`, #26). The original plan's target:
+//! The lane layout of synthetic histories (`just bench`). The original plan's target:
 //! a million commits laid out in under 150 ms.
 
 use std::hint::black_box;

@@ -1,11 +1,11 @@
-//! The sidebar, the centre and the right panel (#91). The side panels keep the widths they
+//! The sidebar, the centre and the right panel. The side panels keep the widths they
 //! are given (the design's, until a divider is dragged) and have only minimums; the centre
 //! takes the rest and keeps a minimum of its own. Widths are saved in design pixels, so the
-//! zoom scales them (#48).
+//! zoom scales them.
 //!
 //! Our own layout rather than gpui-kit's resizable group: the kit's drag passes what one
-//! panel can't take on to the next, so dragging one side panel could shrink the other
-//! (#76), and a panel's size is only its first one (a zoom needed the kit's state rebuilt).
+//! panel can't take on to the next, so dragging one side panel could shrink the other,
+//! and a panel's size is only its first one (a zoom needed the kit's state rebuilt).
 
 use super::*;
 

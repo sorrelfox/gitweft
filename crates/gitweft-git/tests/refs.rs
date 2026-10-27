@@ -16,7 +16,7 @@ fn a_reftable_repository_is_read_through_git() {
     sb.run(&repo, &["branch", "topic", first.trim()]);
     let opened = open_repo(&repo).unwrap();
 
-    // gix 0.87 has no reftable backend: its HEAD is a placeholder (#17).
+    // gix 0.87 has no reftable backend: its HEAD is a placeholder.
     assert!(uses_reftable(&opened));
     assert!(read_refs(&opened).is_err());
 

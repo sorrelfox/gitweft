@@ -97,7 +97,7 @@ pub fn rebase_onto(
     rebase_merges: bool,
     cancel: &CancelToken,
 ) -> Result<(), GitError> {
-    // `onto` as bytes: a branch's name needn't be UTF-8 (#18).
+    // `onto` as bytes: a branch's name needn't be UTF-8.
     git.command(workdir)
         .arg("rebase")
         .args(rebase_merges.then_some("--rebase-merges"))

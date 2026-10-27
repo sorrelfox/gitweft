@@ -142,7 +142,7 @@ pub(super) fn read_conflicts(
             }
             Some(bytes) => {
                 let text = String::from_utf8_lossy(&bytes);
-                // Markers as long as the file's `conflict-marker-size` says (#16).
+                // Markers as long as the file's `conflict-marker-size` says.
                 let size = conflict_marker_size(git, workdir, &path, cancel);
                 counts.insert(path, conflict_count(&parse_conflicts_sized(&text, size)));
             }
@@ -731,7 +731,7 @@ impl Workspace {
                     .map(|err| format!("{}: {err}", file.display()))
             });
         cx.spawn(async move |this, cx| {
-            // Without the record, a restart forgets which files the operation stopped on (#12).
+            // Without the record, a restart forgets which files the operation stopped on.
             if let Some(Some(err)) = job.join().await {
                 let text = t!("conflict.record_failed", error = err).into_owned();
                 this.update(cx, |_, cx| crate::tab_notes::note_failure(text, cx))

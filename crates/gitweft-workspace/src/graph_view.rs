@@ -103,7 +103,7 @@ pub fn bind_keys(cx: &mut App) {
     ]);
 }
 
-/// Where a Shift range goes (#31): from `anchor` to `end` moved by `to` within `rows`
+/// Where a Shift range goes: from `anchor` to `end` moved by `to` within `rows`
 /// rows. Returns the new end and the rows between the two ends.
 fn extend_range(
     anchor: usize,
@@ -369,7 +369,7 @@ pub struct GraphView {
     head_row: Option<usize>,
     /// While bisecting: the commits marked so far. `None` when no bisect runs.
     bisect: Option<std::collections::HashMap<ObjectId, BisectMark>>,
-    /// A shallow clone's boundary: the commits whose parents aren't here (#36).
+    /// A shallow clone's boundary: the commits whose parents aren't here.
     shallow: std::collections::HashSet<ObjectId>,
     /// How this graph's history was walked (the view menu shows it).
     walk: WalkOptions,
@@ -379,7 +379,7 @@ pub struct GraphView {
     /// them; empty for a single selection.
     picked: std::collections::BTreeSet<usize>,
     /// The moving end of a Shift range (Shift+click, Shift+arrows); the selected row is its
-    /// fixed end (#31).
+    /// fixed end.
     range_end: Option<usize>,
     /// Signature marks by commit (`None`: unsigned), shared with the workspace so that a
     /// reload of the graph keeps them.
@@ -483,7 +483,7 @@ impl GraphView {
         }
     }
 
-    /// A shallow clone's boundary commits, marked "history cut here" (#36); empty when the
+    /// A shallow clone's boundary commits, marked "history cut here"; empty when the
     /// history is complete.
     pub fn set_shallow(&mut self, boundary: Vec<ObjectId>, cx: &mut Context<Self>) {
         let boundary: std::collections::HashSet<ObjectId> = boundary.into_iter().collect();
@@ -700,7 +700,7 @@ impl GraphView {
     }
 
     /// Shift with the arrows, Home or End: the range from the selected commit to a moving
-    /// end, as Shift+click makes it (#31). Without a selected commit it selects, like the
+    /// end, as Shift+click makes it. Without a selected commit it selects, like the
     /// arrows alone.
     fn extend(&mut self, to: Step, cx: &mut Context<Self>) {
         let rows = self.graph.rows();
@@ -1316,7 +1316,7 @@ impl GraphView {
                                 .when(
                                     hidden > 0 && count_fits,
                                     |this| {
-                                        // Hovered, the refs it stands for (#93).
+                                        // Hovered, the refs it stands for.
                                         let names = join_list(
                                             pills.iter().skip(shown).map(|pill| pill.text.clone()),
                                         );
@@ -2084,7 +2084,7 @@ fn bisect_pill(mark: BisectMark, p: &Palette, m: &Metrics) -> impl IntoElement {
 }
 
 /// A shallow clone's boundary in the refs column, muted: its parents aren't in this
-/// clone (#36; the banner offers to fetch them).
+/// clone (the banner offers to fetch them).
 fn shallow_pill(p: &Palette, m: &Metrics) -> impl IntoElement {
     pill_frame(m)
         .flex_shrink_0()
@@ -2789,7 +2789,7 @@ mod tests {
     }
 
     /// Shift with the arrows, Home and End moves one end of the range; the other stays on
-    /// the selected commit (#31).
+    /// the selected commit.
     #[test]
     fn a_shift_range_moves_its_end_and_keeps_the_anchor() {
         let rows = 10;
@@ -2806,7 +2806,7 @@ mod tests {
     }
 }
 
-/// The graph in a GPUI test window (#51): several commits selected with Ctrl+click and
+/// The graph in a GPUI test window: several commits selected with Ctrl+click and
 /// Shift+click, and dragged onto the checked-out one, through the rows' own mouse handlers.
 #[cfg(test)]
 mod view_tests {
@@ -2958,7 +2958,7 @@ mod view_tests {
         );
     }
 
-    /// Shift with the arrows extends the selection from the clicked commit and back (#31),
+    /// Shift with the arrows extends the selection from the clicked commit and back,
     /// through the graph's own key bindings.
     #[test]
     fn shift_arrows_extend_the_selection_and_shrink_it_back() {

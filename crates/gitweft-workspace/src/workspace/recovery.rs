@@ -152,7 +152,7 @@ impl Workspace {
         self._trash_events = None;
     }
 
-    /// Applies the trash's optional limits (Settings → General, #19; off by default) in the
+    /// Applies the trash's optional limits (Settings → General; off by default) in the
     /// background: entries older than the age limit, and the oldest while the trash is
     /// over the size limit, are deleted. Run after each load.
     pub(super) fn enforce_trash_limits(&mut self, cx: &mut Context<Self>) {
@@ -482,7 +482,7 @@ impl Workspace {
     }
 }
 
-/// A trash error in the user's language: core's own cases are worded here (#47); git's and
+/// A trash error in the user's language: core's own cases are worded here; git's and
 /// the system's messages stay as they are.
 fn trash_error_text(err: &trash_store::TrashError) -> String {
     match err {

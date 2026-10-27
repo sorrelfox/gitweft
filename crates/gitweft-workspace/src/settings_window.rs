@@ -105,7 +105,7 @@ pub(crate) fn open(cx: &mut App) {
     };
     let opened = cx.open_window(options, |window, cx| {
         // A key recording left waiting ends with the window: the next key pressed elsewhere
-        // must do what it's bound to, not become a binding (#11).
+        // must do what it's bound to, not become a binding.
         window.on_window_should_close(cx, |_, cx| {
             KeymapStore::record(cx, None);
             true
@@ -131,7 +131,7 @@ struct SettingsWindow {
     detected_terminal: Option<Option<String>>,
     /// The name to save the colors in use under (Colors page).
     save_name: Entity<InputState>,
-    /// The page shown, and the search (#88, #89).
+    /// The page shown, and the search.
     nav: SettingsNav,
     _subscriptions: Vec<Subscription>,
 }
@@ -241,7 +241,7 @@ impl SettingsWindow {
     fn pages(&self, cx: &mut Context<Self>) -> Vec<SettingPage> {
         vec![
             general_page(),
-            // Theme, Text and Colors under it, each a page of its own (#90).
+            // Theme, Text and Colors under it, each a page of its own.
             appearance_page(cx).child(self.colors_page(cx)),
             graph_page(),
             diff_page(),
@@ -306,7 +306,7 @@ impl SettingsWindow {
         )
         .description(t!("settings.color_preset_hint").into_owned());
         // The preset and the preview, then a page for the saved colors and one per group
-        // of colors (#89: each shows its own).
+        // of colors (each shows its own).
         let mut page = SettingPage::new(t!("settings.colors").into_owned())
             .group(SettingGroup::new().item(preset).item(editing).item(preview))
             .child(
@@ -746,7 +746,7 @@ fn general_page() -> SettingPage {
         |value, cx| SettingsStore::update(cx, |settings| settings.general.restore_session = value),
     )
     .default_value(true);
-    // The trash's limits (#19): 0 is off, the default.
+    // The trash's limits: 0 is off, the default.
     let trash_days = SettingField::number_input(
         NumberFieldOptions {
             min: 0.0,
@@ -839,7 +839,7 @@ fn appearance_page(cx: &App) -> SettingPage {
         Density::Comfortable,
     );
     // A zoom set in settings.json that isn't one of these is listed too, rather than
-    // leaving the choice empty (#44).
+    // leaving the choice empty.
     let mut zooms: Vec<(f32, &'static str)> = [0.8f32, 0.9, 1.0, 1.1, 1.25, 1.5]
         .into_iter()
         .zip(["0.8", "0.9", "1.0", "1.1", "1.25", "1.5"])
@@ -894,7 +894,7 @@ fn appearance_page(cx: &App) -> SettingPage {
     )
     .default_value(f64::from(MONO_FONT_SIZE.1));
 
-    // Theme and Text each a page of their own under Appearance (#88), and Colors after
+    // Theme and Text each a page of their own under Appearance, and Colors after
     // them (`SettingsWindow::pages`).
     let theme_page = SettingPage::new(t!("settings.theme_group").into_owned()).group(
         SettingGroup::new()
@@ -1144,7 +1144,7 @@ fn diff_page() -> SettingPage {
         },
     )
     .default_value(false);
-    // Columns between tab stops in the code views (#80).
+    // Columns between tab stops in the code views.
     let (tab_min, tab_default, tab_max) = gitweft_core::settings::TAB_WIDTH;
     let tab_width = SettingField::number_input(
         NumberFieldOptions {

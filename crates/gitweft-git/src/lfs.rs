@@ -39,7 +39,7 @@ pub struct LfsPointer {
 /// The content `pointer` stands for, read from this repository's local LFS store
 /// (`<common git dir>/lfs/objects/<aa>/<bb>/<oid>`, shared by its worktrees): `None` when it
 /// isn't there (or has another size), or is larger than `max_bytes`. Nothing is fetched:
-/// `git lfs smudge` would download a missing object, so it isn't used (#36).
+/// `git lfs smudge` would download a missing object, so it isn't used.
 pub fn local_object(
     git: &GitCli,
     workdir: &Path,
@@ -469,7 +469,7 @@ pub struct LfsTypeSize {
     pub files: u64,
 }
 
-/// Which kinds of files take the most room in plain git, largest first (#71): what `git
+/// Which kinds of files take the most room in plain git, largest first: what `git
 /// lfs migrate import` could move into LFS. Only reads: `git lfs migrate info`, over the
 /// checked-out branch's history, or with `everything` every local and remote branch and
 /// tag. Files already in LFS are left out (`--pointers=ignore`). At most `top` kinds.
@@ -531,7 +531,7 @@ pub fn migrate_patterns(text: &str) -> Vec<String> {
 }
 
 /// Rewrites the history of `branch` (a full ref name, the checked-out branch's: the only
-/// scope the app offers, #71) so that the files matching `patterns` are kept in LFS, or
+/// scope the app offers) so that the files matching `patterns` are kept in LFS, or
 /// no longer are: `git lfs migrate import|export --include=… --include-ref=<branch>`. Every
 /// commit on it that has such a file gets a new id; other branches and tags are left as
 /// they are. The work tree must be clean (git-lfs asks otherwise, and stdin is empty, so

@@ -1,4 +1,4 @@
-//! The diff algorithms on a large hunk (`just bench`, #26): the word changes of every
+//! The diff algorithms on a large hunk (`just bench`): the word changes of every
 //! removed/added pair, the side-by-side layout, and moved lines.
 
 use std::hint::black_box;

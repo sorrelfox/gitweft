@@ -1,6 +1,6 @@
 //! `log.showSignature=true` in the user's config makes `git log` and `git show` print a
 //! signature check on stdout before each signed commit. Gitweft parses their output, so
-//! the runner turns the setting off for every command (issue #2); a read that wants the
+//! the runner turns the setting off for every command; a read that wants the
 //! check asks for it (`--show-signature`, `%G?`).
 
 use std::path::{Path, PathBuf};

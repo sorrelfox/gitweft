@@ -39,9 +39,9 @@ pub enum HistoryEvent {
     ShowCommit(ObjectId),
     /// The revision's change to the file in the user's diff tool.
     DiffTool(FileRevision),
-    /// The file as it is in this revision, in the file view (#44).
+    /// The file as it is in this revision, in the file view.
     OpenFile(FileRevision),
-    /// The revision's files (#44).
+    /// The revision's files.
     BrowseFiles(ObjectId),
 }
 

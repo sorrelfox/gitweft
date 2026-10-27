@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Refreshes scripts/dist/pins.env (#58): the images' current index digests (skopeo), the
+# Refreshes scripts/dist/pins.env: the images' current index digests (skopeo), the
 # newest rustup and its checksum, and Flathub's current SDK, Platform and Rust extension
 # commits (flatpak remote-info, the user's flathub remote). Prints the diff; review it,
 # rebuild the packages, and commit. Needs network, skopeo, curl and flatpak.

@@ -579,7 +579,7 @@ fn the_merge_attribute_is_read_from_our_side() {
     assert!(has_markers(&theirs_rule, "a.txt"));
     let conflict = sides(&sb, &theirs_rule, "a.txt");
     // Git before 2.40 can't read HEAD's attributes (`check-attr --source`): the working
-    // tree's merged .gitattributes counts there, the known fallback (#79).
+    // tree's merged .gitattributes counts there, the known fallback.
     let head_attributes = sb.git().version() >= gitweft_git::GitVersion::new(2, 40, 0);
     assert_eq!(conflict.binary_by_attributes, !head_attributes);
     assert_eq!(conflict.whole_file(), !head_attributes);

@@ -115,7 +115,7 @@ fn a_discard_is_recorded_listed_and_restored_byte_for_byte() {
 }
 
 /// A tracked symlink's discarded version is its target text (as git stores a link), a
-/// dangling one included, and a restore makes it a symlink again (issue #3).
+/// dangling one included, and a restore makes it a symlink again.
 #[test]
 fn a_discarded_symlink_comes_back_as_a_symlink() {
     use std::os::unix::fs::symlink;
@@ -538,7 +538,7 @@ fn non_utf8_paths_and_roots_round_trip() {
     assert_eq!(read(&repo, untracked), b"\x00\xfe\n");
 }
 
-/// A saved copy that vanished from the trash folder is a failure the UI can word (#47), not
+/// A saved copy that vanished from the trash folder is a failure the UI can word, not
 /// English text from core.
 #[test]
 fn a_saved_copy_gone_from_the_trash_is_a_typed_failure() {

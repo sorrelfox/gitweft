@@ -20,12 +20,11 @@ fn a_shallow_clone_loads_and_ends_at_the_boundary() {
     // nothing), so loading takes the `git rev-list` walk.
     sb.run(&repo, &["commit-graph", "write"]);
 
-    // The sandbox's data dir: the user's settings for a same-named repository are never
-    // read (#50).
+    // The sandbox's data dir: the user's settings for a same-named repository are never read.
     let env = LoadEnv::isolated(sb.path().join("data"));
     let loaded = load_repo_in(&repo, &env, None, None, &CancelToken::new()).unwrap();
     assert!(loaded.timings.walk_via_git);
-    // So the app doesn't offer a commit-graph here (#14).
+    // So the app doesn't offer a commit-graph here.
     assert!(loaded.shallow);
     assert!(
         !load_repo_in(&seed, &env, None, None, &CancelToken::new())

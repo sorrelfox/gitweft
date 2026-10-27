@@ -128,8 +128,8 @@ fn cancellation_ends_even_when_a_child_ignores_sigterm() {
     });
 
     // A pre-commit hook that ignores SIGTERM (and so does its `sleep`) and keeps the stderr
-    // it shares with git open, while git itself goes on SIGTERM. Before #16 only a git that
-    // outlived the grace period got the SIGKILL, so the run waited for the `sleep`.
+    // it shares with git open, while git itself goes on SIGTERM. An earlier version sent
+    // the SIGKILL only to a git that outlived the grace period, so the run waited for the `sleep`.
     let hook = repo.join(".git/hooks/pre-commit");
     std::fs::write(&hook, "#!/bin/sh\ntrap '' TERM\nsleep 30\n").unwrap();
     std::fs::set_permissions(

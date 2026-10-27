@@ -7,8 +7,8 @@ use crate::cancel::CancelToken;
 use crate::cli::{GitCli, GitError};
 
 /// The names are text as `undo::ref_name_text` makes it: themselves when UTF-8, else encoded,
-/// so a branch whose name isn't UTF-8 still matches its upstream and pushes by its bytes
-/// (#63). `undo::ref_name_bytes` gives the bytes back.
+/// so a branch whose name isn't UTF-8 still matches its upstream and pushes by its bytes.
+/// `undo::ref_name_bytes` gives the bytes back.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Tracking {
     /// Local branch name, e.g. `main` or `feature/x`.
@@ -16,7 +16,7 @@ pub struct Tracking {
     /// The upstream, e.g. `origin/main`.
     pub upstream: Option<String>,
     /// The upstream's remote as configured (`branch.<name>.remote`): `origin`, or `.` for
-    /// a local branch (#16).
+    /// a local branch.
     pub upstream_remote: Option<String>,
     /// The upstream's branch on that remote (`branch.<name>.merge` without `refs/heads/`),
     /// which the tracking ref's name needn't match.
@@ -115,7 +115,7 @@ mod tests {
         assert_eq!(renamed.upstream_branch.as_deref(), Some("other"));
     }
 
-    /// A branch whose name isn't UTF-8 keeps its bytes, encoded (#63).
+    /// A branch whose name isn't UTF-8 keeps its bytes, encoded.
     #[test]
     fn names_that_arent_utf8_are_encoded() {
         use crate::undo::{ref_name_bytes, ref_name_text};

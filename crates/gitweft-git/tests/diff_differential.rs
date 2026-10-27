@@ -1,4 +1,4 @@
-//! Differential test of the diff parser (#51): the lines `file_diff` parses as added and
+//! Differential test of the diff parser: the lines `file_diff` parses as added and
 //! removed must be the ones `git diff --numstat` counts, on generated edits. The lines
 //! include ones that look like diff syntax (`+`, `-`, `@@`, `\`, `---`, `+++`), and a file
 //! may lack its final newline, which git marks with `\ No newline at end of file`.

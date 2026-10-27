@@ -218,7 +218,7 @@ impl Workspace {
     /// Open, create or clone a repository, and the recently opened ones.
     /// Scrolls the recent list to the row that holds the keyboard focus (its Forget button),
     /// once each time the focus moves to another row: Tab can reach a row below the list's
-    /// fold, and GPUI doesn't scroll to it (#67). The mouse wheel is left alone while the
+    /// fold, and GPUI doesn't scroll to it. The mouse wheel is left alone while the
     /// focus stays put.
     pub(super) fn reveal_recent_focus(&mut self, window: &Window, cx: &mut Context<Self>) {
         while self.recent_focus.len() < self.recent.len() {

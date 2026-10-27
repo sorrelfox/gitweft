@@ -4,13 +4,13 @@ use super::*;
 
 impl Workspace {
     /// A revision or ref name as git gets it: a name encoded by `undo::ref_name_text` (one
-    /// that isn't UTF-8) as its bytes, any other text as it is (#18).
+    /// that isn't UTF-8) as its bytes, any other text as it is.
     pub(super) fn git_arg(text: &str) -> std::ffi::OsString {
         use std::os::unix::ffi::OsStringExt as _;
         std::ffi::OsString::from_vec(gitweft_git::undo::ref_name_bytes(text))
     }
 
-    /// The name git has for the local branch shown as `shown` (#18): its bytes, since the
+    /// The name git has for the local branch shown as `shown`: its bytes, since the
     /// text shown is lossy for a name that isn't UTF-8; the text itself when no branch
     /// shows so. `Err` when several branches show alike.
     pub(super) fn local_branch_bytes(&self, shown: &str) -> Result<Vec<u8>, ()> {
@@ -46,7 +46,7 @@ impl Workspace {
         let git = repo.git.clone();
         let cwd = repo.cwd();
         // A remote branch by its bytes (`refs/remotes/<remote>/` off its full name), and
-        // whether a local branch has exactly those bytes (#63).
+        // whether a local branch has exactly those bytes.
         let remote_branch_bytes: Option<Vec<u8>> = match &op {
             BranchOp::SwitchRemote { remote, branch } => {
                 let shown = format!("{remote}/{branch}");
@@ -71,7 +71,7 @@ impl Workspace {
             _ => false,
         };
         // A branch's name for git: its bytes, not the text shown, which git refuses for a
-        // name that isn't UTF-8 (#18). Names that show alike can't be told apart: refused.
+        // name that isn't UTF-8. Names that show alike can't be told apart: refused.
         let shown = match &op {
             BranchOp::Switch { name } | BranchOp::Delete { name, .. } => Some(name.as_str()),
             BranchOp::Rename { from, .. } => Some(from.as_str()),
@@ -108,7 +108,7 @@ impl Workspace {
                 t!("undo.op_create_branch", name = name).into_owned(),
                 format!("refs/heads/{name}"),
             )),
-            // The branch's bytes when it was found: its undo must name it as git does (#18).
+            // The branch's bytes when it was found: its undo must name it as git does.
             BranchOp::Delete { name, .. } => Some(Record::branch(
                 t!("undo.op_delete_branch", name = name).into_owned(),
                 job_git_name.as_deref().map_or_else(
@@ -300,7 +300,7 @@ impl Workspace {
             .as_ref()
             .map(|(_, shown)| t!("branch.new_from", start = shown).into_owned());
         // A start that's a local branch whose name isn't UTF-8 goes by its commit, the
-        // same start: its name, shown lossily, names nothing to git (#18).
+        // same start: its name, shown lossily, names nothing to git.
         let revision = start.map(|(revision, _)| {
             let RepoState::Loaded(repo) = &self.state else {
                 return revision;

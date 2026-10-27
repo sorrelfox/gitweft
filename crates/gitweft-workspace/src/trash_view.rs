@@ -156,8 +156,8 @@ impl TrashView {
         }
     }
 
-    /// What a row offers, for its right-click menu, Shift+F10 and Enter (its first item,
-    /// #27): an entry is restored whole (a folder from before records is shown in the file
+    /// What a row offers, for its right-click menu, Shift+F10 and Enter (its first
+    /// item): an entry is restored whole (a folder from before records is shown in the file
     /// manager instead) or deleted; a file is restored on its own.
     fn row_items(&self, row: usize) -> Vec<(String, TrashEvent)> {
         let entries = self.entries();
@@ -384,7 +384,7 @@ impl TrashView {
 
 /// The entries of this repository, and the folders from before records. Empty trash takes
 /// only the first: a folder from before records is listed on every repository's page, and
-/// may hold another repository's files (#19).
+/// may hold another repository's files.
 fn split_older(entries: &[TrashEntry]) -> (Vec<TrashEntry>, Vec<TrashEntry>) {
     entries.iter().cloned().partition(|entry| !entry.legacy)
 }
@@ -525,7 +525,7 @@ mod tests {
     }
 
     /// Empty trash takes this repository's entries only; the folders from before records,
-    /// listed on every repository's page, go by their own button (#19).
+    /// listed on every repository's page, go by their own button.
     #[test]
     fn empty_trash_leaves_the_folders_whose_repository_is_unknown() {
         let entries = [entry("a", false), entry("old", true), entry("b", false)];

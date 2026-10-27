@@ -62,7 +62,7 @@ pub fn syntax_for_path(path: &str) -> Option<Syntax> {
 }
 
 /// Lines longer than this (minified code, data) are shown without colors: syntect's
-/// regexes on a multi-megabyte line take seconds (#25).
+/// regexes on a multi-megabyte line take seconds.
 pub const MAX_HIGHLIGHT_LINE: usize = 4 * 1024;
 
 /// Highlights consecutive lines of one file (e.g. one side of a hunk) as continuous text,
@@ -158,7 +158,7 @@ mod tests {
 /// The licenses of the syntax definitions and themes compiled in (bat's collection, through
 /// two-face), as Markdown. `assets/notices/syntaxes-and-themes.md` holds this text and the
 /// release notices append it (`scripts/dist/sources.py`); the test below fails when
-/// two-face's collection changes, so the file can't go stale (#57).
+/// two-face's collection changes, so the file can't go stale.
 pub fn acknowledgements() -> String {
     two_face::acknowledgement::listing().to_md()
 }

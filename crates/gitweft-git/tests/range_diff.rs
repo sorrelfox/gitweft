@@ -75,7 +75,7 @@ fn a_rebased_branch_pairs_same_changed_removed_and_added_commits() {
     assert!(interdiff.contains("-+17"), "{interdiff}");
     assert!(interdiff.contains("++seventeen"), "{interdiff}");
 
-    // Numbered from both sides (#69), on git's own output: every line is in one patch or
+    // Numbered from both sides, on git's own output: every line is in one patch or
     // both, the two `17` lines are one per side, and the file marker names b.txt.
     let rows = interdiff_rows(&pairs[1].interdiff);
     assert_eq!(rows.len(), pairs[1].interdiff.len());

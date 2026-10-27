@@ -1,7 +1,7 @@
 //! Data files Gitweft rewrites whole (review sessions, per-repository settings), and what a
 //! save may do with the file already there. A file this build can't read (not JSON, not an
 //! object, not UTF-8) is kept as `<name>.bak` before it's replaced; one written by a newer
-//! version of Gitweft is left alone. So a failed read never turns into lost data (#4).
+//! version of Gitweft is left alone. So a failed read never turns into lost data.
 
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -75,7 +75,7 @@ pub fn backup_path(path: &Path) -> PathBuf {
 /// moved aside first ([`Saved::SetAside`]). Writes a temporary file and renames it, so a
 /// crash never leaves half a file.
 pub fn write_json(path: &Path, version: u64, text: &str) -> io::Result<Saved> {
-    // A linked file is read, set aside and replaced where it really is (#8).
+    // A linked file is read, set aside and replaced where it really is.
     let path = &save_target(path)?;
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
@@ -95,7 +95,7 @@ pub fn write_json(path: &Path, version: u64, text: &str) -> io::Result<Saved> {
 
 /// The file a save of `path` replaces: `path` itself, or, when it is a symbolic link (a
 /// settings file a dotfile manager such as stow or chezmoi links in), the file the link
-/// finally points at, so the link stays a link (#8). A link to a missing file gives that
+/// finally points at, so the link stays a link. A link to a missing file gives that
 /// file's path, and the save creates it.
 pub fn save_target(path: &Path) -> io::Result<PathBuf> {
     let mut current = path.to_path_buf();
@@ -121,7 +121,7 @@ pub fn save_target(path: &Path) -> io::Result<PathBuf> {
 }
 
 /// Replaces the file at `path` with `bytes` so that no crash or power loss leaves half a
-/// file or an empty one (#8): the bytes go to a temporary file beside it, which is synced to
+/// file or an empty one: the bytes go to a temporary file beside it, which is synced to
 /// disk before it is renamed over the old one, and then the folder is synced so the rename
 /// is kept too. A symbolic link is followed ([`save_target`]) and stays a link. The folder
 /// is created if needed.
@@ -150,7 +150,7 @@ pub fn atomic_write(path: &Path, bytes: &[u8]) -> io::Result<()> {
 }
 
 /// A temporary name beside `path` to write it under: `<path>.tmp.<pid>.<n>`, different for
-/// every save, in this process and in any other, so two savers never share one (#7).
+/// every save, in this process and in any other, so two savers never share one.
 pub fn temp_path(path: &Path) -> PathBuf {
     static SAVES: AtomicU64 = AtomicU64::new(0);
     let n = SAVES.fetch_add(1, Ordering::Relaxed);
@@ -162,7 +162,7 @@ pub fn temp_path(path: &Path) -> PathBuf {
 /// Runs `f` holding an exclusive lock on `<path>.lock` (beside `path`, made if needed), so
 /// that writers of `path` take turns, in this process and in others; the lock goes when
 /// `f` returns (or the process ends). For read-modify-write saves that mustn't lose another
-/// writer's change (#7).
+/// writer's change.
 pub fn with_lock<T>(path: &Path, f: impl FnOnce() -> io::Result<T>) -> io::Result<T> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;

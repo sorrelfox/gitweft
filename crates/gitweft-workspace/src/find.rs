@@ -1,5 +1,5 @@
-//! Find in text (Ctrl+F) for the code views: the diff, the file, blame and the conflict tool
-//! (#43). A view owns a [`FindBar`]; it gives the bar its rows' shown text, draws the bar's
+//! Find in text (Ctrl+F) for the code views: the diff, the file, blame and the conflict tool.
+//! A view owns a [`FindBar`]; it gives the bar its rows' shown text, draws the bar's
 //! matches as highlights, and scrolls to the current one.
 
 use std::ops::Range;

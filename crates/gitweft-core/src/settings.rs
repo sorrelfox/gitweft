@@ -33,9 +33,9 @@ pub const ZOOM: (f32, f32, f32) = (0.8, 1.0, 1.5);
 /// Limits for remembered graph column widths, in pixels.
 pub const WIDTH: (f32, f32) = (40.0, 1600.0);
 /// Limits for the side panels' widths (design pixels): the app keeps them within the
-/// window; this only keeps a hand-edited file sane (#91: no maximum of their own).
+/// window; this only keeps a hand-edited file sane (no maximum of their own).
 pub const PANEL_WIDTH: (f32, f32) = (40.0, 20_000.0);
-/// Limits for a section's share of the room it divides with another (#92).
+/// Limits for a section's share of the room it divides with another.
 pub const SHARE: (f32, f32) = (0.1, 0.9);
 
 /// `settings.json` in [`config_dir`].
@@ -58,13 +58,13 @@ pub struct AppSettings {
     pub layout: LayoutSettings,
     #[serde(deserialize_with = "lenient")]
     pub tools: ToolSettings,
-    /// Named identities for commits, applied to one repository at a time (#45).
+    /// Named identities for commits, applied to one repository at a time.
     #[serde(deserialize_with = "lenient", skip_serializing_if = "Vec::is_empty")]
     pub identity_profiles: Vec<IdentityProfile>,
 }
 
 /// A name, email and signing key kept under a label ("Work"), to set in a repository's
-/// own config in one go (#45). Nothing writes the global config.
+/// own config in one go. Nothing writes the global config.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct IdentityProfile {
@@ -276,12 +276,12 @@ pub struct General {
     /// Reopen the last session's repositories on start (`session`).
     #[serde(deserialize_with = "lenient_true")]
     pub restore_session: bool,
-    /// Trash entries older than this many days are deleted (#19); 0, the default, keeps
+    /// Trash entries older than this many days are deleted; 0, the default, keeps
     /// them until the user empties the trash.
     #[serde(deserialize_with = "lenient", skip_serializing_if = "is_zero")]
     pub trash_max_age_days: u32,
-    /// The oldest trash entries are deleted while the trash is larger than this many MB
-    /// (#19); 0, the default, sets no limit.
+    /// The oldest trash entries are deleted while the trash is larger than this many MB;
+    /// 0, the default, sets no limit.
     #[serde(deserialize_with = "lenient", skip_serializing_if = "is_zero")]
     pub trash_max_size_mb: u32,
 }
@@ -319,11 +319,11 @@ pub struct DiffSettings {
     /// Long lines wrap in the diff, file and blame views (else they scroll sideways).
     #[serde(deserialize_with = "lenient")]
     pub wrap_lines: bool,
-    /// Moved lines look like any added and removed lines, without their own tint (#35).
+    /// Moved lines look like any added and removed lines, without their own tint.
     /// Off by default: the tint is shown.
     #[serde(deserialize_with = "lenient")]
     pub plain_moved_lines: bool,
-    /// Columns between tab stops in the code views (#80); `None` is the default, 4. Read it
+    /// Columns between tab stops in the code views; `None` is the default, 4. Read it
     /// with [`DiffSettings::tab_width`].
     #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
     pub tab_width: Option<u8>,
@@ -379,7 +379,7 @@ pub struct LayoutSettings {
     pub sidebar_width: Option<f32>,
     #[serde(deserialize_with = "lenient")]
     pub right_panel_width: Option<f32>,
-    /// The right panel's sections as the user dragged them (#92); `None` is the default.
+    /// The right panel's sections as the user dragged them; `None` is the default.
     /// Unstaged's share of the working changes' two file lists.
     #[serde(deserialize_with = "lenient")]
     pub staging_split: Option<f32>,
@@ -588,7 +588,7 @@ impl SettingsFile {
         if self.corrupt {
             // Keep what the user had, in case it was hand-edited and mostly fine (never
             // over an earlier backup: `.bak.2`, `.bak.3`…).
-            // Where the file really is: a linked one stays linked (#8).
+            // Where the file really is: a linked one stays linked.
             let target = crate::datafile::save_target(&self.path)?;
             std::fs::rename(&target, crate::datafile::backup_path(&target))?;
             self.corrupt = false;
@@ -599,7 +599,7 @@ impl SettingsFile {
         merge_sections(&mut self.raw, fresh);
         self.raw.insert("version".into(), Value::from(VERSION));
         let text = serde_json::to_string_pretty(&self.raw).map_err(io::Error::other)?;
-        // Two instances saving at once each write their own temporary file (#7).
+        // Two instances saving at once each write their own temporary file.
         crate::datafile::atomic_write(&self.path, (text + "\n").as_bytes())?;
         Ok(true)
     }
@@ -665,7 +665,7 @@ mod tests {
         assert_eq!(read(&path)["version"], VERSION);
     }
 
-    /// A settings file a dotfile manager links in stays a link after a save (#8).
+    /// A settings file a dotfile manager links in stays a link after a save.
     #[test]
     fn a_linked_settings_file_stays_a_link() {
         let dir = tempfile::tempdir().unwrap();
@@ -708,12 +708,12 @@ mod tests {
         assert_eq!(settings.appearance.ui_font, DEFAULT_UI_FONT);
         assert!(settings.diff.ignore_whitespace);
         assert_eq!(settings.diff.layout, DiffLayout::Unified);
-        // Settings from before #35 keep the moved-line tint.
+        // Settings older than the plain moved-lines option keep the tint.
         assert!(!settings.diff.plain_moved_lines);
         assert_eq!(settings.graph, GraphSettings::default());
     }
 
-    /// The Tab width: 4 when unset or unreadable, kept within 1–16 (#80).
+    /// The Tab width: 4 when unset or unreadable, kept within 1–16.
     #[test]
     fn identity_profiles_round_trip_and_default_to_none() {
         let settings: AppSettings = serde_json::from_str("{}").unwrap();
@@ -809,7 +809,7 @@ mod tests {
     }
 
     /// Not UTF-8 is as corrupt as bad JSON (it used to count as missing and was replaced
-    /// without a backup), and a later backup never replaces an earlier one (#4).
+    /// without a backup), and a later backup never replaces an earlier one.
     #[test]
     fn a_file_that_isnt_utf8_is_kept_as_a_backup_and_backups_pile_up() {
         let dir = tempfile::tempdir().unwrap();

@@ -27,7 +27,7 @@ use gitweft_ui::widgets::centre_header;
 
 /// The line number column, in design pixels.
 const NUMBER_WIDTH: f32 = 48.;
-/// Each of the two columns an interdiff has instead (#69).
+/// Each of the two columns an interdiff has instead.
 const SIDE_WIDTH: f32 = 34.;
 pub(crate) const CONTEXT: &str = "FileView";
 
@@ -42,7 +42,7 @@ pub fn bind_keys(cx: &mut App) {
 
 pub enum FileEvent {
     Close,
-    /// A partial clone lacks this version of the file: download it (#87).
+    /// A partial clone lacks this version of the file: download it.
     FetchMissing {
         commit: ObjectId,
         path: BString,
@@ -55,7 +55,7 @@ pub enum FileEvent {
         commit: ObjectId,
         path: BString,
     },
-    /// A review comment asked for on a line of an interdiff (#69): the file the line
+    /// A review comment asked for on a line of an interdiff: the file the line
     /// belongs to, and the line with its neighbours on the file's new side. Which line of
     /// the file that is comes from reading it at the new commit, which the workspace does.
     CommentOnInterdiff {
@@ -81,7 +81,7 @@ enum Content {
 pub struct FileView {
     /// The file shown, for its blame and history; `None` for other text.
     source: Option<(ObjectId, BString)>,
-    /// It failed because a partial clone lacks this version (#87): offer to fetch it.
+    /// It failed because a partial clone lacks this version: offer to fetch it.
     missing: bool,
     title: String,
     subtitle: String,
@@ -94,24 +94,24 @@ pub struct FileView {
     hscroll: HScroll,
     /// The longest line, in columns.
     longest: usize,
-    /// One number column's width, for the largest number (from the last frame, #42).
+    /// One number column's width, for the largest number (from the last frame).
     number_width: Pixels,
     focus: FocusHandle,
     /// Take keyboard focus on the next frame, so Esc works.
     focus_on_render: bool,
     /// Whether it had the keyboard focus when last drawn (the cursor shows then).
     focused: bool,
-    /// The line the keys are on (#28).
+    /// The line the keys are on.
     cursor: Option<usize>,
     /// For a review's interdiff: where each line sits in the old and the new commit's
-    /// patch, and which of the two has it (#69). Empty for ordinary text.
+    /// patch, and which of the two has it. Empty for ordinary text.
     sides: Vec<InterdiffRow>,
-    /// Which interdiff lines can carry a comment, worked out once (#69): every drawn row
+    /// Which interdiff lines can carry a comment, worked out once: every drawn row
     /// asks, and the answer scans back to the line's section.
     commentable: Vec<bool>,
-    /// The interdiff line picked to comment on (#69).
+    /// The interdiff line picked to comment on.
     comment_line: Option<usize>,
-    /// Ctrl+F's bar (#43).
+    /// Ctrl+F's bar.
     find: FindSlot,
 }
 
@@ -163,7 +163,7 @@ impl FileView {
     }
 
     /// A review's interdiff: the patch lines (the interdiff's own `+`/`-`/` ` stripped)
-    /// with `rows` saying where each sits in the two patches (#69).
+    /// with `rows` saying where each sits in the two patches.
     pub fn set_interdiff(
         &mut self,
         rows: Vec<InterdiffRow>,
@@ -178,7 +178,7 @@ impl FileView {
         self.set_text(result, cx);
     }
 
-    /// Picks interdiff row `ix` to comment on, or unpicks it (#69).
+    /// Picks interdiff row `ix` to comment on, or unpicks it.
     fn pick_comment_line(&mut self, ix: usize, cx: &mut Context<Self>) {
         self.comment_line = (self.comment_line != Some(ix)).then_some(ix);
         cx.notify();
@@ -259,7 +259,7 @@ impl FileView {
         }
     }
 
-    /// This version isn't in the partial clone, and reads don't download it (#87): says
+    /// This version isn't in the partial clone, and reads don't download it: says
     /// so, with "Fetch missing contents".
     pub fn set_missing(&mut self, cx: &mut Context<Self>) {
         self.set_text(Err(t!("file.missing_objects").into_owned()), cx);
@@ -315,7 +315,7 @@ impl FileView {
         cx.notify();
     }
 
-    /// The arrows, Home and End move the cursor through the lines (#28).
+    /// The arrows, Home and End move the cursor through the lines.
     fn move_cursor(&mut self, to: Step, cx: &mut Context<Self>) {
         if let Some(ix) = list_keys::step(self.line_count(), self.cursor, to) {
             self.put_cursor(ix, cx);
@@ -331,8 +331,7 @@ impl FileView {
         }
     }
 
-    /// Left / Right: the lines scrolled sideways.
-    /// Ctrl+F: the find bar (#43).
+    /// Left / Right: the lines scrolled sideways. Ctrl+F: the find bar.
     fn open_find(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.find.open(window, cx, Self::on_find);
     }
@@ -417,7 +416,7 @@ impl FileView {
                 .child(value)
         };
         // An interdiff carries the line's place in each patch, and the tint of the side
-        // that has it; ordinary text is numbered from 1 and has no tint (#69).
+        // that has it; ordinary text is numbered from 1 and has no tint.
         let row = self.sides.get(ix);
         let numbers: Vec<Div> = match row {
             None => vec![number((ix + 1).to_string())],
@@ -434,7 +433,7 @@ impl FileView {
             Some(InterdiffKind::Added) => Some(p.add_bg),
             Some(InterdiffKind::Context) | None => None,
         };
-        // A line of the new commit's patch can carry a review comment (#69).
+        // A line of the new commit's patch can carry a review comment.
         let pickable = self.commentable.get(ix).copied().unwrap_or(false);
         code_scroll::code_row(wrap, m.code_line)
             .id(("file-line", ix))
@@ -468,7 +467,7 @@ fn breaks_run(row: &InterdiffRow) -> bool {
 }
 
 /// What a comment picked on interdiff row `ix` is about: the file, and the line with its
-/// neighbours on that file's new side (#69). `None` when the row can't carry a comment.
+/// neighbours on that file's new side. `None` when the row can't carry a comment.
 ///
 /// Only a line the **new** commit's patch has can, and only where it is on the file's new
 /// side — the patch's own `+` (a line the commit adds) or ` ` (one it keeps). A line only
@@ -523,7 +522,7 @@ impl Render for FileView {
             }
             self.wrapped = wrap;
         }
-        // Wide enough for the largest number, with the column's `pr_2` (#42).
+        // Wide enough for the largest number, with the column's `pr_2`.
         let minimum = if self.sides.is_empty() {
             NUMBER_WIDTH
         } else {
@@ -680,7 +679,7 @@ impl Render for FileView {
     }
 }
 
-/// Which lines of an interdiff can carry a review comment, and what it anchors to (#69).
+/// Which lines of an interdiff can carry a review comment, and what it anchors to.
 #[cfg(test)]
 mod tests {
     use gitweft_git::read::interdiff_rows;
@@ -792,7 +791,7 @@ mod tests {
     }
 }
 
-/// Find in a real view (#43): Ctrl+F, typing, Enter, Shift+Enter, Alt+C and Escape.
+/// Find in a real view: Ctrl+F, typing, Enter, Shift+Enter, Alt+C and Escape.
 #[cfg(test)]
 mod find_tests {
     use gitweft_testkit::Sandbox;

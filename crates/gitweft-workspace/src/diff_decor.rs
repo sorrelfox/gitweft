@@ -11,7 +11,7 @@ use gitweft_syntax::{Spans, highlight_lines, syntax_for_path};
 /// Diffs longer than this are shown without syntax colors (highlighting is the costly part).
 const MAX_HIGHLIGHT_LINES: usize = 5_000;
 /// A diff with more changed lines than this, over all its files, gets no cross-file move
-/// detection: the whole diff has to be read and held as text for it (#69).
+/// detection: the whole diff has to be read and held as text for it.
 pub const MAX_ACROSS_LINES: usize = 20_000;
 
 #[derive(Debug, Default)]
@@ -23,13 +23,13 @@ pub struct Decorations {
     /// `[hunk][line]` the move a changed line belongs to (it left or arrived unchanged).
     pub moved: Vec<Vec<Option<usize>>>,
     /// Per move id (`moved`'s numbers), the other file the block's other end is in, when
-    /// that is another file of the same diff (#69); `None` for a move inside this file.
+    /// that is another file of the same diff; `None` for a move inside this file.
     /// A removed line went *to* it, an added line came *from* it.
     pub moved_across: Vec<Option<BString>>,
     /// Both versions of a binary image, to show them as pictures.
     pub images: Option<ImageSides>,
     /// The tab width the lines were expanded with: the ranges above are into
-    /// `display_text(tab_width)`, so the view shows the lines with it too (#80).
+    /// `display_text(tab_width)`, so the view shows the lines with it too.
     pub tab_width: usize,
 }
 
@@ -44,7 +44,7 @@ pub struct ImageSides {
 }
 
 /// Decorations for `diff`. `others` are the diff's other files ([`whole_diff`], without
-/// this one), so a block that left this file and arrived in another is found too (#69);
+/// this one), so a block that left this file and arrived in another is found too;
 /// pass an empty slice where the rest of the diff isn't at hand.
 ///
 /// [`whole_diff`]: gitweft_git::read::whole_diff
@@ -221,7 +221,7 @@ mod tests {
         assert_eq!(across, [None]);
     }
 
-    /// A block that left this file and arrived in another one of the same diff (#69).
+    /// A block that left this file and arrived in another one of the same diff.
     #[test]
     fn a_move_into_another_file_says_where_it_went() {
         let block = [
@@ -263,7 +263,7 @@ mod tests {
     }
 
     /// The whole way through real git: a commit that takes a block out of one file and
-    /// puts it in another tints both ends and names the file at each (#69).
+    /// puts it in another tints both ends and names the file at each.
     #[test]
     fn a_commit_that_moves_a_block_between_files_is_decorated_at_both_ends() {
         let block = "fn parse_header(line: &str) -> Option<u32> {\n    \

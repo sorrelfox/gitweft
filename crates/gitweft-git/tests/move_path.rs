@@ -1,5 +1,5 @@
 //! `trash::move_path` across file systems, where a rename can't: it copies, then removes
-//! the original (#50). Needs the temp dir and the target dir on different devices (on
+//! the original. Needs the temp dir and the target dir on different devices (on
 //! Fedora `/tmp` is a tmpfs); where they aren't, it's skipped with a note.
 
 use std::os::unix::fs::{MetadataExt, PermissionsExt};

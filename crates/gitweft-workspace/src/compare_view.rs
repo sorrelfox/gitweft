@@ -86,14 +86,14 @@ pub enum CompareEvent {
         subtitle: String,
         lines: Vec<String>,
         /// The commit as it is now: a comment on the interdiff is about a line of its
-        /// patch, so the file it names is read at this commit (#69).
+        /// patch, so the file it names is read at this commit.
         commit: ObjectId,
     },
-    /// Row menus (#44): a commit selected in the graph, picked, or a branch made at it.
+    /// Row menus: a commit selected in the graph, picked, or a branch made at it.
     ShowInGraph(ObjectId),
     CherryPick(ObjectId, String),
     CreateBranch(ObjectId),
-    /// Row menus (#44): a file's blame or history at the compared head, or the whole
+    /// Row menus: a file's blame or history at the compared head, or the whole
     /// comparison's change to it in the user's diff tool.
     Blame {
         path: BString,
@@ -160,7 +160,7 @@ enum Section {
     Files,
     /// The review's comments, outdated ones included.
     Comments,
-    /// Comments deleted lately, each with Restore (#35).
+    /// Comments deleted lately, each with Restore.
     Deleted,
     /// What changed since the last review: new files, or the range-diff.
     Since,
@@ -210,9 +210,9 @@ pub struct CompareView {
     /// What changed since `.0`, the range reviewed last (when it was computed).
     since: Option<(ReviewedRange, Result<SinceReview, String>)>,
     /// A rewritten branch's range-diff pairs heavily reworked commits
-    /// (`HARDER_CREATION_FACTOR`) instead of listing them as removed and added (#35).
+    /// (`HARDER_CREATION_FACTOR`) instead of listing them as removed and added.
     match_harder: bool,
-    /// "… and N more" was chosen: the next comparison lists every commit (#44).
+    /// "… and N more" was chosen: the next comparison lists every commit.
     show_all: bool,
 }
 
@@ -269,7 +269,7 @@ impl CompareView {
         } else if self.review.is_none() {
             self.review = review;
         }
-        // A file renamed since it was marked viewed keeps its mark (#35). Only the files the
+        // A file renamed since it was marked viewed keeps its mark. Only the files the
         // compared ref has count: against the merge base a rename that changed the file
         // enough is a deletion plus an addition, and the deleted path must count as gone.
         if let (Ok(comparison), Some(review)) = (&result, &mut self.review) {
@@ -395,7 +395,7 @@ impl CompareView {
     }
 
     /// Marks the review done at the range shown now: later changes show against it. Every
-    /// file is marked viewed too, at its current content (#35: a reviewed range with
+    /// file is marked viewed too, at its current content (a reviewed range with
     /// unviewed files read as unfinished); a file that changes later is unviewed by itself.
     fn mark_reviewed(&mut self, cx: &mut Context<Self>) {
         let (Content::Loaded(comparison), Some(review)) = (&self.content, &mut self.review) else {
@@ -517,7 +517,7 @@ impl CompareView {
         }
     }
 
-    /// Brings a deleted comment back (#35).
+    /// Brings a deleted comment back.
     pub fn restore_comment(&mut self, id: u64, cx: &mut Context<Self>) {
         if let Some(review) = &mut self.review
             && review.restore_comment(id)
@@ -663,7 +663,7 @@ impl CompareView {
             }
             // Restored with its link (or the row menu), not by a click on the row.
             Row::Deleted(_) => {}
-            // The rest of a capped list (#44): compared again, uncapped.
+            // The rest of a capped list: compared again, uncapped.
             Row::More(_) => {
                 self.show_all = true;
                 cx.emit(CompareEvent::Recompare);
@@ -681,8 +681,8 @@ impl CompareView {
         !matches!(row, Row::Header(_) | Row::SinceNote)
     }
 
-    /// The arrows move the cursor through the rows that do something and keep it in view
-    /// (#27). A commit shows its details, as a click does; a file's diff waits for Enter, so
+    /// The arrows move the cursor through the rows that do something and keep it in view.
+    /// A commit shows its details, as a click does; a file's diff waits for Enter, so
     /// moving on doesn't open one diff over the list after another.
     fn move_cursor(&mut self, to: Step, cx: &mut Context<Self>) {
         let stops: Vec<usize> = (0..self.rows.len())
@@ -731,7 +731,7 @@ impl CompareView {
         }
     }
 
-    /// A commit's or file's menu, for its right-click menu and Shift+F10 (#44): the same
+    /// A commit's or file's menu, for its right-click menu and Shift+F10: the same
     /// items the graph's and the details' rows have.
     fn row_items(&self, row: Row) -> Vec<(String, CompareEvent)> {
         let Content::Loaded(comparison) = &self.content else {

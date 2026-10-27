@@ -322,7 +322,7 @@ fn apply_patch_applies_a_diff_or_says_why_not() {
     assert_eq!(status(), "UU a.txt\n");
     let text = std::fs::read_to_string(repo.join("a.txt")).unwrap();
     assert!(text.contains("<<<<<<<") && text.contains("X") && text.contains("Y"));
-    // No operation in progress, but one unmerged file (#34 says so).
+    // No operation in progress, but one unmerged file, which is counted.
     assert_eq!(unmerged_count(sb.git(), &repo, &c()).unwrap(), 1);
     sb.run(&repo, &["reset", "-q", "--hard"]);
     assert_eq!(unmerged_count(sb.git(), &repo, &c()).unwrap(), 0);

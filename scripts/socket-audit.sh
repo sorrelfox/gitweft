@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The offline guarantee checked at runtime (docs/OFFLINE.md, #51): the app loads a
+# The offline guarantee checked at runtime (docs/OFFLINE.md): the app loads a
 # repository (`--headless-smoke`) under strace, and none of its processes may open an
 # internet (AF_INET/AF_INET6) socket or connect to one. Unix-domain sockets are fine.
 #   socket-audit.sh BINARY [REPO]   audit the app on REPO (default: .)

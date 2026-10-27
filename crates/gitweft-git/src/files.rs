@@ -342,7 +342,7 @@ fn parse_clean_output(bytes: &[u8]) -> Option<Vec<BString>> {
 }
 
 /// Reverses git's `quote_c_style`: `"…"` with `\\`, `\"`, `\a\b\t\n\v\f\r` and `\ooo`.
-/// `None` when `quoted` isn't quoted, or is quoted wrongly. The one unquoting in this crate (#15).
+/// `None` when `quoted` isn't quoted, or is quoted wrongly. The one unquoting in this crate.
 pub(crate) fn unquote_c_style(quoted: &[u8]) -> Option<Vec<u8>> {
     let inner = quoted.strip_prefix(b"\"")?.strip_suffix(b"\"")?;
     let mut out = Vec::with_capacity(inner.len());

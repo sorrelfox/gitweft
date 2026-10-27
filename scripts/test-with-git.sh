@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The test suite against another git (#79): Gitweft supports git 2.39 and later
+# The test suite against another git: Gitweft supports git 2.39 and later
 # (`GitVersion::MINIMUM`), but a developer machine has one, usually the newest.
 #   test-with-git.sh VERSION [CARGO TEST ARGS…]    e.g. 2.39.5, or 2.43.0 (Ubuntu 24.04)
 # Downloads git's release tarball from kernel.org once, builds it without its optional parts

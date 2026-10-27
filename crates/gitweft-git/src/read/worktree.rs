@@ -13,7 +13,7 @@ use crate::cli::{GitCli, GitError};
 /// Directories (repository-relative, `""` for the root) that contain tracked files,
 /// according to the index. The root is always included.
 pub fn tracked_dirs(repo: &gix::Repository) -> Result<BTreeSet<BString>, ReadError> {
-    // A damaged index is an error, never a panic (#62): gix-index 0.55 slices the file's
+    // A damaged index is an error, never a panic: gix-index 0.55 slices the file's
     // trailing hash without checking its length, so a file shorter than a header and a
     // hash panics it (in a release build as well: the slice is out of range there).
     let shortest = 12 + repo.object_hash().len_in_bytes() as u64;

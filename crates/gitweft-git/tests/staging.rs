@@ -155,7 +155,7 @@ fn backup_worktree_file_saves_the_current_content() {
 }
 
 /// A symlink's content is its target, as git stores a link (not the file it points at),
-/// and a dangling one has content too (issue #3).
+/// and a dangling one has content too.
 #[test]
 fn backup_worktree_file_saves_a_symlinks_target() {
     let sb = Sandbox::new();

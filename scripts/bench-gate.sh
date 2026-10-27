@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# The benchmarks' regression gate (#26): runs `just bench` against a saved criterion
+# The benchmarks' regression gate: runs `just bench` against a saved criterion
 # baseline and fails when a benchmark got slower by more than 10%.
 #
 #   git switch main && just bench -- --save-baseline main   # once, on the commit to beat
 #   git switch my-change && just bench-gate main            # exit 1 on a slowdown
 #
-# A manual step until CI runs benchmarks (#52): the numbers need a quiet machine, and a
+# A manual step until CI runs benchmarks: the numbers need a quiet machine, and a
 # shared runner's noise would trip a 10% gate.
 set -uo pipefail
 baseline=${1:-main}

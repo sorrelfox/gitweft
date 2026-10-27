@@ -1,4 +1,4 @@
-//! Partial clones (#82): reads never fetch missing blobs by themselves; `fetch_missing`
+//! Partial clones: reads never fetch missing blobs by themselves; `fetch_missing`
 //! gets exactly those a view needs, on request. A `file://` remote serves the filter.
 
 use std::path::PathBuf;
@@ -111,7 +111,7 @@ fn a_read_stops_at_missing_blobs_and_fetch_missing_gets_them() {
 }
 
 /// A commit's details in a blobless clone: its files, without line counts, rather than an
-/// error or a download (#82).
+/// error or a download.
 #[test]
 fn details_list_the_files_without_counts_when_the_contents_are_missing() {
     let sb = Sandbox::new();
@@ -152,7 +152,7 @@ fn details_list_the_files_without_counts_when_the_contents_are_missing() {
     );
 }
 
-/// Blame and an old version of a file in a blobless clone (#87): both say the contents are
+/// Blame and an old version of a file in a blobless clone: both say the contents are
 /// missing rather than fetching them; `fetch_history` gets every version, then both read.
 #[test]
 fn blame_and_old_versions_fetch_the_file_history_on_request() {

@@ -114,7 +114,7 @@ impl KeymapFile {
         if self.corrupt {
             // Keep what the user had, in case it was hand-edited and mostly fine (never
             // over an earlier backup: `.bak.2`, `.bak.3`…).
-            // Where the file really is: a linked one stays linked (#8).
+            // Where the file really is: a linked one stays linked.
             let target = crate::datafile::save_target(&self.path)?;
             std::fs::rename(&target, crate::datafile::backup_path(&target))?;
             self.corrupt = false;
@@ -125,7 +125,7 @@ impl KeymapFile {
             .insert("version".into(), Value::from(KEYMAP_VERSION));
         self.raw.insert("bindings".into(), bindings);
         let text = serde_json::to_string_pretty(&self.raw).map_err(io::Error::other)?;
-        // Two instances saving at once each write their own temporary file (#7).
+        // Two instances saving at once each write their own temporary file.
         crate::datafile::atomic_write(&self.path, (text + "\n").as_bytes())?;
         Ok(true)
     }
@@ -315,7 +315,7 @@ mod tests {
     }
 
     /// Not UTF-8 is as corrupt as bad JSON (it used to count as missing and was replaced
-    /// without a backup), and a later backup never replaces an earlier one (#4).
+    /// without a backup), and a later backup never replaces an earlier one.
     #[test]
     fn a_file_that_isnt_utf8_is_kept_as_a_backup_and_backups_pile_up() {
         let dir = tempfile::tempdir().unwrap();

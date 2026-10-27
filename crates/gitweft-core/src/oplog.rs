@@ -79,7 +79,7 @@ pub fn load(file: &Path) -> UndoHistory {
 
 /// The stacks in the log's `bytes`, and the lines this build can't read (a newer version's,
 /// or damaged ones, not even UTF-8), which [`update`] writes back as they were: a rewrite
-/// never loses another writer's steps (#4). At most [`LIMIT`] of those, the newest.
+/// never loses another writer's steps. At most [`LIMIT`] of those, the newest.
 fn parse(bytes: &[u8]) -> (UndoHistory, Vec<Vec<u8>>) {
     let mut history = UndoHistory::default();
     let mut foreign = Vec::new();
@@ -223,7 +223,7 @@ struct Line {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     object: Option<String>,
     changes: Vec<Change>,
-    /// Branch config kept with the entry (from G15i2; older lines have none).
+    /// Branch config kept with the entry (older lines have none).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     config: Vec<ConfigOf>,
     /// The trash entry whose files the undo puts back (a UTF-8 path; others aren't kept).

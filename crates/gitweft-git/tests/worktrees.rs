@@ -124,7 +124,7 @@ fn add_a_new_branch_an_existing_branch_and_detached() {
     );
 }
 
-/// A worktree on a branch whose name isn't UTF-8 lists it byte for byte (#63).
+/// A worktree on a branch whose name isn't UTF-8 lists it byte for byte.
 #[test]
 fn a_worktree_branch_that_isnt_utf8_keeps_its_bytes() {
     use std::os::unix::ffi::OsStrExt as _;
@@ -167,7 +167,7 @@ fn a_branch_checked_out_elsewhere_is_refused() {
             &cancel,
         )
         .unwrap_err();
-        // Git 2.39 says "is already checked out at" (#79).
+        // Git 2.39 says "is already checked out at".
         let text = message(&err);
         assert!(
             text.contains(&format!("'{name}' is already used by worktree at"))

@@ -93,7 +93,7 @@ fn failing_pre_commit_hook_blocks_with_its_output_unless_skipped() {
         "{}",
         err.stderr
     );
-    // git says nothing of its own here: the runner finds the hook (#16).
+    // git says nothing of its own here: the runner finds the hook.
     assert_eq!(err.kind, GitErrorKind::HookFailed, "{}", err.stderr);
     assert_eq!(err.summary(), "lint: trailing whitespace in a.txt");
     assert!(

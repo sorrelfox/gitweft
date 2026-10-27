@@ -38,7 +38,7 @@ struct Persistence {
     dirty: bool,
     /// Each save's number, counting up: the background writes can finish out of order.
     generation: u64,
-    /// The newest save written so far: an older snapshot never replaces it (#7).
+    /// The newest save written so far: an older snapshot never replaces it.
     written: Arc<AtomicU64>,
     save_task: Option<Task<()>>,
     /// Families installed on this system, read once at start.
@@ -65,7 +65,7 @@ impl SettingsStore {
         Self::init_with_file(cx, &settings_file());
     }
 
-    /// [`Self::init`] with the settings in `path` (tests, #51).
+    /// [`Self::init`] with the settings in `path` (tests).
     pub fn init_with_file(cx: &mut App, path: &Path) {
         let (file, settings) = SettingsFile::open(path);
         if !file.writable() {

@@ -1,4 +1,4 @@
-//! The graph's commit metadata, packed (#64). On the Linux kernel's 1.48 million commits a
+//! The graph's commit metadata, packed. On the Linux kernel's 1.48 million commits a
 //! `Vec<CommitMeta>` took about 175 MB: 32 bytes a row in a buffer grown by doubling, and a
 //! heap allocation for every summary. Here a row is 16 bytes in a buffer sized once, and the
 //! summaries of a loaded chunk share one allocation.

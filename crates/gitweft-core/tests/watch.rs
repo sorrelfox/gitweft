@@ -174,7 +174,7 @@ fn a_truncated_index_does_not_stop_the_watcher() {
     sb.commit_file(&repo, "a.txt", "1\n", "first");
     let (_watcher, updates) = start(&sb, &repo);
 
-    // gix-index panicked on this in the watcher thread, and watching ended (#62).
+    // gix-index panicked on this in the watcher thread, and watching ended.
     std::fs::write(repo.join(".git/index"), b"DIRC").unwrap();
     let changes = wait_for_change(&updates);
     assert!(changes.status, "{changes:?}");
@@ -186,7 +186,7 @@ fn a_truncated_index_does_not_stop_the_watcher() {
 }
 
 /// `.git/info/` made after the watcher started is watched from then on: an `exclude`
-/// written into it later is seen (#21).
+/// written into it later is seen.
 #[test]
 fn an_info_folder_made_after_the_start_is_watched() {
     let sb = Sandbox::new();
@@ -205,8 +205,7 @@ fn an_info_folder_made_after_the_start_is_watched() {
     assert!(changes.status, "a rule written into it later: {changes:?}");
 }
 
-/// A linked worktree sees a commit made in the main one: branches live in the common git
-/// dir (#21).
+/// A linked worktree sees a commit made in the main one: branches live in the common git dir.
 #[test]
 fn a_linked_worktree_sees_commits_made_in_the_main_one() {
     let sb = Sandbox::new();

@@ -122,10 +122,10 @@ pub struct Shell {
     tabs: Vec<TabEntry>,
     active: usize,
     /// The tab strip's sideways scroll, and the active tab and tab count it last brought
-    /// the active tab into view for (#39).
+    /// the active tab into view for.
     tab_scroll: ScrollHandle,
     tab_revealed: Cell<Option<(usize, usize)>>,
-    /// Passed to every tab it opens (#74).
+    /// Passed to every tab it opens.
     env: WorkspaceEnv,
     /// Shared by every tab's jobs.
     pool: Arc<WorkerPool>,
@@ -208,7 +208,7 @@ impl Shell {
             _activation: activation,
         };
         // The startup trace goes to the tab that will be shown: only the active tab is drawn,
-        // and the trace fires on its first frame (#78).
+        // and the trace fires on its first frame.
         let active = active.min(paths.len().max(1) - 1);
         if paths.is_empty() {
             this.add_tab(None, started, window, cx);
@@ -643,7 +643,7 @@ impl Shell {
                 .child(
                     // Tabs that don't fit even at their narrowest scroll sideways (the
                     // wheel, or the All tabs menu), never over the window's buttons, and
-                    // the active one is scrolled into view (#39). Only sideways: the active
+                    // the active one is scrolled into view. Only sideways: the active
                     // tab still reaches over the bottom border.
                     h_flex()
                         .id("tab-strip")
@@ -951,7 +951,7 @@ impl Render for Shell {
             // Dialogs (credential prompts) and notifications draw above every tab.
             .children(Root::render_dialog_layer(window, cx))
             .children(Root::render_notification_layer(window, cx))
-            // Ours: every toast shown, stacked (#38).
+            // Ours: every toast shown, stacked.
             .child(crate::toast::render_layer(cx))
             .child(gitweft_ui::widgets::pointer_leave_marker())
             .children(frame_marker)
@@ -1018,7 +1018,7 @@ mod tests {
     }
 }
 
-/// The tab strip in a GPUI test window (#51, with the seam of #74): a tab dragged onto
+/// The tab strip in a GPUI test window (through `WorkspaceEnv`): a tab dragged onto
 /// another takes its place, and the tab that was active stays active.
 #[cfg(test)]
 mod view_tests {
@@ -1115,7 +1115,7 @@ mod view_tests {
 
     /// The startup trace fires on the first frame of the tab it was given, and only the
     /// active tab is drawn: with a session whose active tab isn't the first, the first tab
-    /// got it and the trace never fired (#78).
+    /// got it and the trace never fired.
     #[test]
     fn the_startup_trace_goes_to_the_active_tab() {
         let sb = Sandbox::new();
@@ -1170,8 +1170,8 @@ mod view_tests {
     }
 
     /// Every command the Keyboard page can bind shows its binding where the palette lists
-    /// it: an entry with the same label names the same action in the same key context
-    /// (#33). The repository has what the state-dependent entries need: staged and
+    /// it: an entry with the same label names the same action in the same key context.
+    /// The repository has what the state-dependent entries need: staged and
     /// unstaged changes, a stash, a commit. Entries with a detail act on a row, a file or a
     /// commit, and aren't the bindable command.
     #[test]
@@ -1272,7 +1272,7 @@ mod view_tests {
         }
     }
 
-    /// The seam of #74: the repositories a tab opens go to the list the shell was given,
+    /// Through `WorkspaceEnv`, the repositories a tab opens go to the list the shell was given,
     /// never to the one under the user's own data dir.
     #[test]
     fn the_repositories_opened_are_remembered_in_the_given_file() {

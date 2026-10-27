@@ -452,7 +452,7 @@ impl Workspace {
 /// Where the cursor is among `rows` now: on the row it was on (`row`, while that's still
 /// listed), else at the same place (`at`, kept inside the list). So a reload, a new branch or
 /// a filter that moves the rows leaves the cursor on its branch, not on whatever row took
-/// its place (#10).
+/// its place.
 fn cursor_at(rows: &[SidebarRow], row: Option<&SidebarRow>, at: Option<usize>) -> Option<usize> {
     if rows.is_empty() {
         return None;

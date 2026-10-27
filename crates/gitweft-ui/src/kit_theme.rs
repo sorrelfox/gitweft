@@ -37,7 +37,7 @@ pub fn kit_config(p: &Palette, fonts: &Fonts, metrics: &Metrics) -> ThemeConfig 
     let towards = if p.dark { white } else { gpui_kit::black() };
     let hover = |color: Hsla| hex(mix(color, towards, 0.12));
     let active = |color: Hsla| hex(mix(color, towards, 0.22));
-    // Text on the colored buttons: white or dark, whichever is readable (#32).
+    // Text on the colored buttons: white or dark, whichever is readable.
     let (on_danger, on_success, on_warning) = (ink_on(p.del), ink_on(p.add), ink_on(p.modified));
 
     // Some fields (the base palette) are private, so no struct literal.

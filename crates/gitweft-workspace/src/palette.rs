@@ -24,7 +24,7 @@ const LIST_HEIGHT: f32 = 420.;
 const TOP: f32 = 72.;
 /// The most commands a group holds while nothing is typed, and the most matches listed
 /// after typing. The kit draws only the rows on screen, but every listed command is built
-/// again each frame, and a rebase of thousands of commits offers several per commit (#23).
+/// again each frame, and a rebase of thousands of commits offers several per commit.
 /// Typing finds the rest; the footer says how many are left out.
 const MAX_SHOWN: usize = 300;
 
@@ -259,7 +259,7 @@ pub(crate) fn score(terms: &[Vec<char>], label: &str, detail: Option<&str>) -> O
 }
 
 /// The commands `query` finds, best first: those with every word in the label before those
-/// that needed the detail for one (#28: "stage lines" is the selected lines' Stage, not the
+/// that needed the detail for one ("stage lines" is the selected lines' Stage, not the
 /// Stage of a file called lines.txt), then by score (on a tie a command without a detail,
 /// which is a general one, before one acting on a row or file; then the shorter label, then
 /// the given order); every command, unscored, when the query is blank.
@@ -520,7 +520,7 @@ pub(crate) fn open(commands: Vec<PaletteCommand>, window: &mut Window, cx: &mut 
     });
 }
 
-/// The palette in a GPUI test window (#51): typed into and confirmed through gpui-kit's
+/// The palette in a GPUI test window: typed into and confirmed through gpui-kit's
 /// own key bindings, as the user does.
 #[cfg(test)]
 mod view_tests {
@@ -718,7 +718,7 @@ mod tests {
 
     #[test]
     fn letters_scattered_inside_words_are_no_match() {
-        let path = "/tmp/user-1000/-home-user-Development-PersonalProjects-Tools-GitClient/g2/app";
+        let path = "/tmp/user-1000/-home-user-Development-Projects-Tools-Weft/g2/app";
         assert!(fuzzy(&term("stash"), path).is_none());
         assert!(fuzzy(&term("lib"), path).is_none());
         // Skipping inside a word is fine once: "nxt" is still "Next".

@@ -72,7 +72,7 @@ pub fn list(trash_root: &Path) -> Vec<TrashEntry> {
 }
 
 /// The entries that came from the working tree at `root`, including those recorded where
-/// it was before a move (#19).
+/// it was before a move.
 pub fn list_for_repo(trash_root: &Path, root: &Path) -> Vec<TrashEntry> {
     let canonical = root.canonicalize().ok();
     let previous = crate::repo_id::previous_roots_in(&crate::paths::data_dir(), root);
@@ -90,7 +90,7 @@ pub fn list_for_repo(trash_root: &Path, root: &Path) -> Vec<TrashEntry> {
 
 impl TrashEntry {
     /// The working tree the entry belongs to now: where it was recorded, or where that
-    /// repository was moved to (#19). `None` for a legacy entry or a repository that's gone.
+    /// repository was moved to. `None` for a legacy entry or a repository that's gone.
     pub fn current_root(&self) -> Option<PathBuf> {
         let recorded = self.root.as_deref()?;
         if recorded.is_dir() {
@@ -202,7 +202,7 @@ pub fn delete(git: &GitCli, entry: &TrashEntry) -> io::Result<()> {
     std::fs::remove_dir_all(&entry.dir)
 }
 
-/// The trash's optional limits (#19; off by default): entries older than `max_age`, and
+/// The trash's optional limits (off by default): entries older than `max_age`, and
 /// the oldest entries while the trash is larger than `max_bytes`, are deleted. Returns how
 /// many were. Legacy entries count too: they are the oldest.
 pub fn enforce_limits(
@@ -326,7 +326,7 @@ pub struct RestoreReport {
     pub emptied: bool,
 }
 
-/// Why one file couldn't be restored. The UI words it (core has no translations, #47);
+/// Why one file couldn't be restored. The UI words it (core has no translations);
 /// only [`Self::Other`] carries text, git's or the system's own.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RestoreFailure {
@@ -409,7 +409,7 @@ pub fn restore(
     paths: &[BString],
     cancel: &CancelToken,
 ) -> Result<RestoreReport, TrashError> {
-    // Into the repository where it is now, if it was moved (#19).
+    // Into the repository where it is now, if it was moved.
     let current = entry.current_root();
     let root = current
         .as_deref()

@@ -286,7 +286,7 @@ impl<K: Copy + Eq + Hash> LayoutBuilder<K> {
         self.layout.lane_count = self.slots.len() as LaneId;
         self.layout.spans.sort_by_key(|s| (s.from, s.lane));
         // Grown by doubling while laid out: up to twice what they hold, for as long as the
-        // graph is shown (#64).
+        // graph is shown.
         self.layout.spans.shrink_to_fit();
         self.layout.connectors.shrink_to_fit();
         self.layout.conn_offsets.shrink_to_fit();
@@ -347,7 +347,7 @@ impl<K: Copy + Eq + Hash> LayoutBuilder<K> {
     }
 
     /// A new lane on the right. Past [`LaneId::MAX`] lanes at once (theoretical: that
-    /// many branches side by side), the last one is shared rather than panicking (#25):
+    /// many branches side by side), the last one is shared rather than panicking:
     /// the drawing is off there, the history isn't.
     fn new_lane(&mut self) -> LaneId {
         match LaneId::try_from(self.slots.len()) {

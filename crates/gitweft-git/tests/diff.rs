@@ -132,7 +132,7 @@ fn a_commits_diff_of_a_path_that_isnt_utf8() {
         .parse()
         .unwrap();
 
-    // The path as git has it (#18), as the commit details give it now.
+    // The path as git has it, as the commit details give it now.
     let source = DiffSource::Commit {
         parent: Some(base),
         commit: head,
@@ -170,8 +170,8 @@ fn a_mode_change_is_reported_with_or_without_content_changes() {
     std::fs::write(repo.join("b.sh"), "b\nmore\n").unwrap();
     let executable = Some(("100644".to_owned(), "100755".to_owned()));
 
-    // A chmod alone: git prints only `old mode`/`new mode`, no hunk. Before #16 this came
-    // back as an empty diff.
+    // A chmod alone: git prints only `old mode`/`new mode`, no hunk. An earlier version
+    // returned an empty diff here.
     let only = diff(&sb, &repo, DiffSource::Unstaged, "a.sh");
     assert_eq!(only.mode_change, executable);
     assert!(only.hunks.is_empty());
@@ -291,7 +291,7 @@ fn commit_diffs_including_root_and_rename() {
 }
 
 /// `whole_diff` reads every file of the same comparison, so the moved-line detection can
-/// follow a block from one file into another (#69). It asks for no context lines.
+/// follow a block from one file into another. It asks for no context lines.
 #[test]
 fn the_whole_diff_has_every_file_and_no_context_lines() {
     let sb = Sandbox::new();

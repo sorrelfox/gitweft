@@ -494,7 +494,7 @@ impl StagingView {
     }
 
     /// Scrolls the cursor's list to the cursor: the lists draw only the rows on screen, so
-    /// a row the keys moved to must be brought there (#23).
+    /// a row the keys moved to must be brought there.
     fn reveal_cursor(&self) {
         if let Some((staged, at)) = self.cursor {
             let scroll = if staged {
@@ -506,7 +506,7 @@ impl StagingView {
         }
     }
 
-    /// The rows `range` of one list, the only ones `uniform_list` draws (#23).
+    /// The rows `range` of one list, the only ones `uniform_list` draws.
     fn list_rows(
         &mut self,
         staged: bool,
@@ -541,7 +541,7 @@ impl StagingView {
             .collect()
     }
 
-    /// One list as a `uniform_list` (#23): as tall as its rows, sharing what's left with
+    /// One list as a `uniform_list`: as tall as its rows, sharing what's left with
     /// the other list when they don't fit.
     /// `grow`: its share of the room the two lists divide.
     fn virtual_list(
@@ -787,11 +787,11 @@ impl StagingView {
 
 pub struct StagingView {
     status: Status,
-    /// `git status` failed since these lists were read: they may be out of date (#12).
+    /// `git status` failed since these lists were read: they may be out of date.
     stale: bool,
-    /// Where the two lists are scrolled: they draw only the rows on screen (#23).
+    /// Where the two lists are scrolled: they draw only the rows on screen.
     unstaged_scroll: UniformListScrollHandle,
-    /// A section divider being dragged, and where to (#92); saved when it's released.
+    /// A section divider being dragged, and where to; saved when it's released.
     split_drag: Option<(Split, f32)>,
     staged_scroll: UniformListScrollHandle,
     /// The repository uses Git LFS and git-lfs is installed: files get Lock / Unlock.
@@ -1124,7 +1124,7 @@ impl StagingView {
                 t!("staging.stage")
             };
             // Discard shows while the row is hovered, selected or under the keyboard's cursor,
-            // and when Tab reaches it (#30); a conflicted file can't be discarded.
+            // and when Tab reaches it; a conflicted file can't be discarded.
             let shown = selected || (self.list_focused && self.cursor == Some((staged, ix)));
             row.when(!conflicted, |row| {
                 row.child(
@@ -1269,8 +1269,8 @@ impl StagingView {
         };
         let has_unstaged = !unstaged.is_empty();
         let has_staged = !staged.is_empty();
-        // Only the rows on screen are built (#23): 20,000 untracked files took ~1.8 s a frame.
-        // As dragged (#92): Unstaged's share of the room; a list shorter than its share still
+        // Only the rows on screen are built: 20,000 untracked files took ~1.8 s a frame.
+        // As dragged: Unstaged's share of the room; a list shorter than its share still
         // leaves the rest to the other.
         let share = split::current(Split::Lists, self.split_drag, cx);
         let (unstaged_grow, staged_grow) = share.map_or((1., 1.), |share| (share, 1. - share));
@@ -1360,7 +1360,7 @@ impl StagingView {
             .when(has_staged, |this| this.children(staged_list))
             .when(!has_staged, |this| {
                 // Below a long unstaged list the note takes its own height, not half the
-                // panel: both would be `flex_1` and split it (#23).
+                // panel: both would be `flex_1` and split it.
                 let long_unstaged = unstaged.len() > 12;
                 this.child(
                     div()
@@ -1540,7 +1540,7 @@ impl StagingView {
                 .size(m.text.xs)
                 .truncate() // untooltipped: its tooltip starts with the whole text
                 .hover_color(identity_hover)
-                // Cut short, the link's text is whole here (#93).
+                // Cut short, the link's text is whole here.
                 .tooltip(format!(
                     "{}\n{}",
                     identity.0,
@@ -1553,7 +1553,7 @@ impl StagingView {
             // The design's 76 px, whatever the text: a longer description scrolls in it.
             // The multi-line input takes Tab for itself (gpui-base binds it to IndentInline),
             // so the keys were trapped in the Description: Tab couldn't reach the options or
-            // Commit, and Shift+Tab couldn't go back to the Summary (#66). Caught before the
+            // Commit, and Shift+Tab couldn't go back to the Summary. Caught before the
             // input sees it, Tab moves on as it does in every other field; Ctrl+] and Ctrl+[
             // still indent, for the rare tab in a commit message.
             .child(
@@ -1800,8 +1800,8 @@ fn section_header(
         .children(actions)
 }
 
-/// The identity link's tooltip: where git's configuration sets the name and the email
-/// (#45), then what a click does.
+/// The identity link's tooltip: where git's configuration sets the name and the email,
+/// then what a click does.
 fn identity_tooltip(identity: &Identity) -> String {
     let place = |origin: &Option<ConfigOrigin>| origin.as_ref().map(config_place);
     match (place(&identity.name_origin), place(&identity.email_origin)) {
@@ -1906,13 +1906,13 @@ pub(crate) fn link(
     size: Pixels,
     on_click: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
 ) -> gitweft_ui::widgets::LinkButton {
-    // A tab stop with a focus outline; Enter and Space click it (#30).
+    // A tab stop with a focus outline; Enter and Space click it.
     gitweft_ui::widgets::LinkButton::new(id, label, color)
         .size(size)
         .on_click(on_click)
 }
 
-/// The staging lists in a GPUI test window (#51): selecting several files by keyboard and
+/// The staging lists in a GPUI test window: selecting several files by keyboard and
 /// staging them together, through the app's own list keys.
 #[cfg(test)]
 mod view_tests {

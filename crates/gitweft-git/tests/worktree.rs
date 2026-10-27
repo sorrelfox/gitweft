@@ -43,7 +43,7 @@ fn tracked_dirs_of_a_truncated_index_is_an_error_not_a_panic() {
     let sb = Sandbox::new();
     let repo = sb.init_repo("r");
     sb.commit_file(&repo, "a.txt", "a\n", "a");
-    // Shorter than a header and a hash: gix-index 0.55 panics on it (#62).
+    // Shorter than a header and a hash: gix-index 0.55 panics on it.
     for damaged in [&b""[..], b"DIRC", b"DIRC\0\0\0\x02\0\0\0\x01"] {
         std::fs::write(repo.join(".git/index"), damaged).unwrap();
         assert!(tracked_dirs(&open_repo(&repo).unwrap()).is_err());

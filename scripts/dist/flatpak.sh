@@ -21,7 +21,7 @@ id=io.github.sorrelfox.Gitweft
 manifest=$out/$id.yml
 sed -e "s#path: ../../target/dist-src/#path: $dist/#" -e "s#@VERSION@#$version#g" \
     packaging/flatpak/$id.yml > "$manifest"
-# The SDK, Platform and Rust extension at their pinned commits (#58). Not flatpak-builder's
+# The SDK, Platform and Rust extension at their pinned commits. Not flatpak-builder's
 # --install-deps-from: it would update them past the pins.
 bash scripts/dist/flatpak-pins.sh
 # --disable-cache: flatpak-builder keys its cache on the manifest, not on a local archive's

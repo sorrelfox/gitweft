@@ -1,4 +1,4 @@
-//! The settings window's pages and their layout (#88, #89, #90): ours, in place of
+//! The settings window's pages and their layout: ours, in place of
 //! gpui-kit's `Settings`. The kit's sidebar listed a page's groups as entries that only
 //! scrolled one long page, so on a page shorter than the window they all showed the same
 //! thing, and it counted untitled groups differently from the page it scrolled, so the
@@ -1076,7 +1076,7 @@ fn render_group(
 /// A row's focus handle, and whether the focus has just come into the row. The handle is no
 /// tab stop: it only tells whether the focused control is inside. GPUI doesn't scroll the
 /// focus into view, so Tab could land on a control below the page's fold and Enter act on
-/// something unseen (#77). The row is scrolled to only on the way in, so the wheel stays
+/// something unseen. The row is scrolled to only on the way in, so the wheel stays
 /// free while a control keeps the focus (a switch keeps it after a click).
 fn row_focus(id: String, window: &mut Window, cx: &mut App) -> (FocusHandle, bool) {
     let state = window.use_keyed_state(ElementId::Name(id.into()), cx, |_, cx| {

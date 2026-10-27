@@ -100,7 +100,7 @@ pub enum DiffEvent {
     },
     /// Review diffs: a comment row was clicked.
     OpenComment(u64),
-    /// A partial clone lacks this diff's file contents: download them (#82).
+    /// A partial clone lacks this diff's file contents: download them.
     FetchMissing,
 }
 
@@ -144,7 +144,7 @@ enum Row {
     Comment(usize),
 }
 
-/// Line `l` of hunk `h` counted through the whole diff: find's key for it (#43).
+/// Line `l` of hunk `h` counted through the whole diff: find's key for it.
 fn line_key(diff: &FileDiff, h: usize, l: usize) -> usize {
     diff.hunks[..h]
         .iter()
@@ -264,7 +264,7 @@ const SIGN_WIDTH: f32 = 16.;
 /// Colors and sizes of the rows, from the palette and metrics, once per frame.
 #[derive(Clone, Copy)]
 struct RowStyle {
-    /// Behind find's matches (#43).
+    /// Behind find's matches.
     find_bg: Hsla,
     muted: Hsla,
     foreground: Hsla,
@@ -278,7 +278,7 @@ struct RowStyle {
     /// every other move is a shade stronger, so neighbouring moves stand apart.
     moved_old: [Hsla; 2],
     moved_new: [Hsla; 2],
-    /// Whether moved lines get their tint (the Diff setting, #35).
+    /// Whether moved lines get their tint (the Diff setting).
     tint_moved: bool,
     hunk_bg: Hsla,
     marker: Hsla,
@@ -357,9 +357,9 @@ pub struct DiffView {
     selection: LineSelection,
     /// Where a Shift-click selection range starts.
     anchor: Option<(usize, usize)>,
-    /// The row the keys act on (#28); a click on a line puts it there too.
+    /// The row the keys act on; a click on a line puts it there too.
     cursor: Option<usize>,
-    /// Ctrl+F's bar (#43). Its matches are keyed by [`line_key`]: a split row holds two lines.
+    /// Ctrl+F's bar. Its matches are keyed by [`line_key`]: a split row holds two lines.
     find: FindSlot,
     /// Where Shift with the arrows started selecting, as a row.
     row_anchor: Option<usize>,
@@ -375,7 +375,7 @@ pub struct DiffView {
     /// A diff since the last review: only new-side lines take comments (its old side is
     /// the version reviewed last, which comments aren't anchored to).
     comment_new_only: bool,
-    /// It failed because a partial clone lacks the file's contents (#82): offer to fetch.
+    /// It failed because a partial clone lacks the file's contents: offer to fetch.
     missing_objects: bool,
 }
 
@@ -489,7 +489,7 @@ impl DiffView {
             .filter(|(h, l)| self.takes_comment(&diff.hunks[*h].lines[*l]))
     }
 
-    /// C: comments on the cursor's line (or the picked one), as "Comment…" does (#85).
+    /// C: comments on the cursor's line (or the picked one), as "Comment…" does.
     fn comment_on_cursor(&mut self, _: &CommentOnLine, _: &mut Window, cx: &mut Context<Self>) {
         match self.line_to_comment() {
             Some(line) => self.comment_on(line, cx),
@@ -537,7 +537,7 @@ impl DiffView {
     }
 
     /// The diff couldn't be read because this partial clone lacks the file's contents, and
-    /// reads don't download them by themselves (#82): says so, with "Fetch missing
+    /// reads don't download them by themselves: says so, with "Fetch missing
     /// contents".
     pub fn set_missing(&mut self, cx: &mut Context<Self>) {
         self.set_diff(Err(t!("diff.missing_objects").into_owned()), cx);
@@ -667,7 +667,7 @@ impl DiffView {
             }
         }
         // Comments whose line is in no hunk shown (unchanged now, and outside the context)
-        // come first, so they can still be seen and opened (#35); "Full file" places them.
+        // come first, so they can still be seen and opened; "Full file" places them.
         let placed: std::collections::HashSet<usize> = self
             .rows
             .iter()
@@ -816,7 +816,7 @@ impl DiffView {
             .collect()
     }
 
-    /// Ctrl+F: the find bar (#43).
+    /// Ctrl+F: the find bar.
     fn open_find(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.find.open(window, cx, Self::on_find);
     }
@@ -889,7 +889,7 @@ impl DiffView {
         cx.notify();
     }
 
-    /// The arrows, Home and End move the cursor through the rows (#28); the selection
+    /// The arrows, Home and End move the cursor through the rows; the selection
     /// stays, and the next Shift+arrow starts a new range at the cursor.
     fn move_cursor(&mut self, to: Step, cx: &mut Context<Self>) {
         let Some(ix) = list_keys::step(self.rows.len(), self.cursor, to) else {
@@ -1367,7 +1367,7 @@ impl DiffView {
             .and_then(|lines| lines.get(l).copied())
             .flatten()
             .filter(|_| palette.tint_moved);
-        // A move whose other end is in another file of the same diff says so (#69).
+        // A move whose other end is in another file of the same diff says so.
         let across = moved
             .and_then(|id| decorations.moved_across.get(id).cloned().flatten())
             .map(|path| {
@@ -1686,7 +1686,7 @@ impl Render for DiffView {
             code_scroll::switch_mode(wrap, &self.scroll, &self.list, rows, m.code_line);
             self.wrapped = wrap;
         }
-        // Wide enough for the largest number, with the column's `pr_2` (#42).
+        // Wide enough for the largest number, with the column's `pr_2`.
         self.number_width = code_scroll::number_width(
             window,
             m.text.mono,
@@ -1727,7 +1727,7 @@ impl Render for DiffView {
                 )
                 .into_any_element(),
             Content::Failed(message) => placeholder(message.clone()),
-            // Pictures: a binary image's, or an LFS image's from the local store (#36); an LFS
+            // Pictures: a binary image's, or an LFS image's from the local store; an LFS
             // file without them shows its pointers.
             Content::Loaded(..) if self.images.is_some() => self.render_images(cx),
             Content::Loaded(..) if self.lfs.is_some() => self.render_lfs(cx),
@@ -1735,7 +1735,7 @@ impl Render for DiffView {
             Content::Loaded(diff, _) if diff.hunks.is_empty() && diff.truncated => {
                 placeholder(t!("diff.too_large").into_owned())
             }
-            // A chmod alone: before, "No changes" (#16).
+            // A chmod alone: before, "No changes".
             Content::Loaded(diff, _) if diff.hunks.is_empty() && diff.mode_change.is_some() => {
                 let (old, new) = diff.mode_change.clone().unwrap_or_default();
                 placeholder(t!("diff.mode_changed", old = old, new = new).into_owned())
@@ -1763,7 +1763,7 @@ impl Render for DiffView {
                                 .child(t!("diff.whitespace_no_staging").into_owned()),
                         )
                     })
-                    // A chmod along with the edits (#16).
+                    // A chmod along with the edits.
                     .when_some(diff.mode_change.clone(), |this, (old, new)| {
                         this.child(
                             div()

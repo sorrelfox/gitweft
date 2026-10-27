@@ -1609,7 +1609,7 @@ rebase.ready:
   en: "Ready. Start rebase applies these steps from the top; Undo (Ctrl+Z) takes the whole rebase back."
 rebase.unchanged:
   en: "Nothing changed yet: pick another action for a commit, or move one."
-# Escape in a changed rebase plan (#29).
+# Escape in a changed rebase plan.
 rebase.close_ask:
   en: "Close the rebase editor?"
 rebase.close_ask_detail:
@@ -1628,7 +1628,7 @@ rebase.problem_path:
   en: "The repository's folder (or git's) has a name that isn't UTF-8, so the rebase can't name its files. Rename the folder, or rebase in a terminal."
 rebase.plan_failed:
   en: "Couldn't start an interactive rebase"
-# Merges among the commits of an interactive rebase (#37).
+# Merges among the commits of an interactive rebase.
 rebase.merges_title_one:
   en: "The commits after this one include a merge"
 rebase.merges_title_other:
@@ -1645,7 +1645,7 @@ rebase.not_in_history:
   en: "That commit isn't in the current branch's history, so there is nothing to rebase onto it."
 rebase.combined_note:
   en: "The message this commit gets once the squashes below are folded in. Edit it here."
-# The preview of an interactive rebase's result, under its plan (#37).
+# The preview of an interactive rebase's result, under its plan.
 rebase.preview_title_one:
   en: "After the rebase: %{count} commit on %{branch}"
 rebase.preview_title_other:
@@ -2809,7 +2809,7 @@ palette.group.dangling:
   en: "Dangling commits"
 palette.group.compare:
   en: "Comparison"
-# A comparison row's Shift+F10 (#27): what a click does, and a file's Viewed box.
+# A comparison row's Shift+F10: what a click does, and a file's Viewed box.
 palette.compare_open:
   en: "Open"
 palette.compare_viewed:
@@ -2817,7 +2817,7 @@ palette.compare_viewed:
 palette.compare_not_viewed:
   en: "Mark as not viewed"
 
-# G15h2: the centre views' buttons in the palette
+# The centre views' buttons in the palette
 palette.group.conflict:
   en: "Conflict tool"
 palette.group.diff:
@@ -2873,7 +2873,7 @@ palette.rebase_no_pause:
 palette.rebase_close:
   en: "Close the rebase editor"
 
-# G15i1: the trash kept from git gc, older folders, files in a restore's way
+# The trash kept from git gc, older folders, files in a restore's way
 trash.action_aside:
   en: "Moved aside for a restore"
 trash.action_legacy:
@@ -2990,7 +2990,7 @@ keyboard.action.move_up:
   en: "Rebase: move the commit up"
 keyboard.action.move_down:
   en: "Rebase: move the commit down"
-# The rebase editor's selected row (#29): git's todo letters.
+# The rebase editor's selected row: git's todo letters.
 keyboard.action.rebase_pick:
   en: "Rebase: pick the selected commit"
 keyboard.action.rebase_reword:
@@ -3027,7 +3027,7 @@ keyboard.action.delete_row:
   en: "Discard the file's changes; delete a trash entry"
 keyboard.action.row_menu:
   en: "Show the row's actions"
-# The code views' keys (#28).
+# The code views' keys.
 keyboard.action.scroll_left:
   en: "Scroll the lines to the left"
 keyboard.action.scroll_right:
@@ -3059,7 +3059,7 @@ keyboard.action.extend_last:
 keyboard.action.select_all_rows:
   en: "Select every file in the list"
 
-# G8: the graph's view menu, double click, merge base
+# The graph's view menu, double click, merge base
 graph.walk.all_branches:
   en: "All branches"
 graph.walk.current_branch:
@@ -3105,7 +3105,7 @@ palette.graph_topo_order:
 palette.graph_date_order:
   en: "Graph: date order"
 
-# G8b: several selected commits
+# Several selected commits
 graph.drag_commits_one:
   en: "Cherry-pick %{count} commit"
 graph.drag_commits_other:
@@ -3151,7 +3151,7 @@ rewrite.drop_picks_confirm_other:
 rewrite.drop_picks_detail:
   en: "They become new commits on top of %{branch}, oldest first. Undo (Ctrl+Z) takes them back."
 
-# G8c: hidden and solo branches
+# Hidden and solo branches
 graph.hide:
   en: "Hide in graph"
 graph.unhide:
@@ -3189,7 +3189,7 @@ sidebar.solo:
 palette.graph_show_every_branch:
   en: "Graph: show every branch"
 
-# G8d: a branch dropped on another branch
+# A branch dropped on another branch
 graph.drop_title:
   en: "%{branch} and %{target}"
 graph.drop_text_one:
@@ -3227,7 +3227,7 @@ graph.rebase_conflict_title:
 undo.op_rebase_branch:
   en: "rebase of %{branch} onto %{target}"
 
-# G9a: edit and pause in a rebase, autosquash
+# Edit and pause in a rebase, autosquash
 rebase.edit:
   en: "Edit"
 rebase.pause:
@@ -3243,7 +3243,7 @@ rebase.paused:
 op.rebase_paused:
   en: "Rebase paused: change what you need (amend the commit it stopped at, if you like), then Continue."
 
-# G9b: the graph's quick rebase actions
+# The graph's quick rebase actions
 rebase.quick_reword:
   en: "Reword…"
 rebase.quick_squash:
@@ -3267,7 +3267,7 @@ rebase.drop_button:
 rebase.not_on_branch:
   en: "That commit isn't on the checked-out branch."
 
-# G15g: the first commit in quick rebases, fixup into parent
+# The first commit in quick rebases, fixup into parent
 rebase.quick_fixup_parent:
   en: "Fixup into parent (keep the parent's message)"
 rebase.no_parent:

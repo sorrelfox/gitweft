@@ -15,7 +15,7 @@ const TICK: Duration = Duration::from_secs(5);
 /// Commits fetched by "Fetch more history".
 pub(super) const DEEPEN_BY: u32 = 100;
 
-/// The background-fetch intervals the "More" menu offers, in minutes (#36).
+/// The background-fetch intervals the "More" menu offers, in minutes.
 pub(super) const FETCH_INTERVALS: [u32; 5] = [5, 10, 15, 30, 60];
 
 /// The action that sets `minutes` (one of [`FETCH_INTERVALS`]) as the interval.
@@ -29,7 +29,7 @@ pub(super) fn fetch_every_action(minutes: u32) -> Box<dyn Action> {
     }
 }
 
-/// The toast for a data file a save couldn't simply replace (#4): kept aside because this
+/// The toast for a data file a save couldn't simply replace: kept aside because this
 /// build couldn't read it, or left alone because a newer version of Gitweft wrote it.
 pub(super) fn data_notice(file: &std::path::Path, saved: &repo_settings::Saved) -> Option<Toast> {
     let shown = file.display().to_string();
@@ -67,7 +67,7 @@ pub(super) struct SyncState {
     pub shallow_dismissed: bool,
     pub settings: RepoSettings,
     /// The settings as this tab last read or saved them: a save merges the tab's changes
-    /// since onto the file as another Gitweft on the repository may have left it (#7).
+    /// since onto the file as another Gitweft on the repository may have left it.
     pub settings_base: RepoSettings,
     /// The repository whose settings are loaded (and saved to).
     pub settings_root: Option<PathBuf>,
@@ -209,7 +209,7 @@ impl Workspace {
                         tips,
                         ..settings
                     };
-                    // Dismissed before (#14): the first load's offer goes.
+                    // Dismissed before: the first load's offer goes.
                     if this.sync.settings.commit_graph_dismissed
                         && this.commit_graph_banner == CommitGraphBanner::Offer
                     {
@@ -278,7 +278,7 @@ impl Workspace {
 
     /// Fetches every remote without asking for credentials. A failure only shows as a
     /// badge next to Fetch. Another tab or Gitweft on the repository that fetched within
-    /// this interval makes it skip (#70): the watcher shows what that one fetched.
+    /// this interval makes it skip: the watcher shows what that one fetched.
     fn start_background_fetch(&mut self, cx: &mut Context<Self>) {
         let Some((git, cwd)) = self.repo_cwd() else {
             return;
@@ -329,7 +329,7 @@ impl Workspace {
         let base = self.sync.settings_base.clone();
         let file = repo_settings::settings_file(&root);
         // Merged onto the file as it is now: another Gitweft on this repository may have
-        // changed other settings meanwhile (#7).
+        // changed other settings meanwhile.
         let job = self.jobs.spawn(Lane::Write, {
             let root = root.clone();
             move |_| repo_settings::save_merged(&root, &base, &ours).map(|(_, saved)| (ours, saved))
@@ -349,7 +349,7 @@ impl Workspace {
                 .ok();
             }
             Some(Err(err)) => {
-                // Hidden branches, the graph's width, ignored blame commits: not kept (#12).
+                // Hidden branches, the graph's width, ignored blame commits: not kept.
                 let text = t!("repo_settings.save_failed", error = err.to_string()).into_owned();
                 this.update(cx, |_, cx| crate::tab_notes::note_failure(text, cx))
                     .ok();
@@ -385,8 +385,8 @@ impl Workspace {
         cx.notify();
     }
 
-    /// The "More" menu's interval: minutes between background fetches for this repository
-    /// (#36). A running schedule takes it from the next fetch on.
+    /// The "More" menu's interval: minutes between background fetches for this repository.
+    /// A running schedule takes it from the next fetch on.
     pub(super) fn set_fetch_interval(
         &mut self,
         minutes: u32,
@@ -424,7 +424,7 @@ impl Workspace {
             let tooltip: SharedString =
                 t!("background_fetch.failed_tooltip", error = error.clone()).into();
             // The kit's text tooltips don't wrap: a git error (often with a long path or URL)
-            // ran on in one line over the title bar (#36). This one is a text block with a
+            // ran on in one line over the title bar. This one is a text block with a
             // width of its own, so it wraps (a width on the tooltip's box doesn't reach the
             // text: it spilled out of the box).
             return Some(

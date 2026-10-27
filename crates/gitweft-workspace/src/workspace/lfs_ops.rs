@@ -61,7 +61,7 @@ impl Workspace {
         .detach();
     }
 
-    /// Which kinds of files take the most room in plain git (#71), in a dialog: this
+    /// Which kinds of files take the most room in plain git, in a dialog: this
     /// branch's history, or with `everything` every branch's and tag's. Only reads; moving
     /// them into LFS (`migrate import`, a rewrite) isn't offered.
     pub(super) fn show_lfs_sizes(
@@ -104,7 +104,7 @@ impl Workspace {
         .detach();
     }
 
-    /// Moves files into Git LFS, or out of it, on the checked-out branch (#71): asks for
+    /// Moves files into Git LFS, or out of it, on the checked-out branch: asks for
     /// the patterns (`initial` filled in), then confirms the rewrite, naming the remotes
     /// that have commits it changes. Needs a branch and a clean work tree.
     pub(super) fn ask_lfs_migrate(
@@ -546,7 +546,7 @@ fn open_lfs_sizes(
                                 .text_right()
                                 .child(size_text(kind.bytes)),
                         )
-                        // Straight to moving that kind into LFS on this branch (#71).
+                        // Straight to moving that kind into LFS on this branch.
                         .child({
                             let (workspace, pattern) = (workspace.clone(), kind.pattern.clone());
                             Button::new(("lfs-move", ix))

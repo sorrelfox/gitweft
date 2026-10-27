@@ -6,7 +6,7 @@
 - a `px(…)` with a number in it that doesn't follow the zoom (`m.dp(8.)`, `z(8.)` or
   `px(n * m.zoom)` do); `px(0.)` and the 1 px hairline are fine;
 - `text_xs()`/`text_sm()`/…: kit text sizes, which ignore the text size setting;
-- `.truncate()`: cut text shows its whole text on hover (#93) through
+- `.truncate()`: cut text shows its whole text on hover through
   `gitweft_ui::truncated`; a container that only clips mixed content says so with a
   trailing `// untooltipped: …`.
 

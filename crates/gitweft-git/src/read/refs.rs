@@ -101,7 +101,7 @@ fn collect(iter: gix::reference::iter::Iter<'_, '_>) -> Result<Vec<RefEntry>, Re
 }
 
 /// Whether the repository keeps its refs in a reftable (`extensions.refStorage`), which
-/// gix 0.87 can't read: its HEAD is a placeholder and its refs aren't files (#17).
+/// gix 0.87 can't read: its HEAD is a placeholder and its refs aren't files.
 pub fn uses_reftable(repo: &gix::Repository) -> bool {
     repo.config_snapshot()
         .string("extensions.refStorage")

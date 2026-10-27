@@ -62,7 +62,7 @@ pub(crate) const LISTS: [&str; 14] = [
     rebase_view::CONTEXT,
 ];
 /// Where Shift with the arrows, Home and End selects rows: the staging lists' files, the
-/// diff's lines (#28).
+/// diff's lines.
 pub(crate) const EXTEND_LISTS: [&str; 2] = [STAGING, diff_view::CONTEXT];
 /// Where Space acts on the row: stages or unstages it, ticks a compared file viewed, or
 /// picks a conflict's line.

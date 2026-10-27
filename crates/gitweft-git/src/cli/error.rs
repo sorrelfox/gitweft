@@ -56,7 +56,7 @@ pub enum GitErrorKind {
     /// No commits follow the one an interactive rebase would start after (set by `rebase`).
     NothingToRebase,
     /// A partial clone lacks objects a read needed, and read-only runs may not fetch them
-    /// on their own (`GIT_NO_LAZY_FETCH`, #82): `partial::fetch_missing` gets them on request.
+    /// on their own (`GIT_NO_LAZY_FETCH`): `partial::fetch_missing` gets them on request.
     MissingObjects,
     Cancelled,
     Other,
@@ -111,8 +111,8 @@ impl GitError {
 pub fn classify(stderr: &str, stdout: &str) -> GitErrorKind {
     let has = |needle: &str| stderr.contains(needle);
 
-    // A read-only run in a partial clone, with lazy fetching off (#82); `git blame` says it
-    // its own way ("Cannot read blob <id> for path <path>", #87).
+    // A read-only run in a partial clone, with lazy fetching off; `git blame` says it
+    // its own way ("Cannot read blob <id> for path <path>").
     if has("lazy fetching disabled")
         || (has("could not fetch") && has("from promisor remote"))
         || has("Cannot read blob")

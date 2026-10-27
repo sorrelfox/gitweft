@@ -56,7 +56,7 @@ fn a_branch_whose_name_isnt_utf8_is_switched_renamed_and_deleted() {
             .stdout
     };
 
-    // git refuses the lossy name ("invalid reference: caf\u{fffd}"); its bytes work (#18).
+    // git refuses the lossy name ("invalid reference: caf\u{fffd}"); its bytes work.
     let lossy = name.to_string_lossy().into_owned();
     assert!(switch_branch(sb.git(), &repo, &lossy, &cancel).is_err());
     switch_branch(sb.git(), &repo, name, &cancel).unwrap();
@@ -185,7 +185,7 @@ fn a_remote_branch_becomes_a_local_tracking_branch() {
 }
 
 /// A remote branch whose name isn't UTF-8 is checked out by its bytes, tracks its upstream,
-/// and pushes there without setting the upstream again (#63).
+/// and pushes there without setting the upstream again.
 #[test]
 fn a_remote_branch_that_isnt_utf8_tracks_and_pushes_to_its_upstream() {
     use gitweft_git::remote::push_target;

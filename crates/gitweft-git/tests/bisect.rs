@@ -82,7 +82,7 @@ fn testing(commit: ObjectId, revisions_left: usize, steps_left: usize) -> Bisect
 }
 
 /// Git's bisect messages without quotes: newer git quotes the terms (`is the first
-/// 'bad' commit`), older git doesn't (#79).
+/// 'bad' commit`), older git doesn't.
 fn unquoted(text: &str) -> String {
     text.replace('\'', "")
 }

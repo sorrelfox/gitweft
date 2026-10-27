@@ -235,7 +235,7 @@ fn a_failing_pre_push_hook_is_a_hook_failure_in_its_own_words() {
     std::fs::set_permissions(&hook, std::fs::Permissions::from_mode(0o755)).unwrap();
     sb.commit_file(&work, "b.txt", "2\n", "second");
 
-    // git adds only "failed to push some refs": the runner finds the hook (#16), and the
+    // git adds only "failed to push some refs": the runner finds the hook, and the
     // summary is the hook's line, not git's.
     let err = push(
         sb.git(),
@@ -264,7 +264,7 @@ fn a_branch_whose_name_isnt_utf8_is_pushed_by_its_bytes() {
         .unwrap();
     sb.commit_file(&work, "c.txt", "c\n", "cafe work");
 
-    // The names as the app keeps a name that isn't UTF-8 (#18); push gives git the bytes.
+    // The names as the app keeps a name that isn't UTF-8; push gives git the bytes.
     let name = ref_name_text(b"caf\xe9");
     let request = PushRequest {
         remote: "origin".into(),
@@ -301,8 +301,8 @@ fn push_keeps_a_local_upstream_and_follows_a_renamed_one() {
         gitweft_git::remote::push_target(branch, &tracking, &remotes).unwrap()
     };
 
-    // Its upstream is the local main (`branch.feature.remote = .`). Before #16 the push
-    // went to origin with --set-upstream and replaced it.
+    // Its upstream is the local main (`branch.feature.remote = .`). An earlier version
+    // pushed to origin with --set-upstream and replaced it.
     sb.run(&work, &["switch", "-q", "-c", "feature"]);
     sb.commit_file(&work, "f.txt", "f\n", "feature work");
     sb.run(

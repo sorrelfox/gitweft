@@ -85,8 +85,8 @@ impl Sandbox {
     }
 
     /// Creates `name` as a new reftable repository (`--ref-format=reftable`) on branch
-    /// `main`: its refs aren't files, and gix 0.87 can't read them (#17). `None`, with a
-    /// note, when git is older than 2.45, which has no reftable (#79): skip the test.
+    /// `main`: its refs aren't files, and gix 0.87 can't read them. `None`, with a
+    /// note, when git is older than 2.45, which has no reftable: skip the test.
     pub fn init_reftable_repo(&self, name: &str) -> Option<PathBuf> {
         if self.git.version() < GitVersion::new(2, 45, 0) {
             eprintln!(

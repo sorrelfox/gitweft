@@ -1,4 +1,4 @@
-//! A repository's own id, `gitweft.id` in its `.git/config` (#19): Gitweft's files about the
+//! A repository's own id, `gitweft.id` in its `.git/config`: Gitweft's files about the
 //! repository (undo log, reviews, settings, conflict record) are kept under it rather than
 //! under a hash of its path, so they follow the repository when it's moved or renamed.
 //!
@@ -222,7 +222,7 @@ mod tests {
 
     #[test]
     fn only_plain_names_are_used_as_folders() {
-        for good in ["gitclient-3f9a0c1d2e4b5a6f", "a", "x.y_z-1"] {
+        for good in ["myrepo-3f9a0c1d2e4b5a6f", "a", "x.y_z-1"] {
             assert_eq!(valid_id(good), Some(good));
         }
         for bad in [
