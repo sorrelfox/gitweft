@@ -24,7 +24,7 @@ cleanup() {
 trap cleanup EXIT
 rm -f "$out"/gitweft-*.rpm
 
-"$engine" run --name "$name" -v "$dist:/dist:ro,Z" -v "$out:/out:Z" -e VERSION="$version" \
+"$engine" run --name "$name" -v "$dist:/dist:ro,z" -v "$out:/out:Z" -e VERSION="$version" \
     "$image" bash -euc '
     dnf -y -q install rpm-build "dnf-command(builddep)" > /dev/null
     useradd -m builder

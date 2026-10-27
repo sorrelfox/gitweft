@@ -117,26 +117,23 @@ deb *flags: (deb-build flags)
 deb-build *flags: (dist-src flags)
     bash scripts/dist/deb.sh target/dist-src target/deb
 
-# Release AppImage in target/appimage from the DEB's binary, built first when it isn't there
-# (`just deb` rebuilds it); `just appimage target/dist/gitweft` packs a local build instead
-# (scripts/dist/appimage.sh)
-appimage binary="target/deb/gitweft": (appimage-binary binary)
-    bash scripts/dist/appimage.sh {{binary}} target/dist-src target/appimage
+# Release AppImage in target/appimage from the DEB's binary and the libraries deb.sh sets
+# aside, built first when they aren't there (`just deb` rebuilds them), then started in a
+# Debian 13 container that has only libxcb and git, and smoke-tested there with no network
+# (scripts/dist/{appimage,test-appimage}.sh)
+appimage: appimage-inputs
+    bash scripts/dist/appimage.sh target/deb/gitweft target/dist-src target/appimage
+    bash scripts/dist/test-appimage.sh
     @echo; echo "The AppImage is ready:"; ls -1 target/appimage/*.AppImage
 
-# What appimage.sh needs: the binary, its icons next to it, and the release sources
+# What appimage.sh needs: the DEB's binary, icons and libraries, and the release sources
 [private]
-appimage-binary binary:
+appimage-inputs:
     #!/usr/bin/env bash
     set -euo pipefail
-    if [ "{{binary}}" = target/deb/gitweft ]; then
-        if [ ! -x target/deb/gitweft ] || [ ! -d target/deb/icons/hicolor ] || [ ! -d target/dist-src ]; then
-            just deb-build
-        fi
-    else
-        [ -x "{{binary}}" ] || { echo "appimage: there is no {{binary}}" >&2; exit 1; }
-        [ -d target/dist-src ] || just dist-src
-        [ -d "$(dirname "{{binary}}")/icons/hicolor" ] || bash scripts/dist/icons.sh "$(dirname "{{binary}}")"
+    if [ ! -x target/deb/gitweft ] || [ ! -d target/deb/icons/hicolor ] || [ ! -d target/deb/lib/copyright ] \
+        || [ ! -d target/dist-src ]; then
+        just deb-build
     fi
 
 # Flatpak bundle in target/flatpak, built in the Freedesktop SDK (installed for the user

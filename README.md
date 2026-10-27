@@ -125,9 +125,9 @@ their SHA-256 checksums in `SHA256SUMS`.
 | Any distribution with Flatpak | `Gitweft-1.0.0-x86_64.flatpak` | `flatpak install --user ./Gitweft-*.flatpak` |
 
 You need x86_64 Linux on Wayland or X11, git 2.39 or newer, and a GPU driver with Vulkan (Mesa's
-open-source drivers are fine). The RPM and DEB pull git in as a dependency. The AppImage uses the
-git you have installed. The Flatpak brings its own git and runs your terminal, file manager and
-editor outside its sandbox.
+open-source drivers are fine). The RPM and DEB pull git in as a dependency. The AppImage brings
+the few libraries not every distribution installs and uses the git you have installed. The
+Flatpak brings its own git and runs your terminal, file manager and editor outside its sandbox.
 
 Open a repository from the start screen, or from a terminal:
 
@@ -185,15 +185,15 @@ of the finished file when it is done.
 |---|---|---|---|
 | `just rpm` | RPM and SRPM for Fedora 44 and later, built with Fedora's own Rust, the way COPR would | `target/rpm/` | podman, python3 |
 | `just deb` | DEB for Debian 13 and Ubuntu 24.04 and later, installed and tested on all three, checked with lintian | `target/deb/` | podman, python3 |
-| `just appimage` | AppImage, repacking the DEB's binary (built first if it is not there) | `target/appimage/` | podman, python3, squashfs-tools, curl |
+| `just appimage` | AppImage, repacking the DEB's binary and libraries (built first if they are not there), then started in a bare Debian container | `target/appimage/` | podman, python3, squashfs-tools, curl |
 | `just flatpak` | Flatpak bundle, built in the Freedesktop SDK (installed for you from Flathub on the first run) | `target/flatpak/` | flatpak, flatpak-builder, python3 |
 | `just release` | All of the above, plus the source tarballs and `SHA256SUMS` | `target/release/1.0.0/` | all of the above, desktop-file-utils, appstream |
 
 Docker works in place of podman: `CONTAINER=docker just rpm`. The first run downloads the
 container images and, for the Flatpak, the SDK; the builds themselves never touch the network.
-The RPM build needs about 12 GB of free memory, because Fedora's build flags add full debug
-information on top of link-time optimisation. [docs/PACKAGING.md](docs/PACKAGING.md) has the
-rest: what each script does, how the inputs are pinned, and how a release is cut.
+Each build needs about 10 GB of free memory for its final link.
+[docs/PACKAGING.md](docs/PACKAGING.md) has the rest: what each script does, how the inputs are
+pinned, and how a release is cut.
 
 ## What it is made of
 

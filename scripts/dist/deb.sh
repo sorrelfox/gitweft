@@ -4,8 +4,10 @@
 # scripts/dist/build.sh, then packs it with dpkg-deb. Depends come from dpkg-shlibdeps, plus
 # the libraries GPUI loads with dlopen (Vulkan, Wayland), which no scan sees.
 # Usage: scripts/dist/deb.sh [DIST_DIR] [OUT_DIR]
-# Writes OUT_DIR (default target/deb)/gitweft_VERSION-1_amd64.deb, and the binary and icons
-# the AppImage takes too: OUT_DIR/gitweft and OUT_DIR/icons (scripts/dist/icons.sh's).
+# Writes OUT_DIR (default target/deb)/gitweft_VERSION-1_amd64.deb, and what the AppImage
+# takes too: OUT_DIR/gitweft (the binary, with a run path for OUT_DIR/lib), OUT_DIR/icons
+# (scripts/dist/icons.sh's) and OUT_DIR/lib (the libraries the AppImage bundles, with their
+# copyright files).
 # Needs podman (CONTAINER=docker works too). The image is ubuntu:24.04 at the digest in
 # pins.env (GITWEFT_DEB_IMAGE picks another); apt downloads the build dependencies inside
 # the container, and rustup (pinned and checked, rustup-init.sh) the Rust of
@@ -19,9 +21,9 @@ engine=${CONTAINER:-podman}
 . scripts/dist/pins.env
 image=${GITWEFT_DEB_IMAGE:-$GITWEFT_PIN_UBUNTU_24_04}
 toolchain=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
-rm -rf "$out"/gitweft_*.deb "$out/gitweft" "$out/icons"
+rm -rf "$out"/gitweft_*.deb "$out/gitweft" "$out/icons" "$out/lib"
 
-"$engine" run --rm -v "$dist:/dist:ro,Z" -v "$out:/out:Z" -e VERSION="$version" \
+"$engine" run --rm -v "$dist:/dist:ro,z" -v "$out:/out:Z" -e VERSION="$version" \
     -e TOOLCHAIN="$toolchain" -v "$PWD/scripts/dist/rustup-init.sh:/rustup-init.sh:ro,Z" \
     -e RUSTUP_VERSION="$GITWEFT_PIN_RUSTUP_VERSION" -e RUSTUP_SHA256="$GITWEFT_PIN_RUSTUP_INIT_SHA256" \
     "$image" bash -euc '
@@ -30,6 +32,7 @@ rm -rf "$out"/gitweft_*.deb "$out/gitweft" "$out/icons"
     apt-get -qq install -y --no-install-recommends pkg-config libxcb1-dev libxkbcommon-dev \
         libxkbcommon-x11-dev libfreetype-dev libfontconfig-dev libegl-dev \
         desktop-file-utils appstream librsvg2-bin gcc libc6-dev dpkg-dev ca-certificates curl \
+        libxkbcommon0 libxkbcommon-x11-0 libxcb-xkb1 libvulkan1 libwayland-egl1 patchelf \
         > /dev/null
     if ! command -v cargo > /dev/null; then
         sh /rustup-init.sh "$RUSTUP_VERSION" "$RUSTUP_SHA256" -y -q --profile minimal \
@@ -68,11 +71,12 @@ rm -rf "$out"/gitweft_*.deb "$out/gitweft" "$out/icons"
     appstreamcli validate --no-net $root/usr/share/metainfo/$id.metainfo.xml > /dev/null
 
     # Depends as Debian computes them for the linked libraries (dpkg-shlibdeps reads
-    # debian/control), then what GPUI loads with dlopen, then git.
+    # debian/control), then what the app loads with dlopen (the Vulkan loader, the Wayland
+    # client library, EGL and its Wayland glue for the OpenGL fallback), then git.
     mkdir -p debian
     printf "Source: gitweft\n\nPackage: gitweft\nArchitecture: amd64\n" > debian/control
     linked=$(dpkg-shlibdeps -O -e $root/usr/bin/gitweft 2> /dev/null | sed -n "s/^shlibs:Depends=//p")
-    depends="$linked, libvulkan1, libwayland-client0, libwayland-cursor0, git (>= 1:2.39)"
+    depends="$linked, libvulkan1, libwayland-client0, libegl1, libwayland-egl1, git (>= 1:2.39)"
     size=$(du -sk --apparent-size $root | cut -f1)
     mkdir -p $root/DEBIAN
     sed -e "s/@VERSION@/$VERSION/" -e "s/@SIZE@/$size/" -e "s/@DEPENDS@/$depends/" \
@@ -81,6 +85,23 @@ rm -rf "$out"/gitweft_*.deb "$out/gitweft" "$out/icons"
     dpkg-deb --root-owner-group -Zxz --build $root /out/gitweft_${VERSION}-1_amd64.deb > /dev/null
     cp target/dist/gitweft /out/gitweft
     cp -r $root/usr/share/icons /out/icons
+    # What the AppImage bundles: the libraries the binary needs at start or loads at run time
+    # that the AppImage excludelist does not promise on every host (libxcb, libwayland-client,
+    # libEGL, glibc and libgcc_s it does), taken from this image so that they match the
+    # binary'\''s glibc, with their copyright files. The AppImage'\''s copy of the binary finds
+    # them through an RPATH, $ORIGIN/../lib. An RPATH rather than a RUNPATH, so that the
+    # libraries'\'' own dependencies (libxkbcommon-x11 needs libxcb-xkb) and the ones the
+    # program dlopens resolve there too; and no LD_LIBRARY_PATH, which would leak into git
+    # and the external tools the app starts.
+    mkdir -p /out/lib/copyright
+    for lib in libxkbcommon.so.0 libxkbcommon-x11.so.0 libxcb-xkb.so.1 libvulkan.so.1 libwayland-egl.so.1; do
+        path=/usr/lib/x86_64-linux-gnu/$lib
+        cp -L $path /out/lib/$lib
+        pkg=$(dpkg -S $path | cut -d: -f1)
+        cp /usr/share/doc/$pkg/copyright /out/lib/copyright/$pkg
+    done
+    find /out/lib -exec touch -h -d @$SOURCE_DATE_EPOCH {} +
+    patchelf --force-rpath --set-rpath "\$ORIGIN/../lib" /out/gitweft
     dpkg-deb --field /out/gitweft_${VERSION}-1_amd64.deb Version Depends Installed-Size
 '
 ls -l "$out"

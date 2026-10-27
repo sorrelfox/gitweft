@@ -2,8 +2,8 @@
 # The whole release on this machine, the same steps as the release workflow on GitHub
 # (.github/workflows/release.yml):
 # sources and notices, the RPM (Fedora 44 container), the DEB (Ubuntu 24.04 container) and
-# its installation on Debian 13 and Ubuntu 24.04/26.04 and lintian, the AppImage, the Flatpak bundle,
-# then SHA256SUMS.
+# its installation on Debian 13 and Ubuntu 24.04/26.04 and lintian, the AppImage and its start
+# in a bare Debian 13 container, the Flatpak bundle, then SHA256SUMS.
 # Usage: scripts/dist/release.sh [--worktree]
 # Everything lands in target/release/VERSION/. `--worktree` takes the working tree instead
 # of HEAD (to try changes). Needs python3, podman, mksquashfs, curl, desktop-file-utils and
@@ -30,6 +30,7 @@ bash scripts/dist/test-deb.sh "target/deb/gitweft_${version}-1_amd64.deb"
 bash scripts/dist/lint-deb.sh
 step "AppImage"
 bash scripts/dist/appimage.sh target/deb/gitweft target/dist-src target/appimage
+bash scripts/dist/test-appimage.sh "target/appimage/Gitweft-$version-x86_64.AppImage"
 
 step "Flatpak"
 bash scripts/dist/flatpak.sh target/dist-src target/flatpak

@@ -15,17 +15,21 @@ Every package is built from the same two files:
 With both unpacked over each other, `scripts/dist/build.sh` runs `cargo build --frozen --profile
 dist`, which cannot download anything. Each package format has one script in `scripts/dist/`
 that runs this build inside a container of the right distribution, packs the result, installs
-the package in a fresh container, and starts the installed app with `--network none` to prove
-that it loads a repository offline. `just release` runs all of them in turn, and the release
-workflow on GitHub runs the same scripts.
+the package in a fresh container (the AppImage is started in a bare one instead), and starts the
+installed app with `--network none` to prove that it loads a repository offline. `just release`
+runs all of them in turn, and the release workflow on GitHub runs the same scripts.
 
 The toolchains differ because each channel requires it: the RPM is built with Fedora's own Rust
 (COPR would build the same SRPM the same way), the Flatpak with the Freedesktop SDK's Rust
 extension, the DEB with the Rust named in `rust-toolchain.toml`. The DEB and the AppImage share
 one binary: the AppImage repacks the DEB's, which is built on Ubuntu 24.04 so that it runs on
-anything newer. Within one toolchain the build is reproducible. `just repro-check` builds twice,
-in two folders at different paths (one with a space in it), and compares the binaries byte for
-byte.
+anything newer. The AppImage also carries the five libraries the binary needs that not every
+distribution installs (xkbcommon, xkbcommon-x11 and xcb-xkb for the keyboard, the Vulkan loader,
+and wayland-egl for the OpenGL fallback), taken from the same Ubuntu; the libraries every desktop
+has, such as libxcb, libwayland-client, EGL and glibc, come from the host, as the AppImage
+project's excludelist prescribes. Within one toolchain the build is reproducible. `just
+repro-check` builds twice, in two folders at different paths (one with a space in it), and
+compares the binaries byte for byte.
 
 ## What you need
 
@@ -33,13 +37,15 @@ byte.
 |---|---|
 | The sources | python3, git, and the Rust toolchain (`cargo fetch` fills the cache the vendor tarball is made from) |
 | RPM, DEB | podman, or docker with `CONTAINER=docker` |
-| AppImage | squashfs-tools and curl, plus the DEB's binary, which is built for you when it is missing |
+| AppImage | squashfs-tools, curl and podman, plus the DEB's binary and libraries, which are built for you when they are missing |
 | Flatpak | flatpak and flatpak-builder; the SDK is installed for your user from Flathub on the first run |
 | `just release` | all of the above, plus desktop-file-utils and appstream for the metadata check |
 
 The containers download their own build dependencies with dnf or apt, and the DEB build installs
-the pinned Rust with rustup when its image has none. The RPM build needs about 12 GB of free
-memory: Fedora's build flags add full debug information on top of fat link-time optimisation.
+the pinned Rust with rustup when its image has none. Each build needs about 10 GB of free
+memory for its last step, the link-time optimisation of the whole program. The spec keeps
+Fedora's build flags from adding full debug information on top of that (`rustflags_debuginfo`):
+with it, the RPM's link needed more than the 16 GB of a GitHub runner and was killed.
 
 ## The commands
 
@@ -48,7 +54,7 @@ memory: Fedora's build flags add full debug information on top of fat link-time 
 | `just dist-src` | the two tarballs, `THIRD-PARTY-LICENSES.txt`, the RPM's bundled-crates macros | `target/dist-src/` |
 | `just rpm` | the RPM and SRPM, built in Fedora 44 as COPR does, installed and smoke-tested | `target/rpm/` |
 | `just deb` | the DEB, built in Ubuntu 24.04, installed and smoke-tested on Debian 13, Ubuntu 24.04 and 26.04, checked with lintian | `target/deb/` |
-| `just appimage` | the AppImage, from the DEB's binary | `target/appimage/` |
+| `just appimage` | the AppImage, from the DEB's binary and libraries, started in a bare Debian 13 container and smoke-tested there offline | `target/appimage/` |
 | `just flatpak` | the Flatpak bundle, built in the Freedesktop SDK and smoke-tested in the sandbox | `target/flatpak/` |
 | `just release` | all of the above, plus `SHA256SUMS` | `target/release/VERSION/` |
 | `just repro-check` | two builds, compared | |
@@ -65,9 +71,10 @@ is there; run `just deb` first to rebuild it.
 | `sources.py` | Writes the source tarball (the tracked files; `--worktree` takes the working tree) and the vendor tarball. Crates that no Linux build compiles (Windows, macOS, wasm; about 250 of them) are reduced to stubs, so the vendor tarball is about 45 MiB rather than a gigabyte. Also writes `THIRD-PARTY-LICENSES.txt`, the license notice for every crate the Linux build uses, and the RPM macros that declare them as bundled. |
 | `build.sh` | The release build from an unpacked tree: `cargo build --frozen --profile dist` with a private `CARGO_HOME`, `SOURCE_DATE_EPOCH` from the sources, and the tree's path remapped to `/usr/src/gitweft`, so the binary does not depend on where it was built. |
 | `rpm.sh` | In a Fedora 44 container: makes the SRPM from `packaging/rpm/gitweft.spec`, installs its build dependencies with `dnf builddep`, rebuilds it as a normal user, installs the RPM, then runs the smoke test in a container with no network. |
-| `deb.sh` | In an Ubuntu 24.04 container: builds, strips, computes `Depends` with `dpkg-shlibdeps` plus the libraries GPUI loads at run time (Vulkan, Wayland), writes the changelog from the release entry, packs with `dpkg-deb`. Leaves the binary and the icons next to the DEB for the AppImage. |
+| `deb.sh` | In an Ubuntu 24.04 container: builds, strips, computes `Depends` with `dpkg-shlibdeps` plus the libraries the app loads at run time (the Vulkan loader, Wayland, EGL), writes the changelog from the release entry, packs with `dpkg-deb`. Leaves the binary, the icons and the libraries the AppImage bundles (with their copyright files) next to the DEB; the AppImage's copy of the binary gets a run path, `$ORIGIN/../lib`, with patchelf. |
 | `test-deb.sh`, `lint-deb.sh` | Install the DEB on Debian 13, Ubuntu 24.04 and 26.04 and run the smoke test offline; run lintian with errors fatal. |
-| `appimage.sh` | The DEB's binary, desktop file, metainfo, icons and licenses in a zstd squashfs behind the AppImage type-2 runtime, which is pinned by tag and checksum and downloaded once into `target/tools/`. git comes from the host. |
+| `appimage.sh` | The DEB's binary, desktop file, metainfo, icons, the bundled libraries in `usr/lib` and the licenses in a zstd squashfs behind the AppImage type-2 runtime, which is pinned by tag and checksum and downloaded once into `target/tools/`. git comes from the host. |
+| `test-appimage.sh` | Starts the AppImage in a Debian 13 container that has only libxcb1 and git installed, prints where each library came from (the bundle or the host), and runs the smoke test offline. A library the bundle forgot fails the start here, as it would on a user's machine. |
 | `flatpak.sh` | Builds `packaging/flatpak/io.github.sorrelfox.Gitweft.yml` with flatpak-builder, bundles it, installs the bundle for the user and runs the smoke test with `flatpak run --unshare=network`. The SDK's git is copied into the app, because the Freedesktop Platform has none. |
 | `icons.sh` | Installs the SVG icons and renders PNGs from 16 to 512 px with rsvg-convert. |
 | `manpage.sh` | Writes `gitweft(1)` from the binary's own `--help`, so the options cannot drift. |
@@ -133,10 +140,15 @@ container.
   user namespaces (Ubuntu's AppArmor does by default). `sudo sysctl -w
   kernel.apparmor_restrict_unprivileged_userns=0` allows them, or run the smoke test without the
   namespace; the socket audit is the check that matters.
-- **The RPM build is killed**: it ran out of memory. 12 GB free is enough.
+- **A build is killed in its last minutes**: the final link ran out of memory. 10 GB free is
+  enough; close what else you can and run it again.
 - **`flatpak-pins.sh: ... is at <commit>, pins.env pins <commit>`**: your installed SDK moved past
   the pin (a `flatpak update` does that). `GITWEFT_FLATPAK_DEPS=flathub just flatpak` moves it
   back for the build.
+- **The AppImage says `error while loading shared libraries`**: the binary needs a library that
+  is neither bundled nor on the host. `test-appimage.sh` shows where each library comes from;
+  add the missing one to the list in `deb.sh`, unless the AppImage excludelist says every host
+  has it.
 - **`sources.py: the tree has uncommitted changes`**: commit them, or add `--worktree`.
 - **A container image cannot be pulled**: the pinned digest is looked up at the registry;
   `GITWEFT_*_IMAGE` points at a mirror, and `update-pins.sh` refreshes the pins.

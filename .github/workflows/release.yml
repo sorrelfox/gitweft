@@ -94,6 +94,7 @@ jobs:
             out/deb/*.deb
             out/deb/gitweft
             out/deb/icons/
+            out/deb/lib/
           if-no-files-found: error
 
   appimage:
@@ -112,11 +113,8 @@ jobs:
           sudo apt-get install -y -qq squashfs-tools
           chmod +x out/deb/gitweft
           bash scripts/dist/appimage.sh out/deb/gitweft dist out/appimage
-      - name: Smoke test
-        run: |
-          git init -q /tmp/repo
-          git -C /tmp/repo -c user.name=T -c user.email=t@example.com commit -q --allow-empty -m first
-          out/appimage/Gitweft-*-x86_64.AppImage --appimage-extract-and-run --headless-smoke /tmp/repo
+      - name: Start it where only libxcb and git exist, smoke-test offline
+        run: bash scripts/dist/test-appimage.sh out/appimage/Gitweft-*-x86_64.AppImage
       - uses: actions/upload-artifact@v4
         with:
           name: appimage

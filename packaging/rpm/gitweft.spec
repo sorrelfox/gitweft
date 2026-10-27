@@ -37,10 +37,13 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  appstream
 
 Requires:       git-core >= 2.39
-# Loaded at run time (dlopen), so the automatic dependency scan doesn't see them.
+# Loaded at run time (dlopen), so the automatic dependency scan doesn't see them: the Vulkan
+# loader, the Wayland client library, and EGL with its Wayland glue for the OpenGL fallback
+# when there is no Vulkan driver.
 Requires:       libvulkan.so.1()(64bit)
 Requires:       libwayland-client.so.0()(64bit)
-Requires:       libwayland-cursor.so.0()(64bit)
+Requires:       libEGL.so.1()(64bit)
+Requires:       libwayland-egl.so.1()(64bit)
 Recommends:     mesa-vulkan-drivers
 
 %{lua:
@@ -49,7 +52,11 @@ for i = 1, tonumber(rpm.expand("%{bundled_provides_count}")) do
 end
 }
 
-# The dist profile strips the binary's debug info.
+# The dist profile keeps line tables only, and Fedora's %%build_rustflags must not put full
+# debug information (-Cdebuginfo=2) back: the fat-LTO link of the whole program then needs
+# more than the 16 GB a GitHub runner has and is killed. There is no debuginfo package, so
+# the line tables are all the RPM would ever use of it.
+%global rustflags_debuginfo line-tables-only
 %global debug_package %{nil}
 
 %description
