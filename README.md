@@ -115,9 +115,9 @@ window. When a repository has no commit-graph file and loads slowly, Gitweft off
 ## Install
 
 The packages are on the [Releases](https://github.com/sorrelfox/gitweft/releases) page, with
-their SHA-256 checksums in `SHA256SUMS`. From the release after 1.0.0 on, each package also has
-a build attestation: a signed record that this repository's release workflow built it from the
-tagged commit. With the GitHub CLI you can check a file you downloaded:
+their SHA-256 checksums in `SHA256SUMS`. From 1.0.1 on, each package also has a build
+attestation: a signed record that this repository's release workflow built it from the tagged
+commit. With the GitHub CLI you can check a file you downloaded:
 
 ```sh
 gh attestation verify FILE --repo sorrelfox/gitweft
@@ -125,10 +125,10 @@ gh attestation verify FILE --repo sorrelfox/gitweft
 
 | System | File | Install |
 |---|---|---|
-| Fedora 44 and later | `gitweft-1.0.0-1.fc44.x86_64.rpm` | `sudo dnf install ./gitweft-*.rpm` |
-| Debian 13, Ubuntu 24.04 and later | `gitweft_1.0.0-1_amd64.deb` | `sudo apt install ./gitweft_*.deb` |
-| Any recent x86_64 distribution | `Gitweft-1.0.0-x86_64.AppImage` | `chmod +x Gitweft-*.AppImage`, then run it |
-| Any distribution with Flatpak | `Gitweft-1.0.0-x86_64.flatpak` | `flatpak install --user ./Gitweft-*.flatpak` |
+| Fedora 44 and later | `gitweft-1.0.1-1.fc44.x86_64.rpm` | `sudo dnf install ./gitweft-*.rpm` |
+| Debian 13, Ubuntu 24.04 and later | `gitweft_1.0.1-1_amd64.deb` | `sudo apt install ./gitweft_*.deb` |
+| Any recent x86_64 distribution | `Gitweft-1.0.1-x86_64.AppImage` | `chmod +x Gitweft-*.AppImage`, then run it |
+| Any distribution with Flatpak | `Gitweft-1.0.1-x86_64.flatpak` | `flatpak install --user ./Gitweft-*.flatpak` |
 
 You need x86_64 Linux on Wayland or X11, git 2.39 or newer, and a GPU driver with Vulkan (Mesa's
 open-source drivers are fine). The RPM and DEB pull git in as a dependency. The AppImage brings
@@ -193,7 +193,7 @@ of the finished file when it is done.
 | `just deb` | DEB for Debian 13 and Ubuntu 24.04 and later, installed and tested on all three, checked with lintian | `target/deb/` | podman, python3 |
 | `just appimage` | AppImage, repacking the DEB's binary and libraries (built first if they are not there), then started in a bare Debian container | `target/appimage/` | podman, python3, squashfs-tools, curl |
 | `just flatpak` | Flatpak bundle, built in the Freedesktop SDK (installed for you from Flathub on the first run) | `target/flatpak/` | flatpak, flatpak-builder, python3 |
-| `just release` | All of the above, plus the source tarballs and `SHA256SUMS` | `target/release/1.0.0/` | all of the above, desktop-file-utils, appstream |
+| `just release` | All of the above, plus the source tarballs and `SHA256SUMS` | `target/release/1.0.1/` | all of the above, desktop-file-utils, appstream |
 
 Docker works in place of podman: `CONTAINER=docker just rpm`. The first run downloads the
 container images and, for the Flatpak, the SDK; the builds themselves never touch the network.

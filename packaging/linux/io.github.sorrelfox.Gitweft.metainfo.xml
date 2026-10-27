@@ -107,6 +107,15 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.0.1" date="2026-10-27" type="stable">
+      <description>
+        <p>
+          Error messages name the files git lists, such as the local changes a checkout or a
+          stash would overwrite, and every release package comes with a build attestation that
+          the GitHub CLI can verify.
+        </p>
+      </description>
+    </release>
     <release version="1.0.0" date="2026-10-27" type="stable">
       <description>
         <p>
