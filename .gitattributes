@@ -1,0 +1,14 @@
+# Text files are checked out with LF on every system, Windows included, whatever
+# core.autocrlf says: the tests compare bytes, and the scripts run in bash there too.
+* text=auto eol=lf
+
+# Never converted, never diffed as text.
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.icns binary
