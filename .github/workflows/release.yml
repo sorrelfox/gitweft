@@ -187,7 +187,8 @@ jobs:
   # Windows.
   macos:
     name: macOS (universal)
-    runs-on: macos-15
+    # Intel: arm64 runners are often short of capacity, and both slices cross-build anyway.
+    runs-on: macos-15-intel
     steps:
       - uses: actions/checkout@v4
       - name: Rust (rust-toolchain.toml)
