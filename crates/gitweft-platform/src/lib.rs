@@ -72,6 +72,27 @@ pub fn limit_malloc_arenas() {
 #[cfg(not(all(target_os = "linux", target_env = "gnu")))]
 pub fn limit_malloc_arenas() {}
 
+/// Lets a Windows program built for the GUI subsystem print to the console it was started
+/// from. Windows gives such a program no console, so `gitweft --version` typed in cmd or
+/// PowerShell would print nothing at all. Attaching fills in the standard handles the
+/// parent left empty; output the parent sent to a file or a pipe stays where it was sent.
+/// std looks the handles up again on every write, so `println!` works from here on.
+///
+/// Nothing happens when the parent has no console (started from Explorer) or this process
+/// has one already, and on other systems.
+pub fn attach_parent_console() {
+    #[cfg(windows)]
+    {
+        use windows_sys::Win32::System::Console::{ATTACH_PARENT_PROCESS, AttachConsole};
+
+        // SAFETY: the call takes no pointers. It fails when the parent has no console or
+        // this process is attached to one already, and either way there is nothing to do.
+        unsafe {
+            AttachConsole(ATTACH_PARENT_PROCESS);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

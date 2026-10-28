@@ -1,6 +1,11 @@
 //! Entry point. The mode is decided from argv *before* any GUI initialisation, so
 //! helper modes (and the headless smoke test) never touch the display or the GPU.
 
+// A release build for Windows is a GUI program, so starting it from Explorer doesn't open
+// a console window next to it. Debug builds keep the console: `cargo run` then shows the
+// logs and panics of the window, and the shell waits for the command-line modes to end.
+#![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
+
 mod smoke;
 
 use std::ffi::OsString;
@@ -44,7 +49,14 @@ fn main() -> ExitCode {
         return gitweft_git::askpass::run_helper(&prompt);
     }
 
-    match parse(std::env::args_os().skip(1)) {
+    let invocation = parse(std::env::args_os().skip(1));
+    // On Windows, the modes that print borrow the console they were started from (a GUI
+    // program has none of its own). Not the window, which would end when that console is
+    // closed, and not the helpers above, which git runs with pipes as their output.
+    if !matches!(invocation, Ok(Invocation::Open { .. })) {
+        gitweft_platform::attach_parent_console();
+    }
+    match invocation {
         Err(flag) => {
             let flag = flag.to_string_lossy();
             eprint!(
@@ -219,6 +231,22 @@ mod tests {
             Ok(Invocation::Open {
                 new_instance: false,
                 paths: vec![latin1, dashed],
+            })
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn a_path_that_isnt_unicode_is_kept() {
+        use std::os::windows::ffi::OsStringExt;
+        // A lone surrogate is allowed in a Windows file name but in no Rust string.
+        let lone = OsString::from_wide(&[u16::from(b'c'), 0xd800]);
+        let dashed = OsString::from_wide(&[u16::from(b'-'), u16::from(b'c'), 0xd800]);
+        assert_eq!(
+            parse([lone.clone(), OsString::from("--"), dashed.clone()]),
+            Ok(Invocation::Open {
+                new_instance: false,
+                paths: vec![lone, dashed],
             })
         );
     }
