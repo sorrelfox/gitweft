@@ -117,7 +117,7 @@ pub(crate) fn bind_keys(cx: &mut App) {
             KeyBinding::new("shift-end", ExtendToLastRow, context),
         ]);
     }
-    cx.bind_keys([KeyBinding::new("ctrl-a", SelectAllRows, Some(STAGING))]);
+    cx.bind_keys([KeyBinding::new("secondary-a", SelectAllRows, Some(STAGING))]);
 }
 
 /// Where a key moves a list's cursor.

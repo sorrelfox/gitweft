@@ -50,7 +50,7 @@ actions!(conflict, [CloseConflict, OtherPane]);
 pub fn bind_keys(cx: &mut App) {
     cx.bind_keys([
         KeyBinding::new("escape", CloseConflict, Some(CONTEXT)),
-        KeyBinding::new("ctrl-f", OpenFind, Some(CONTEXT)),
+        KeyBinding::new("secondary-f", OpenFind, Some(CONTEXT)),
         KeyBinding::new("left", OtherPane, Some(PANES)),
         KeyBinding::new("right", OtherPane, Some(PANES)),
     ]);

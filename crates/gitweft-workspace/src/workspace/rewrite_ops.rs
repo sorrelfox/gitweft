@@ -73,7 +73,8 @@ impl Workspace {
             branch = branch
         )
         .into_owned();
-        let detail = t!("rewrite.drop_pick_detail", branch = branch).into_owned();
+        let keys = keymap::action_key_text(&UndoOperation, cx);
+        let detail = t!("rewrite.drop_pick_detail", branch = branch, keys = keys).into_owned();
         self.ask(
             PromptLevel::Info,
             message,
@@ -237,7 +238,12 @@ impl Workspace {
         self.ask(
             PromptLevel::Info,
             tn!("rewrite.drop_picks_confirm", count = count, branch = branch).into_owned(),
-            t!("rewrite.drop_picks_detail", branch = branch).into_owned(),
+            t!(
+                "rewrite.drop_picks_detail",
+                branch = branch,
+                keys = keymap::action_key_text(&UndoOperation, cx)
+            )
+            .into_owned(),
             t!("rewrite.cherry_pick_button").into_owned(),
             move |this, confirmed, window, cx| {
                 if confirmed {
@@ -301,7 +307,8 @@ impl Workspace {
             )
         };
         let files = if hard {
-            t!("rewrite.hard_confirm_detail").into_owned()
+            let keys = keymap::action_key_text(&UndoOperation, cx);
+            t!("rewrite.hard_confirm_detail", keys = keys).into_owned()
         } else {
             String::new()
         };

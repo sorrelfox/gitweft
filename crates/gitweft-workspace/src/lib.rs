@@ -4,6 +4,7 @@
 #[macro_use]
 mod plural;
 
+mod app_menu;
 mod blame_view;
 mod code_keys;
 mod code_scroll;
@@ -75,6 +76,20 @@ struct MainWindow {
 
 impl Global for MainWindow {}
 
+/// Paths asked for while the main window is opening: it opens them once it's up.
+struct PendingPaths(Vec<PathBuf>);
+
+impl Global for PendingPaths {}
+
+/// The [`PendingPaths`], once the window opened (or couldn't).
+fn take_pending(cx: &mut App) -> Vec<PathBuf> {
+    if cx.has_global::<PendingPaths>() {
+        cx.remove_global::<PendingPaths>().0
+    } else {
+        Vec::new()
+    }
+}
+
 /// Keeps the single-instance socket open; dropped (and the socket removed) on quit.
 struct Instance(#[allow(dead_code)] IpcServer);
 
@@ -118,40 +133,47 @@ pub fn run(
 ) -> bool {
     let opened = std::rc::Rc::new(std::cell::Cell::new(true));
     let result = opened.clone();
-    gpui_kit::application()
-        // Our icons first, then gpui-kit's (see `gitweft_ui::icons`).
-        .with_assets(gitweft_ui::AppAssets)
-        .run(move |cx| {
-            gpui_kit::init(cx);
-            // After the kit's init, which may set its own default language.
-            locale::init();
-            // Confirmations in our theme (GPUI has no system prompt on Linux).
-            cx.set_prompt_builder(prompt::build);
-            gitweft_ui::fonts::register(cx);
-            // Before the first window, so it opens in the chosen theme without a flash.
-            gitweft_ui::SettingsStore::init(cx);
-            bind_keys(cx);
-            // Last: the keymap as registered so far is the base the user's keymap applies to.
-            keymap::KeymapStore::init(cx);
+    // Our icons first, then gpui-kit's (see `gitweft_ui::icons`).
+    let app = gpui_kit::application().with_assets(gitweft_ui::AppAssets);
+    // macOS hands over what Finder, the Dock or `open -a Gitweft PATH` opens as URLs, not
+    // arguments, and may do so before the app has finished starting.
+    let (url_sender, urls) = async_channel::unbounded();
+    app.on_open_urls(move |list| {
+        url_sender.try_send(list).ok();
+    })
+    .on_reopen(reopen);
+    app.run(move |cx| {
+        gpui_kit::init(cx);
+        // After the kit's init, which may set its own default language.
+        locale::init();
+        // Confirmations in our theme (GPUI has no system prompt on Linux).
+        cx.set_prompt_builder(prompt::build);
+        gitweft_ui::fonts::register(cx);
+        // Before the first window, so it opens in the chosen theme without a flash.
+        gitweft_ui::SettingsStore::init(cx);
+        bind_keys(cx);
+        // Last: the keymap as registered so far is the base the user's keymap applies to.
+        keymap::KeymapStore::init(cx);
 
-            let last = SessionStore::init(cx);
-            let restore = gitweft_ui::SettingsStore::settings(cx)
-                .general
-                .restore_session;
-            let (tabs, active) = session::startup_tabs(&last, restore, paths);
-            if single_instance {
-                listen(cx);
-            }
-            open_main_window(
-                tabs,
-                active,
-                last.window,
-                Some(started),
-                other_unanswered,
-                opened,
-                cx,
-            );
-        });
+        let last = SessionStore::init(cx);
+        let restore = gitweft_ui::SettingsStore::settings(cx)
+            .general
+            .restore_session;
+        let (tabs, active) = session::startup_tabs(&last, restore, paths);
+        if single_instance {
+            listen(cx);
+        }
+        open_main_window(
+            tabs,
+            active,
+            last.window,
+            Some(started),
+            other_unanswered,
+            opened,
+            cx,
+        );
+        open_urls(urls, cx);
+    });
     result.get()
 }
 
@@ -176,6 +198,7 @@ pub(crate) fn bind_keys(cx: &mut gpui_kit::App) {
     workspace::bind_keys(cx);
     shell::bind_keys(cx);
     settings_window::bind_keys(cx);
+    app_menu::bind_keys(cx);
 }
 
 /// Opens the main window with a tab per path (the start screen when there are none),
@@ -211,6 +234,7 @@ fn open_main_window(
         ..TitleBar::window_options()
     };
 
+    cx.set_global(PendingPaths(Vec::new()));
     cx.spawn(async move |cx| {
         let mut shell = None;
         let opening = cx.open_window(options, |window, cx| {
@@ -225,7 +249,10 @@ fn open_main_window(
             Err(err) => {
                 eprintln!("{}", t!("cli.window_failed", error = err.to_string()));
                 opened.set(false);
-                cx.update(|cx| cx.quit());
+                cx.update(|cx| {
+                    take_pending(cx);
+                    cx.quit();
+                });
                 return;
             }
         };
@@ -233,9 +260,15 @@ fn open_main_window(
             let text = t!("cli.no_answer_notice").into_owned();
             cx.update(|cx| toast::push(Toast::warning(text), cx));
         }
-        if let Some(shell) = shell {
-            cx.update(|cx| cx.set_global(MainWindow { handle, shell }));
-        }
+        cx.update(|cx| {
+            if let Some(shell) = shell {
+                cx.set_global(MainWindow { handle, shell });
+            }
+            let pending = take_pending(cx);
+            if !pending.is_empty() {
+                open_requested(pending, cx);
+            }
+        });
     })
     .detach();
 }
@@ -269,6 +302,10 @@ fn listen(cx: &mut App) {
 /// brings the window forward. With the main window closed (the settings window kept the
 /// app running), a new one opens.
 fn open_requested(paths: Vec<PathBuf>, cx: &mut App) {
+    if cx.has_global::<PendingPaths>() {
+        cx.global_mut::<PendingPaths>().0.extend(paths);
+        return;
+    }
     if let Some(main) = cx.try_global::<MainWindow>() {
         let (handle, shell) = (main.handle, main.shell.clone());
         let requested = paths.clone();
@@ -288,4 +325,95 @@ fn open_requested(paths: Vec<PathBuf>, cx: &mut App) {
     // Reopened later: its failure to open has no exit status to set.
     let opened = std::rc::Rc::new(std::cell::Cell::new(true));
     open_main_window(paths, 0, None, None, false, opened, cx);
+}
+
+/// Opens the folders the system asks for (macOS: [`path_from_file_url`]) as
+/// [`open_requested`] does.
+fn open_urls(urls: async_channel::Receiver<Vec<String>>, cx: &mut App) {
+    cx.spawn(async move |cx| {
+        while let Ok(urls) = urls.recv().await {
+            let paths: Vec<PathBuf> = urls
+                .iter()
+                .filter_map(|url| path_from_file_url(url))
+                .collect();
+            if !paths.is_empty() {
+                cx.update(|cx| open_requested(paths, cx));
+            }
+        }
+    })
+    .detach();
+}
+
+/// The Dock icon clicked with no window open (macOS): the main window comes back, with
+/// the tabs it had when the session is restored at start too.
+fn reopen(cx: &mut App) {
+    if cx.has_global::<PendingPaths>() {
+        return;
+    }
+    if let Some(handle) = cx.try_global::<MainWindow>().map(|main| main.handle)
+        && handle
+            .update(cx, |_, window, _| window.activate_window())
+            .is_ok()
+    {
+        return;
+    }
+    let last = SessionStore::recorded(cx);
+    let restore = gitweft_ui::SettingsStore::settings(cx)
+        .general
+        .restore_session;
+    let (tabs, active) = session::startup_tabs(&last, restore, Vec::new());
+    let opened = std::rc::Rc::new(std::cell::Cell::new(true));
+    open_main_window(tabs, active, last.window, None, false, opened, cx);
+}
+
+/// The path a `file://` URL names, `None` for any other URL. Its escapes (`%20`) are
+/// decoded into the bytes they stand for, and a folder's closing slash is dropped.
+fn path_from_file_url(url: &str) -> Option<PathBuf> {
+    let rest = url.strip_prefix("file://")?;
+    // The host is empty or this machine.
+    let path = rest.strip_prefix("localhost").unwrap_or(rest);
+    if !path.starts_with('/') {
+        return None;
+    }
+    let hex = |byte: u8| (byte as char).to_digit(16).map(|digit| digit as u8);
+    let mut bytes = Vec::with_capacity(path.len());
+    let mut chars = path.bytes();
+    while let Some(byte) = chars.next() {
+        if byte == b'%' {
+            let high = hex(chars.next()?)?;
+            let low = hex(chars.next()?)?;
+            bytes.push(high << 4 | low);
+        } else {
+            bytes.push(byte);
+        }
+    }
+    while bytes.len() > 1 && bytes.ends_with(b"/") {
+        bytes.pop();
+    }
+    Some(gitweft_platform::bytes::path_buf_from_vec(bytes))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::path_from_file_url;
+
+    #[test]
+    fn a_file_url_becomes_its_path_with_the_escapes_decoded() {
+        let path = |url: &str| path_from_file_url(url);
+        assert_eq!(
+            path("file:///Users/me/My%20Repo/"),
+            Some(PathBuf::from("/Users/me/My Repo"))
+        );
+        assert_eq!(
+            path("file://localhost/srv/r%C3%A9po"),
+            Some(PathBuf::from("/srv/répo"))
+        );
+        assert_eq!(path("file:///"), Some(PathBuf::from("/")));
+        assert_eq!(path("file://elsewhere/srv/repo"), None);
+        assert_eq!(path("https://example.com/repo"), None);
+        assert_eq!(path("file:///bad%2"), None);
+        assert_eq!(path("file:///bad%zz"), None);
+    }
 }

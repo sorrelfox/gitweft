@@ -32,6 +32,7 @@ use gpui_kit::*;
 use rust_i18n::t;
 
 use crate::graph_view::{ref_pill, worktree_pill};
+use crate::keymap;
 use crate::list_keys::{self, FirstRow, LastRow, NextRow, OpenRow, PreviousRow, RowMenu};
 use crate::split::{self, Split};
 use crate::util::{avatar, format_time};
@@ -764,9 +765,13 @@ fn render_several(
             .text_size(m.text.small)
             .text_color(p.fg2)
             .child(
-                div()
-                    .whitespace_normal()
-                    .child(t!("details.several_hint").into_owned()),
+                div().whitespace_normal().child(
+                    t!(
+                        "details.several_hint",
+                        modifier = keymap::add_click_modifier()
+                    )
+                    .into_owned(),
+                ),
             )
             .child(
                 Button::new("pick-several")

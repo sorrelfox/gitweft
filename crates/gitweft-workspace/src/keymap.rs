@@ -11,6 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use gitweft_core::keymap::{KeymapFile, Overrides, keymap_path};
+use gpui_kit::component::kbd::Kbd;
 use gpui_kit::*;
 use rust_i18n::t;
 
@@ -878,6 +879,7 @@ fn apply(cx: &mut App) {
     }
     cx.clear_key_bindings();
     cx.bind_keys(bindings);
+    crate::app_menu::set(cx);
 }
 
 /// While the Keyboard page records, the keystrokes pressed (in any window) become the
@@ -931,6 +933,44 @@ fn push_chord(pending: &mut Vec<String>, stroke: String) -> bool {
     pending.len() >= MAX_CHORDS
 }
 
+/// How a key (a keystroke sequence, "secondary-k secondary-s") reads in text on this
+/// system, as its key caps do: "Ctrl+K Ctrl+S", "⌘K ⌘S" on macOS.
+pub(crate) fn key_text(key: &str) -> String {
+    let strokes: Vec<String> = key
+        .split_whitespace()
+        .filter_map(|stroke| Keystroke::parse(stroke).ok())
+        .map(|stroke| Kbd::format(&stroke))
+        .collect();
+    strokes.join(" ")
+}
+
+/// How `action`'s key reads in text ("Undo (Ctrl+Z) takes it back"): its first binding,
+/// which is the user's own once they changed it, or "No keys".
+pub(crate) fn action_key_text(action: &dyn Action, cx: &App) -> String {
+    let keymap = cx.key_bindings();
+    let keymap = keymap.borrow();
+    match keymap.bindings_for_action(action).next() {
+        Some(binding) => {
+            let strokes: Vec<String> = binding
+                .keystrokes()
+                .iter()
+                .map(|stroke| Kbd::format(stroke.as_keystroke()))
+                .collect();
+            strokes.join(" ")
+        }
+        None => t!("keyboard.unbound").into_owned(),
+    }
+}
+
+/// The modifier a click adds to a selection with, as text: Ctrl, or ⌘ on macOS.
+pub(crate) fn add_click_modifier() -> &'static str {
+    if cfg!(target_os = "macos") {
+        "⌘"
+    } else {
+        "Ctrl"
+    }
+}
+
 /// Whether two keys (keystroke sequences, "ctrl-k ctrl-s") clash: the same, or one starts
 /// the other (GPUI would then wait after the shorter one for the rest of the longer).
 pub(crate) fn keys_clash(a: &str, b: &str) -> bool {
@@ -955,7 +995,7 @@ mod store_tests {
     use super::*;
     use crate::settings_window::OpenSettings;
 
-    /// "Open the settings": bound to Ctrl+, in every window by default.
+    /// "Open the settings", bound here to Ctrl+, in every window.
     const NAME: &str = "settings::OpenSettings";
 
     /// The app's default binding, then the store over `dir/keymap.json`; returns the file.
@@ -1010,6 +1050,19 @@ mod store_tests {
         cx.run_until_parked();
         assert_eq!(bound(&cx), ["ctrl-,"]);
         assert_eq!(saved(&path), None);
+    }
+
+    #[test]
+    fn the_key_in_text_is_the_one_the_user_gave() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut cx = TestAppContext::single();
+        store(&mut cx, dir.path());
+        let text = |cx: &TestAppContext| cx.read(|cx| action_key_text(&OpenSettings, cx));
+        assert_eq!(text(&cx), key_text("ctrl-,"));
+        cx.update(|cx| KeymapStore::set(cx, NAME, Some(vec!["ctrl-k ctrl-o".into()])));
+        assert_eq!(text(&cx), key_text("ctrl-k ctrl-o"));
+        cx.update(|cx| KeymapStore::set(cx, NAME, Some(Vec::new())));
+        assert_eq!(text(&cx), "No keys");
     }
 
     /// A window's view that counts "Open the settings", focused from its first frame.
@@ -1144,7 +1197,7 @@ mod store_tests {
 
 #[cfg(test)]
 mod tests {
-    use super::{GROUPS, MAX_CHORDS, bindable, keys_clash, push_chord};
+    use super::{GROUPS, MAX_CHORDS, bindable, key_text, keys_clash, push_chord};
     use std::collections::HashSet;
 
     #[test]
@@ -1156,6 +1209,16 @@ mod tests {
         assert!(!keys_clash("ctrl-k ctrl-s", "ctrl-k ctrl-t"));
         assert!(!keys_clash("ctrl-s", "ctrl-k ctrl-s"));
         assert!(!keys_clash("", "ctrl-k"));
+    }
+
+    #[test]
+    fn a_key_reads_as_this_system_writes_it() {
+        let expected = if cfg!(target_os = "macos") {
+            "⌘K ⇧⌘S"
+        } else {
+            "Ctrl+K Ctrl+Shift+S"
+        };
+        assert_eq!(key_text("secondary-k secondary-shift-s"), expected);
     }
 
     #[test]

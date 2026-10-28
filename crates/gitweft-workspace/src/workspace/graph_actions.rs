@@ -541,7 +541,12 @@ impl Workspace {
                 self.ask(
                     PromptLevel::Warning,
                     t!("rebase.drop_confirm", summary = summary).into_owned(),
-                    t!("rebase.drop_detail", branch = branch).into_owned(),
+                    t!(
+                        "rebase.drop_detail",
+                        branch = branch,
+                        keys = keymap::action_key_text(&UndoOperation, cx)
+                    )
+                    .into_owned(),
                     t!("rebase.drop_button").into_owned(),
                     move |this, confirmed, window, cx| {
                         if confirmed {

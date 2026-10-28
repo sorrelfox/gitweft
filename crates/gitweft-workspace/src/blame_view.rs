@@ -42,7 +42,7 @@ actions!(blame, [CloseBlame]);
 pub fn bind_keys(cx: &mut App) {
     cx.bind_keys([
         KeyBinding::new("escape", CloseBlame, Some(CONTEXT)),
-        KeyBinding::new("ctrl-f", OpenFind, Some(CONTEXT)),
+        KeyBinding::new("secondary-f", OpenFind, Some(CONTEXT)),
     ]);
 }
 

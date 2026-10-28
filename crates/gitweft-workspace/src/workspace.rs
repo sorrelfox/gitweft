@@ -101,6 +101,7 @@ use crate::file_text::{FileText, file_text};
 use crate::file_view::{FileEvent, FileView};
 use crate::graph_view::{GraphEvent, GraphView, RowCommit, WipSummary};
 use crate::history_view::{HistoryEvent, HistoryView};
+use crate::keymap;
 use crate::rebase_view::{RebaseEvent, RebaseView};
 use crate::reflog_view::{Reflog, ReflogEvent, ReflogView};
 use crate::staging_view::{IgnoreChoice, StagingEvent, StagingView};
@@ -227,18 +228,21 @@ pub(crate) fn bind_keys(cx: &mut App) {
     // Text fields bind these too; theirs win while one has focus.
     let context = Some(KEY_CONTEXT);
     cx.bind_keys([
-        KeyBinding::new("ctrl-z", UndoOperation, context),
-        KeyBinding::new("ctrl-shift-z", RedoOperation, context),
-        KeyBinding::new("ctrl-y", RedoOperation, context),
+        KeyBinding::new("secondary-z", UndoOperation, context),
+        KeyBinding::new("secondary-shift-z", RedoOperation, context),
         // The sidebar, the centre, the right panel.
         KeyBinding::new("f6", FocusNextPanel, context),
         // Commit from anywhere in the tab. In a text field too: the kit's own Ctrl+Enter
         // puts a newline in a multi-line one (the description) and stops there, and this
         // binding, registered after the kit's, comes first.
-        KeyBinding::new("ctrl-enter", Commit, context),
-        KeyBinding::new("ctrl-enter", Commit, Some(INPUT_KEY_CONTEXT)),
+        KeyBinding::new("secondary-enter", Commit, context),
+        KeyBinding::new("secondary-enter", Commit, Some(INPUT_KEY_CONTEXT)),
         KeyBinding::new("shift-f6", FocusPreviousPanel, context),
     ]);
+    // Redo's second key on Linux and Windows; a Mac has only Cmd+Shift+Z.
+    if !cfg!(target_os = "macos") {
+        cx.bind_keys([KeyBinding::new("ctrl-y", RedoOperation, context)]);
+    }
 }
 
 /// What a write records for undo: the refs it may move, and how undoing it treats the

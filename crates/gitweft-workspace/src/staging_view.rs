@@ -2021,7 +2021,7 @@ mod view_tests {
         let dir = tempfile::tempdir().unwrap();
         let mut cx = TestAppContext::single();
         let (window, staged) = staging(&mut cx, dir.path());
-        window.simulate_keystrokes("ctrl-a space");
+        window.simulate_keystrokes("secondary-a space");
         assert_eq!(*staged.borrow(), [vec!["a.txt", "b.txt", "c.txt"]]);
     }
 

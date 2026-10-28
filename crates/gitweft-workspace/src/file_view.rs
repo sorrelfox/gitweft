@@ -36,7 +36,7 @@ actions!(file, [CloseFile]);
 pub fn bind_keys(cx: &mut App) {
     cx.bind_keys([
         KeyBinding::new("escape", CloseFile, Some(CONTEXT)),
-        KeyBinding::new("ctrl-f", OpenFind, Some(CONTEXT)),
+        KeyBinding::new("secondary-f", OpenFind, Some(CONTEXT)),
     ]);
 }
 
@@ -828,7 +828,7 @@ mod find_tests {
         let cursor = |window: &mut VisualTestContext| window.update(|_, cx| view.read(cx).cursor);
         settle(window);
 
-        window.simulate_keystrokes("ctrl-f");
+        window.simulate_keystrokes("secondary-f");
         settle(window);
         window.simulate_input("alpha");
         settle(window);

@@ -40,6 +40,13 @@ impl SessionStore {
         last
     }
 
+    /// What the shell recorded last: the main window's tabs and size, after it closed too.
+    pub(crate) fn recorded(cx: &App) -> Session {
+        cx.try_global::<SessionStore>()
+            .map(|store| store.recorded.clone())
+            .unwrap_or_default()
+    }
+
     /// The shell's tabs and window as they are now; written shortly if they changed.
     pub(crate) fn record(cx: &mut App, session: Session) {
         let Some(store) = cx.try_global::<SessionStore>() else {

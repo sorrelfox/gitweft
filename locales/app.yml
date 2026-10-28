@@ -115,7 +115,7 @@ repo.opening:
 tabs.new_tab:
   en: New tab
 tabs.new:
-  en: New tab (Ctrl+T)
+  en: "New tab (%{keys})"
 tabs.close_busy:
   en: Close this tab?
 tabs.close_busy_detail:
@@ -927,9 +927,9 @@ toolbar.undo:
 toolbar.redo:
   en: Redo
 undo.tooltip:
-  en: "Undo %{op} (Ctrl+Z)"
+  en: "Undo %{op} (%{keys})"
 undo.redo_tooltip:
-  en: "Redo %{op} (Ctrl+Shift+Z)"
+  en: "Redo %{op} (%{keys})"
 undo.nothing:
   en: Nothing to undo
 undo.nothing_to_redo:
@@ -1606,7 +1606,7 @@ rebase.move_down:
 rebase.start:
   en: Start rebase
 rebase.ready:
-  en: "Ready. Start rebase applies these steps from the top; Undo (Ctrl+Z) takes the whole rebase back."
+  en: "Ready. Start rebase applies these steps from the top; Undo (%{keys}) takes the whole rebase back."
 rebase.unchanged:
   en: "Nothing changed yet: pick another action for a commit, or move one."
 # Escape in a changed rebase plan.
@@ -1687,7 +1687,7 @@ graph.in_worktree:
 rewrite.drop_pick_confirm:
   en: "Cherry-pick “%{summary}” onto %{branch}?"
 rewrite.drop_pick_detail:
-  en: "It becomes a new commit on top of %{branch}. Undo (Ctrl+Z) takes it back."
+  en: "It becomes a new commit on top of %{branch}. Undo (%{keys}) takes it back."
 rewrite.cherry_pick_button:
   en: Cherry-pick
 rewrite.cherry_pick:
@@ -1735,7 +1735,7 @@ rewrite.reset_failed:
 rewrite.hard_confirm:
   en: "Reset %{branch} to %{sha} and discard your local changes?"
 rewrite.hard_confirm_detail:
-  en: "Staged and unstaged changes are saved first, and Undo (Ctrl+Z) brings them back. Untracked files stay, except where this commit has files of its own: those are moved to the trash."
+  en: "Staged and unstaged changes are saved first, and Undo (%{keys}) brings them back. Untracked files stay, except where this commit has files of its own: those are moved to the trash."
 rewrite.reset:
   en: Reset
 rewrite.published_one:
@@ -2121,7 +2121,7 @@ diff.lfs_note:
   en: "This file is stored with Git LFS: the repository holds a small pointer file, and the content comes from the LFS store."
 
 title.settings:
-  en: "Settings (Ctrl+,)"
+  en: "Settings (%{keys})"
 settings.window_title:
   en: Settings
 settings.search_placeholder:
@@ -2911,7 +2911,7 @@ palette.detail.worktree:
 settings.keyboard:
   en: "Keyboard"
 settings.keyboard_hint:
-  en: "Record gives a command the next keys you press: one shortcut, or a sequence such as Ctrl+K Ctrl+S, ended by a second's pause (Escape cancels). Changes are saved in keymap.json."
+  en: "Record gives a command the next keys you press: one shortcut, or a sequence such as %{keys}, ended by a second's pause (Escape cancels). Changes are saved in keymap.json."
 keyboard.group.window:
   en: "Window and tabs"
 keyboard.group.repository:
@@ -3123,7 +3123,7 @@ details.several_count_one:
 details.several_count_other:
   en: "%{count} commits"
 details.several_hint:
-  en: "Ctrl+click adds or removes a commit, Shift+click selects a range. Dragging them onto the checked-out commit cherry-picks them too."
+  en: "%{modifier}+click adds or removes a commit, Shift+click selects a range. Dragging them onto the checked-out commit cherry-picks them too."
 undo.op_cherry_pick_multiple_one:
   en: "cherry-pick of %{count} commit"
 undo.op_cherry_pick_multiple_other:
@@ -3151,7 +3151,7 @@ rewrite.drop_picks_confirm_one:
 rewrite.drop_picks_confirm_other:
   en: "Cherry-pick %{count} commits onto %{branch}?"
 rewrite.drop_picks_detail:
-  en: "They become new commits on top of %{branch}, oldest first. Undo (Ctrl+Z) takes them back."
+  en: "They become new commits on top of %{branch}, oldest first. Undo (%{keys}) takes them back."
 
 # Hidden and solo branches
 graph.hide:
@@ -3263,7 +3263,7 @@ rebase.reword_ok:
 rebase.drop_confirm:
   en: "Drop “%{summary}”?"
 rebase.drop_detail:
-  en: "Its changes leave %{branch}, and the commits after it are replayed. Undo (Ctrl+Z) brings it back."
+  en: "Its changes leave %{branch}, and the commits after it are replayed. Undo (%{keys}) brings it back."
 rebase.drop_button:
   en: "Drop"
 rebase.not_on_branch:
@@ -3282,3 +3282,45 @@ rebase.fixup_failed:
   en: "Couldn't commit the fixup"
 undo.op_fixup:
   en: "fixup! commit for “%{summary}”"
+
+# The menu bar (macOS).
+menu.services:
+  en: "Services"
+menu.hide:
+  en: "Hide %{app}"
+menu.hide_others:
+  en: "Hide others"
+menu.show_all:
+  en: "Show all"
+menu.quit:
+  en: "Quit %{app}"
+menu.file:
+  en: "File"
+menu.edit:
+  en: "Edit"
+menu.undo:
+  en: "Undo"
+menu.redo:
+  en: "Redo"
+menu.cut:
+  en: "Cut"
+menu.copy:
+  en: "Copy"
+menu.paste:
+  en: "Paste"
+menu.select_all:
+  en: "Select all"
+menu.undo_operation:
+  en: "Undo Git operation"
+menu.redo_operation:
+  en: "Redo Git operation"
+menu.view:
+  en: "View"
+menu.command_palette:
+  en: "Command palette…"
+menu.window:
+  en: "Window"
+menu.minimize:
+  en: "Minimize"
+menu.zoom:
+  en: "Zoom"

@@ -54,7 +54,7 @@ actions!(diff, [CloseDiff, CommentOnLine]);
 pub fn bind_keys(cx: &mut App) {
     cx.bind_keys([
         KeyBinding::new("escape", CloseDiff, Some(CONTEXT)),
-        KeyBinding::new("ctrl-f", OpenFind, Some(CONTEXT)),
+        KeyBinding::new("secondary-f", OpenFind, Some(CONTEXT)),
         KeyBinding::new("c", CommentOnLine, Some(LETTER_KEYS)),
     ]);
 }
@@ -769,7 +769,7 @@ impl DiffView {
             && let Some(anchor) = self.anchor
         {
             self.selection = self.changed_lines_between(anchor, line);
-        } else if modifiers.control {
+        } else if modifiers.secondary() {
             if !self.selection.remove(&line) {
                 self.selection.insert(line);
             }

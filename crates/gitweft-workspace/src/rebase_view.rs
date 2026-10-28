@@ -31,6 +31,7 @@ use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 use rust_i18n::t;
 
+use crate::keymap;
 use crate::list_keys::{self, FirstRow, LastRow, NextRow, OpenRow, PreviousRow, RowMenu, Step};
 use crate::palette::{PaletteCommand, view_command};
 
@@ -894,7 +895,10 @@ impl Render for RebaseView {
         let (note, note_color) = match problem {
             Some(problem) => (problem_text(problem), p.del),
             None if unchanged => (t!("rebase.unchanged").into_owned(), p.fg2),
-            None => (t!("rebase.ready").into_owned(), p.fg2),
+            None => {
+                let keys = keymap::action_key_text(&crate::workspace::UndoOperation, cx);
+                (t!("rebase.ready", keys = keys).into_owned(), p.fg2)
+            }
         };
         let note = h_flex()
             .h(m.header)

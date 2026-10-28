@@ -23,6 +23,7 @@ use gitweft_core::session::{Session, WindowSize};
 use gitweft_core::settings::ThemeChoice;
 use gitweft_ui::{AppIcon, LookExt, Metrics, Palette, SettingsStore};
 
+use crate::keymap;
 use crate::palette::PaletteCommand;
 use crate::session::SessionStore;
 use crate::tab_notes::Waiting;
@@ -44,7 +45,8 @@ actions!(
         ActivateTab7,
         ActivateTab8,
         ActivateLastTab,
-        OpenCommandPalette
+        OpenCommandPalette,
+        OpenRepository
     ]
 );
 
@@ -53,25 +55,29 @@ pub(crate) const KEY_CONTEXT: &str = "Shell";
 pub(crate) fn bind_keys(cx: &mut App) {
     let context = Some(KEY_CONTEXT);
     cx.bind_keys([
-        KeyBinding::new("ctrl-t", NewTab, context),
-        KeyBinding::new("ctrl-w", CloseTab, context),
+        KeyBinding::new("secondary-t", NewTab, context),
+        KeyBinding::new("secondary-w", CloseTab, context),
         // The binding added last is the one the palette shows.
         KeyBinding::new("ctrl-pagedown", NextTab, context),
         KeyBinding::new("ctrl-tab", NextTab, context),
         KeyBinding::new("ctrl-pageup", PreviousTab, context),
         KeyBinding::new("ctrl-shift-tab", PreviousTab, context),
-        KeyBinding::new("ctrl-1", ActivateTab1, context),
-        KeyBinding::new("ctrl-2", ActivateTab2, context),
-        KeyBinding::new("ctrl-3", ActivateTab3, context),
-        KeyBinding::new("ctrl-4", ActivateTab4, context),
-        KeyBinding::new("ctrl-5", ActivateTab5, context),
-        KeyBinding::new("ctrl-6", ActivateTab6, context),
-        KeyBinding::new("ctrl-7", ActivateTab7, context),
-        KeyBinding::new("ctrl-8", ActivateTab8, context),
+        KeyBinding::new("secondary-1", ActivateTab1, context),
+        KeyBinding::new("secondary-2", ActivateTab2, context),
+        KeyBinding::new("secondary-3", ActivateTab3, context),
+        KeyBinding::new("secondary-4", ActivateTab4, context),
+        KeyBinding::new("secondary-5", ActivateTab5, context),
+        KeyBinding::new("secondary-6", ActivateTab6, context),
+        KeyBinding::new("secondary-7", ActivateTab7, context),
+        KeyBinding::new("secondary-8", ActivateTab8, context),
         // As in browsers: the last tab, however many there are.
-        KeyBinding::new("ctrl-9", ActivateLastTab, context),
-        KeyBinding::new("ctrl-shift-p", OpenCommandPalette, context),
+        KeyBinding::new("secondary-9", ActivateLastTab, context),
+        KeyBinding::new("secondary-shift-p", OpenCommandPalette, context),
     ]);
+    // Open… is Cmd+O in every Mac app; elsewhere it has no key.
+    if cfg!(target_os = "macos") {
+        cx.bind_keys([KeyBinding::new("cmd-o", OpenRepository, context)]);
+    }
 }
 
 /// A palette command that calls a method of the shell.
@@ -300,6 +306,13 @@ impl Shell {
         self.activate(ix, window, cx);
     }
 
+    /// Asks for a repository to open, in a start screen.
+    fn open_repository(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.start_in_tab(window, cx, |workspace, _, cx| {
+            workspace.choose_repository(cx)
+        });
+    }
+
     /// The next (or previous) tab, wrapping around.
     fn cycle(&mut self, forward: bool, window: &mut Window, cx: &mut Context<Self>) {
         let len = self.tabs.len();
@@ -514,16 +527,15 @@ impl Shell {
                 }
             }
         }
-        commands.push(shell_command(
-            &this,
-            &group,
-            t!("start.open_repository"),
-            |this, window, cx| {
-                this.start_in_tab(window, cx, |workspace, _, cx| {
-                    workspace.choose_repository(cx)
-                })
-            },
-        ));
+        commands.push(
+            shell_command(
+                &this,
+                &group,
+                t!("start.open_repository"),
+                |this, window, cx| this.open_repository(window, cx),
+            )
+            .key(OpenRepository, Some(KEY_CONTEXT)),
+        );
         commands.push(shell_command(
             &this,
             &group,
@@ -692,7 +704,10 @@ impl Shell {
                                 .ghost()
                                 .small()
                                 .icon(Icon::from(AppIcon::Plus))
-                                .tooltip(t!("tabs.new").into_owned())
+                                .tooltip(
+                                    t!("tabs.new", keys = keymap::action_key_text(&NewTab, cx))
+                                        .into_owned(),
+                                )
                                 .on_click(
                                     cx.listener(|this, _, window, cx| this.new_tab(window, cx)),
                                 ),
@@ -854,7 +869,14 @@ impl Shell {
                     .ghost()
                     .small()
                     .icon(Icon::from(AppIcon::Settings))
-                    .tooltip(t!("title.settings").into_owned())
+                    .tooltip(
+                        t!(
+                            "title.settings",
+                            keys =
+                                keymap::action_key_text(&crate::settings_window::OpenSettings, cx)
+                        )
+                        .into_owned(),
+                    )
                     .on_click(|_, _, cx| crate::settings_window::open(cx)),
             )
             .child(
@@ -950,6 +972,9 @@ impl Render for Shell {
         });
         root = on_tab_key::<OpenCommandPalette>(root, cx, |this, window, cx| {
             this.open_palette(window, cx)
+        });
+        root = on_tab_key::<OpenRepository>(root, cx, |this, window, cx| {
+            this.open_repository(window, cx)
         });
         let look = cx.look().clone();
         root.bg(look.palette.bg)

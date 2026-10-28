@@ -68,7 +68,7 @@ pub(crate) fn pretend_settings_window(handle: WindowHandle<Root>, cx: &mut App) 
 
 pub(crate) fn bind_keys(cx: &mut App) {
     // No key context: it works in any window, whatever has the focus.
-    cx.bind_keys([KeyBinding::new("ctrl-,", OpenSettings, None)]);
+    cx.bind_keys([KeyBinding::new("secondary-,", OpenSettings, None)]);
     cx.on_action(|_: &OpenSettings, cx| open(cx));
 }
 
@@ -421,7 +421,13 @@ fn keyboard_page() -> SettingPage {
     let commands = Rc::new(keymap::bindable());
     let mut page = SettingPage::new(t!("settings.keyboard").into_owned())
         .icon(AppIcon::Settings)
-        .description(t!("settings.keyboard_hint").into_owned());
+        .description(
+            t!(
+                "settings.keyboard_hint",
+                keys = keymap::key_text("secondary-k secondary-s")
+            )
+            .into_owned(),
+        );
     for group in keymap::GROUPS {
         let items: Vec<SettingItem> = commands
             .iter()

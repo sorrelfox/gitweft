@@ -99,7 +99,7 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new("shift-end", ExtendLast, context),
         KeyBinding::new("pagedown", PageDown, context),
         KeyBinding::new("pageup", PageUp, context),
-        KeyBinding::new("ctrl-f", FocusSearch, context),
+        KeyBinding::new("secondary-f", FocusSearch, context),
     ]);
 }
 
@@ -1227,7 +1227,7 @@ impl GraphView {
                     .on_click(cx.listener(move |this, event: &ClickEvent, window, cx| {
                         this.focus.focus(window, cx);
                         let modifiers = event.modifiers();
-                        if modifiers.control || modifiers.shift {
+                        if modifiers.secondary() || modifiers.shift {
                             this.extend_selection(row, modifiers.shift, cx);
                         } else if event.click_count() >= 2 {
                             // The first click of the two has selected the row already.
@@ -2934,7 +2934,11 @@ mod view_tests {
         let sb = Sandbox::new();
         let mut cx = TestAppContext::single();
         let (window, seen) = graph(&mut cx, &sb);
-        let (plain, ctrl, shift) = (Modifiers::none(), Modifiers::control(), Modifiers::shift());
+        let (plain, ctrl, shift) = (
+            Modifiers::none(),
+            Modifiers::secondary_key(),
+            Modifiers::shift(),
+        );
 
         click(window, 1, plain); // c3
         click(window, 3, ctrl); // and c1
@@ -2997,7 +3001,7 @@ mod view_tests {
         let (window, seen) = graph(&mut cx, &sb);
 
         click(window, 1, Modifiers::none()); // c3
-        click(window, 2, Modifiers::control()); // and c2
+        click(window, 2, Modifiers::secondary_key()); // and c2
         drag(window, 2, 0); // c2 onto c4: both go, oldest first
         drag(window, 3, 0); // c1, not selected: alone
 

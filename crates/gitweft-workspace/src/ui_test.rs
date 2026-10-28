@@ -101,7 +101,7 @@ impl Ui<'_> {
         }
     }
 
-    /// Presses keys (`"ctrl-a space"`), then draws.
+    /// Presses keys (`"secondary-a space"`), then draws.
     pub fn keys(&mut self, keys: &str) {
         self.window.simulate_keystrokes(keys);
         self.frame();
@@ -186,7 +186,7 @@ impl Ui<'_> {
 
     /// Runs a command through the palette: Ctrl+Shift+P, the query, Enter.
     pub fn palette(&mut self, query: &str) {
-        self.keys("ctrl-shift-p");
+        self.keys("secondary-shift-p");
         self.type_text(query);
         self.keys("enter");
     }
@@ -345,7 +345,7 @@ mod tests {
         let mut cx = TestAppContext::single();
         let mut ui = staging_keys(&mut cx, &sb, &repo, 4);
 
-        ui.keys("ctrl-a space");
+        ui.keys("secondary-a space");
 
         ui.wait("git staged every file", |_| {
             status(&sb, &repo)
@@ -390,7 +390,7 @@ mod tests {
         ui.click_row(1); // c3
         ui.palette("reword");
         ui.wait("the message dialog", |ui| ui.dialog_open());
-        ui.keys("ctrl-a");
+        ui.keys("secondary-a");
         ui.type_text("c3, reworded");
         ui.keys("enter");
 
@@ -991,7 +991,7 @@ mod tests {
         ui.wait("the diff has the keys back", |ui| {
             ui.read(|w, cx| w.diff().is_some_and(|d| d.read(cx).has_focus()))
         });
-        ui.keys("ctrl-f c");
+        ui.keys("secondary-f c");
         let query = ui.read(|w, cx| w.diff().and_then(|d| d.read(cx).find_query(cx)));
         assert_eq!(query.as_deref(), Some("c"));
         assert!(!ui.dialog_open());
@@ -1067,13 +1067,13 @@ mod tests {
             "{:?}",
             labels(&mut ui)
         );
-        ui.click_row_with(t2, Modifiers::control(), 1);
+        ui.click_row_with(t2, Modifiers::secondary_key(), 1);
         assert!(
             offers(&mut ui, "Cherry-pick 2 commits"),
             "{:?}",
             labels(&mut ui)
         );
-        ui.click_row_with(t2, Modifiers::control(), 1);
+        ui.click_row_with(t2, Modifiers::secondary_key(), 1);
         assert!(
             offers(&mut ui, "Cherry-pick 3 commits"),
             "{:?}",
@@ -1177,7 +1177,7 @@ mod tests {
         ui.palette("run a command");
         ui.wait("the command dialog", |ui| ui.dialog_open());
         // The dialog offers the last command: replace it.
-        ui.keys("ctrl-a");
+        ui.keys("secondary-a");
         ui.type_text("! grep -q bug value.txt");
         ui.keys("enter");
         // "# first 'bad' commit: [id] c11" (older git without the quotes).
@@ -1310,7 +1310,7 @@ mod tests {
         ui.keys("escape");
         ui.wait("the diff closed", |ui| ui.read(|w, _| w.diff().is_none()));
         // `diff` keeps the view alive, as a palette command can.
-        ui.keys("ctrl-shift-p");
+        ui.keys("secondary-shift-p");
         assert!(ui.dialog_open(), "the palette opened");
         drop(diff);
     }

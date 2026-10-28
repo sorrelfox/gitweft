@@ -268,8 +268,14 @@ impl Workspace {
             ("undo", AppIcon::Undo, &self.undo_stack)
         };
         let tooltip = match (stack.last(), redo) {
-            (Some(entry), false) => t!("undo.tooltip", op = entry.label),
-            (Some(entry), true) => t!("undo.redo_tooltip", op = entry.label),
+            (Some(entry), false) => {
+                let keys = keymap::action_key_text(&UndoOperation, cx);
+                t!("undo.tooltip", op = entry.label, keys = keys)
+            }
+            (Some(entry), true) => {
+                let keys = keymap::action_key_text(&RedoOperation, cx);
+                t!("undo.redo_tooltip", op = entry.label, keys = keys)
+            }
             (None, false) => t!("undo.nothing"),
             (None, true) => t!("undo.nothing_to_redo"),
         }
