@@ -1,5 +1,6 @@
 # `just check` on every push and pull request: formatting, clippy (debug and release),
-# cargo-deny, the tests, the offline smoke test and the socket audit (strace).
+# cargo-deny, the tests, the offline smoke test and the socket audit (strace). macOS and
+# Windows get clippy, the tests and the smoke test; the rest of `just check` needs Linux tools.
 name: CI
 
 on:
@@ -37,3 +38,39 @@ jobs:
         run: command -v cargo-deny || cargo install --locked cargo-deny
       - name: just check
         run: just check
+
+  check-mac-win:
+    name: check (${{ matrix.os }})
+    strategy:
+      # Each system's result counts on its own: one failing doesn't cancel the other.
+      fail-fast: false
+      matrix:
+        os: [macos-14, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        # Git for Windows brings bash, so every step below is written once.
+        shell: bash
+    steps:
+      # Checkouts on Windows convert to CRLF by default, which would rewrite the sources and
+      # the tests' fixtures. Set before the checkout, so it applies to it.
+      - name: Keep line endings as they are
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - name: Rust (rust-toolchain.toml, with rustfmt and clippy)
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            target
+          key: check-${{ runner.os }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: check-${{ runner.os }}-
+      - name: clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Tests
+        run: cargo test --workspace --locked
+      # `unshare -rn`, which the Linux job's smoke test runs under, exists only there.
+      - name: Offline smoke test
+        run: cargo run -p gitweft --locked -- --headless-smoke .
