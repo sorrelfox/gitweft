@@ -128,6 +128,8 @@ fn cancelled_prompt_fails_as_auth_error() {
         .stdin(QUERY)
         .run(&CancelToken::new())
         .unwrap_err();
+    // Without a prompt the answerer would wait for ever; closing the server ends its wait.
+    drop(server);
     answerer.join().unwrap();
     assert_eq!(err.kind, GitErrorKind::AuthFailed, "{}", err.stderr);
 }

@@ -33,6 +33,11 @@ fn socket_dir() -> tempfile::TempDir {
         .unwrap()
 }
 
+/// `path` with forward slashes: git hands GIT_SSH_COMMAND to `sh`, which eats backslashes.
+fn slashed(path: &Path) -> String {
+    path.to_str().unwrap().replace('\\', "/")
+}
+
 fn executable(sb: &Sandbox, name: &str, script: &str) -> PathBuf {
     let path = sb.path().join(name);
     std::fs::write(&path, script).unwrap();
@@ -67,11 +72,15 @@ fn an_ssh_passphrase_prompt_fails_at_once_without_reaching_the_app() {
     let (server, requests) = AskpassServer::start_in(dir.path()).unwrap();
     let bare = bare_remote(&sb);
     let repo = sb.init_repo("r");
-    let url = format!("ssh://git.example.invalid{}", bare.display());
+    // scp-like syntax: an `ssh://` URL has no room for a Windows drive letter.
+    let url = format!("git.example.invalid:{}", slashed(&bare));
     sb.run(&repo, &["remote", "add", "origin", &url]);
 
     let mut git = wired_git(&sb, &server);
-    git.set_env("GIT_SSH_COMMAND", executable(&sb, "fake-ssh", FAKE_SSH));
+    git.set_env(
+        "GIT_SSH_COMMAND",
+        slashed(&executable(&sb, "fake-ssh", FAKE_SSH)),
+    );
     git.set_env("GIT_SSH_VARIANT", "simple");
 
     let started = Instant::now();

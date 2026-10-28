@@ -34,6 +34,11 @@ fn socket_dir() -> tempfile::TempDir {
         .unwrap()
 }
 
+/// `path` with forward slashes: git hands GIT_SSH_COMMAND to `sh`, which eats backslashes.
+fn slashed(path: &Path) -> String {
+    path.to_str().unwrap().replace('\\', "/")
+}
+
 /// A repository whose `origin` is a local bare repository reached through FAKE_SSH,
 /// with git wired to an AskpassServer. Returns the commit the remote has.
 fn setup(
@@ -54,7 +59,8 @@ fn setup(
         ],
     );
     let repo = sb.init_repo("r");
-    let url = format!("ssh://git.example.invalid{}", bare.display());
+    // scp-like syntax: an `ssh://` URL has no room for a Windows drive letter.
+    let url = format!("git.example.invalid:{}", slashed(&bare));
     sb.run(&repo, &["remote", "add", "origin", &url]);
 
     let fake_ssh = sb.path().join("fake-ssh");
@@ -64,7 +70,7 @@ fn setup(
     for (key, value) in server.git_env(Path::new(HELPER)) {
         git.set_env(key, value);
     }
-    git.set_env("GIT_SSH_COMMAND", fake_ssh);
+    git.set_env("GIT_SSH_COMMAND", slashed(&fake_ssh));
     // Plain `ssh host command` invocations (no OpenSSH feature probing with -G).
     git.set_env("GIT_SSH_VARIANT", "simple");
     (repo, git, commit)
@@ -116,6 +122,8 @@ fn a_cancelled_passphrase_prompt_is_an_authentication_failure() {
         |_| {},
     )
     .unwrap_err();
+    // Without a prompt the answerer would wait for ever; closing the server ends its wait.
+    drop(server);
     answerer.join().unwrap();
     assert_eq!(err.kind, GitErrorKind::AuthFailed, "{}", err.stderr);
 }
