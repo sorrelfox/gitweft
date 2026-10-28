@@ -34,7 +34,8 @@ unset GITWEFT_WINDOWS_CERTIFICATE_PASSWORD
 step() { printf '\n=== %s\n' "$*"; }
 # Windows programs take Windows paths, and Git Bash would rewrite arguments that start with
 # a slash (Inno Setup's and signtool's options) into paths: MSYS2_ARG_CONV_EXCL stops that.
-winpath() { cygpath -w "$1"; }
+# Absolute: ISCC reads a relative path from the .iss file's own folder.
+winpath() { cygpath -wa "$1"; }
 native() { MSYS2_ARG_CONV_EXCL='*' "$@"; }
 
 python=

@@ -70,7 +70,7 @@ jobs:
       - name: clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Tests
-        run: cargo test --workspace --locked
+        run: cargo test --workspace --locked --no-fail-fast
       # `unshare -rn`, which the Linux job's smoke test runs under, exists only there.
       - name: Offline smoke test
         run: cargo run -p gitweft --locked -- --headless-smoke .

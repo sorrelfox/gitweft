@@ -13,10 +13,15 @@ const HELPER: &str = env!("CARGO_BIN_EXE_gitweft");
 const QUERY: &str = "protocol=https\nhost=git.example.invalid\n\n";
 
 fn socket_dir() -> tempfile::TempDir {
-    // Unix socket paths are limited to ~108 bytes; keep them short.
+    // Socket paths are limited to about 100 bytes; keep them short.
+    let base = if cfg!(unix) {
+        std::path::PathBuf::from("/tmp")
+    } else {
+        std::env::temp_dir()
+    };
     tempfile::Builder::new()
         .prefix("gw")
-        .tempdir_in("/tmp")
+        .tempdir_in(base)
         .unwrap()
 }
 
