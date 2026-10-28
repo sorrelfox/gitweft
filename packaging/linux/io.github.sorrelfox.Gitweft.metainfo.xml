@@ -107,12 +107,13 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
-    <release version="1.0.1" date="2026-10-27" type="stable">
+    <release version="1.0.1" date="2026-10-28" type="stable">
       <description>
         <p>
           Error messages name the files git lists, such as the local changes a checkout or a
-          stash would overwrite, and every release package comes with a build attestation that
-          the GitHub CLI can verify.
+          stash would overwrite, every release package comes with a build attestation that the
+          GitHub CLI can verify, and the RPM, DEB and AppImage are now built for 64-bit ARM
+          (aarch64) too.
         </p>
       </description>
     </release>

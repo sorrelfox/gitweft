@@ -8,11 +8,11 @@ same sentence sits in the AppStream metainfo
 changelogs are written from, and `just versions` fails when the two disagree. So when you
 write an entry here, write the same first paragraph there.
 
-## 1.0.1 (2026-10-27)
+## 1.0.1 (2026-10-28)
 
 Error messages name the files git lists, such as the local changes a checkout or a stash would
-overwrite, and every release package comes with a build attestation that the GitHub CLI can
-verify.
+overwrite, every release package comes with a build attestation that the GitHub CLI can verify,
+and the RPM, DEB and AppImage are now built for 64-bit ARM (aarch64) too.
 
 ## 1.0.0 (2026-10-27)
 

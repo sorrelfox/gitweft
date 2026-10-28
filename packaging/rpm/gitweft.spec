@@ -97,10 +97,10 @@ appstreamcli validate --no-net %{buildroot}%{_metainfodir}/io.github.sorrelfox.G
 # The newest entry says what the metainfo's newest <release> says, on the same day
 # (scripts/dist/check-version.sh).
 %changelog
-* Tue Oct 27 2026 sorrelfox <sorrelfox@users.noreply.github.com> - 1.0.1-1
+* Wed Oct 28 2026 sorrelfox <sorrelfox@users.noreply.github.com> - 1.0.1-1
 - Error messages name the files git lists, such as the local changes a checkout or a stash
-  would overwrite, and every release package comes with a build attestation that the GitHub
-  CLI can verify.
+  would overwrite, every release package comes with a build attestation that the GitHub CLI
+  can verify, and the RPM, DEB and AppImage are now built for 64-bit ARM (aarch64) too.
 
 * Tue Oct 27 2026 sorrelfox <sorrelfox@users.noreply.github.com> - 1.0.0-1
 - The first release: a commit graph that stays quick on very large repositories, staging

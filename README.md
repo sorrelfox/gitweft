@@ -127,13 +127,17 @@ gh attestation verify FILE --repo sorrelfox/gitweft
 |---|---|---|
 | Fedora 44 and later | `gitweft-1.0.1-1.fc44.x86_64.rpm` | `sudo dnf install ./gitweft-*.rpm` |
 | Debian 13, Ubuntu 24.04 and later | `gitweft_1.0.1-1_amd64.deb` | `sudo apt install ./gitweft_*.deb` |
-| Any recent x86_64 distribution | `Gitweft-1.0.1-x86_64.AppImage` | `chmod +x Gitweft-*.AppImage`, then run it |
+| Any recent distribution | `Gitweft-1.0.1-x86_64.AppImage` | `chmod +x Gitweft-*.AppImage`, then run it |
 | Any distribution with Flatpak | `Gitweft-1.0.1-x86_64.flatpak` | `flatpak install --user ./Gitweft-*.flatpak` |
 
-You need x86_64 Linux on Wayland or X11, git 2.39 or newer, and a GPU driver with Vulkan (Mesa's
-open-source drivers are fine). The RPM and DEB pull git in as a dependency. The AppImage brings
-the few libraries not every distribution installs and uses the git you have installed. The
-Flatpak brings its own git and runs your terminal, file manager and editor outside its sandbox.
+You need x86_64 or aarch64 Linux on Wayland or X11, git 2.39 or newer, and a GPU driver with
+Vulkan (Mesa's open-source drivers are fine). The RPM and DEB pull git in as a dependency. The
+AppImage brings the few libraries not every distribution installs and uses the git you have
+installed. The Flatpak brings its own git and runs your terminal, file manager and editor
+outside its sandbox.
+
+On 64-bit ARM (aarch64) take `gitweft-1.0.1-1.fc44.aarch64.rpm`, `gitweft_1.0.1-1_arm64.deb` or
+`Gitweft-1.0.1-aarch64.AppImage` instead. The Flatpak bundle is x86_64 only for now.
 
 Open a repository from the start screen, or from a terminal:
 
@@ -244,7 +248,7 @@ your system language; `GITWEFT_LOCALE=de gitweft` picks one by hand.
 
 Gitweft is a git client and nothing more. It does not talk to GitHub or any other hosting
 service, so there are no pull requests, issues or avatars in it, and there will not be. It runs
-on x86_64 Linux only for now; ARM, Windows, and Mac builds are planned, but I haven't gotten around to them yet.
+on Linux only for now, x86_64 and ARM; Windows and Mac builds are planned, but I haven't gotten around to them yet.
 One known limitation: on KDE under Wayland, a second `gitweft PATH` opens its tab in the running
 window but cannot bring that window to the front, because the compositor only lets the window
 you clicked last come forward.
