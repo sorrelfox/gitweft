@@ -55,11 +55,6 @@ jobs:
         # Git for Windows brings bash, so every step below is written once.
         shell: bash
     steps:
-      # Checkouts on Windows convert to CRLF by default, which would rewrite the sources and
-      # the tests' fixtures. Set before the checkout, so it applies to it.
-      - name: Keep line endings as they are
-        if: runner.os == 'Windows'
-        run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - name: Rust (rust-toolchain.toml, with rustfmt and clippy)
         run: rustup show active-toolchain || rustup toolchain install

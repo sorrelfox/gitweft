@@ -1848,8 +1848,12 @@ fn config_place(origin: &ConfigOrigin) -> String {
     if origin.file.is_empty() {
         return scope.into_owned();
     }
-    let home = gitweft_platform::dirs::home();
-    let file = home_relative(&origin.file, home.as_deref().and_then(|home| home.to_str()));
+    // git writes the file with `/`, on Windows too.
+    let home = gitweft_platform::dirs::home().and_then(|home| {
+        home.to_str()
+            .map(|home| home.replace(std::path::MAIN_SEPARATOR, "/"))
+    });
+    let file = home_relative(&origin.file, home.as_deref());
     t!("commit.config_place", file = file, scope = scope).into_owned()
 }
 

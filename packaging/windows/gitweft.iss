@@ -9,6 +9,8 @@
 #ifndef AppVersion
   #error Compile it with scripts/dist/windows.sh, which defines AppVersion and the paths
 #endif
+; Windows' version numbers are digits only: 1.1.0-rc1 is 1.1.0 there.
+#define VersionNumbers Copy(AppVersion, 1, Pos("-", AppVersion + "-") - 1)
 
 [Setup]
 ; The installation's key in the list of installed apps: it must never change.
@@ -18,7 +20,7 @@ AppVersion={#AppVersion}
 AppPublisher=sorrelfox
 AppPublisherURL=https://github.com/sorrelfox/gitweft
 AppSupportURL=https://github.com/sorrelfox/gitweft/issues
-VersionInfoVersion={#AppVersion}
+VersionInfoVersion={#VersionNumbers}
 DefaultDirName={autopf}\Gitweft
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
