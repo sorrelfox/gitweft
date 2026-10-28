@@ -6,9 +6,15 @@
 //! into a group of its own that [`ProcessTree::kill`] can end in one go: a process group on
 //! Unix, a job object on Windows. The user's own programs, which outlive us, go through
 //! [`spawn_detached`] instead.
+//!
+//! [`lock_holders`] looks at the processes already running, for a git that may still be
+//! holding a lock file.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitStatus;
+
+mod holders;
+pub use holders::{LockHolder, lock_holders};
 
 #[cfg(unix)]
 mod unix;

@@ -13,7 +13,8 @@ libc.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 dunce.workspace = true
-windows-sys.workspace = true
+# The Restart Manager, for the processes that have a lock file open.
+windows-sys = { workspace = true, features = ["Win32_System_RestartManager"] }
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -160,10 +160,10 @@ palette, so kit widgets and Gitweft's views agree. Every user-visible string is 
 
 Everything that differs between the systems lives in `gitweft-platform`: turning the bytes git
 prints into paths, where the data and settings folders are, private folders and the executable
-bit, starting a process tree and stopping it, and the local sockets (Unix sockets; on Windows,
-the AF_UNIX sockets Windows 10 and 11 have). It is the only crate that uses `std::os`, `libc` or
-`windows-sys`, so the crates above it are the same code on every system. cargo-deny checks the
-dependency graph of all three.
+bit, starting a process tree and stopping it, finding the git that holds a lock file, and the
+local sockets (Unix sockets; on Windows, the AF_UNIX sockets Windows 10 and 11 have). It is the
+only crate that uses `std::os`, `libc` or `windows-sys`, so the crates above it are the same
+code on every system. cargo-deny checks the dependency graph of all three.
 
 ## In the Flatpak
 

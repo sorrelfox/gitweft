@@ -114,7 +114,7 @@ fn trusting_adds_to_other_trusted_folders() {
     );
 }
 
-/// A copy of `sleep` named `git`, so /proc reports it as a git process; killed on drop.
+/// A copy of `sleep` named `git`, so the system reports it as a git process; killed on drop.
 struct FakeGit(Child);
 
 impl FakeGit {
@@ -131,7 +131,7 @@ impl FakeGit {
         // Another test's thread forking while the copy was still open for writing keeps a
         // write handle to it for a moment, and exec fails with "Text file busy": try again.
         for _ in 0..100 {
-            // Not git at all: a stand-in process for /proc to find, never run through GitCli.
+            // Not git at all: a stand-in process to be found, never run through GitCli.
             #[allow(clippy::disallowed_methods)]
             match std::process::Command::new(&program)
                 .arg("60")
@@ -179,8 +179,9 @@ fn inspecting_a_lock() {
     assert!(info.age.unwrap() < Duration::from_secs(60), "{info:?}");
     assert_eq!(info.holders, []);
 
-    // Holders are found through /proc.
-    if !cfg!(target_os = "linux") {
+    // Holders are found by their working directory on Linux and macOS. Windows looks for
+    // the processes that have the lock file open, which a copy of `sleep` doesn't.
+    if !cfg!(any(target_os = "linux", target_os = "macos")) {
         return;
     }
     // A git working in the repository (in a subfolder) holds it; one elsewhere doesn't.

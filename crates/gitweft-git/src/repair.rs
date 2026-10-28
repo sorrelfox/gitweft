@@ -6,6 +6,8 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
 use gitweft_platform::fs::canonicalize;
+pub use gitweft_platform::process::LockHolder;
+use gitweft_platform::process::lock_holders;
 
 use crate::cancel::CancelToken;
 use crate::cli::{GitCli, GitError};
@@ -64,14 +66,6 @@ pub fn trust_directory(git: &GitCli, path: &Path, cancel: &CancelToken) -> Resul
     Ok(())
 }
 
-/// A git process working in the repository, which may be the one holding a lock.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LockHolder {
-    pub pid: u32,
-    /// Its command line (`/proc/<pid>/cmdline`, arguments separated by spaces).
-    pub command: String,
-}
-
 /// What [`inspect_lock`] found out about a lock file.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LockInfo {
@@ -80,16 +74,15 @@ pub struct LockInfo {
     pub exists: bool,
     /// How long ago it was last written, if that is known.
     pub age: Option<Duration>,
-    /// Git processes of this user running in the repository now, by pid.
+    /// Git processes that may be holding the lock now, by pid.
     pub holders: Vec<LockHolder>,
 }
 
 /// What we know about a lock file git reported: whether it (still) exists, how old it is
-/// (from its mtime), and the git processes of this user now running with their working
-/// directory inside one of `dirs` (pass the working tree and the git dirs). Those are found
-/// through /proc, so only on Linux: a process whose `comm` is `git` or starts with `git-`, whose `cwd` link
-/// can be read (only this user's can) and lies inside a dir. Never fails: whatever can't
-/// be read is skipped.
+/// (from its mtime), and the git processes that may be holding it, as [`lock_holders`]
+/// finds them: on Linux and macOS those of this user with their working directory inside
+/// one of `dirs` (pass the working tree and the git dirs), on Windows those that have the
+/// lock file open. Never fails: whatever can't be read is skipped.
 pub fn inspect_lock(path: &Path, dirs: &[PathBuf]) -> LockInfo {
     let meta = std::fs::symlink_metadata(path).ok();
     let age = meta.as_ref().and_then(|m| m.modified().ok()).map(|mtime| {
@@ -103,39 +96,8 @@ pub fn inspect_lock(path: &Path, dirs: &[PathBuf]) -> LockInfo {
         path: path.to_owned(),
         exists: meta.is_some(),
         age,
-        holders: git_processes_in(&dirs),
+        holders: lock_holders(path, &dirs),
     }
-}
-
-fn git_processes_in(dirs: &[PathBuf]) -> Vec<LockHolder> {
-    let Ok(entries) = std::fs::read_dir("/proc") else {
-        return Vec::new();
-    };
-    let mut holders: Vec<LockHolder> = entries
-        .flatten()
-        .filter_map(|entry| {
-            let pid: u32 = entry.file_name().to_str()?.parse().ok()?;
-            let proc = entry.path();
-            let comm = std::fs::read_to_string(proc.join("comm")).ok()?;
-            let comm = comm.trim_end_matches('\n');
-            if comm != "git" && !comm.starts_with("git-") {
-                return None;
-            }
-            // Another user's process: the link can't be read.
-            let cwd = std::fs::read_link(proc.join("cwd")).ok()?;
-            if !dirs.iter().any(|dir| cwd.starts_with(dir)) {
-                return None;
-            }
-            let cmdline = std::fs::read(proc.join("cmdline")).unwrap_or_default();
-            let command = String::from_utf8_lossy(&cmdline)
-                .replace('\0', " ")
-                .trim()
-                .to_owned();
-            Some(LockHolder { pid, command })
-        })
-        .collect();
-    holders.sort_by_key(|holder| holder.pid);
-    holders
 }
 
 /// Deletes a lock file a crashed git left behind. Refuses (`InvalidInput`) anything that

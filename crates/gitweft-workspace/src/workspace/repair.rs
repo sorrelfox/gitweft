@@ -78,8 +78,9 @@ impl Workspace {
         Some((git_dirs, dirs))
     }
 
-    /// Looks at the lock git reported (off the UI thread: it reads /proc), then explains it:
-    /// gone already, held by a git running now, or left behind (with a way to remove it).
+    /// Looks at the lock git reported (off the UI thread: it looks at the running processes),
+    /// then explains it: gone already, held by a git running now, or left behind (with a way to
+    /// remove it).
     fn offer_lock_removal(&mut self, path: PathBuf, window: &mut Window, cx: &mut Context<Self>) {
         let Some((git_dirs, dirs)) = self.lock_dirs() else {
             return;
