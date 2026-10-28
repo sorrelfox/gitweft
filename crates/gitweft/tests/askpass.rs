@@ -72,6 +72,7 @@ fn credentials_flow_through_the_helper() {
     );
 }
 
+#[cfg(unix)]
 #[test]
 fn a_prompt_that_isnt_utf8_reaches_the_app() {
     use std::os::unix::ffi::OsStrExt as _;

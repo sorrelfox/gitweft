@@ -2,6 +2,8 @@
 //! the original. Needs the temp dir and the target dir on different devices (on
 //! Fedora `/tmp` is a tmpfs); where they aren't, it's skipped with a note.
 
+#![cfg(unix)]
+
 use std::os::unix::fs::{MetadataExt, PermissionsExt};
 use std::path::Path;
 

@@ -3,7 +3,7 @@
 //! When git or ssh need a secret (an HTTPS password, a key passphrase, a host-key
 //! confirmation), they run `$GIT_ASKPASS "<prompt>"` / `$SSH_ASKPASS "<prompt>"` and read the
 //! answer from its stdout. Gitweft points both at its own binary. In helper mode, that
-//! binary forwards the prompt over a private Unix socket to the running app
+//! binary forwards the prompt over a private local socket to the running app
 //! ([`AskpassServer`]), which asks the user and sends the answer back.
 //!
 //! Gitweft never stores what the user types; git's own credential helpers decide that.
@@ -15,13 +15,14 @@
 use std::ffi::OsString;
 use std::io::{self, Read, Write};
 use std::net::Shutdown;
-use std::os::unix::fs::{DirBuilderExt, PermissionsExt};
-use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, mpsc};
 use std::thread;
+
+use gitweft_platform::local_socket::{Listener, Stream};
+use gitweft_platform::{dirs, fs};
 
 /// Set in git's environment; its presence puts the gitweft binary into helper mode.
 pub const ENV_SOCKET: &str = "GITWEFT_ASKPASS_SOCKET";
@@ -84,31 +85,25 @@ pub struct AskpassServer {
 }
 
 impl AskpassServer {
-    /// Starts a server with its socket in `$XDG_RUNTIME_DIR/gitweft/`.
+    /// Starts a server with its socket in this user's socket folder
+    /// (`$XDG_RUNTIME_DIR/gitweft/` where there is one).
     pub fn start() -> io::Result<(Self, async_channel::Receiver<AskpassRequest>)> {
-        let base = std::env::var_os("XDG_RUNTIME_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(std::env::temp_dir);
-        Self::start_in(&base.join("gitweft"))
+        Self::start_in(&dirs::socket_dir())
     }
 
-    /// Starts a server with its socket in `dir` (created with mode 0700).
+    /// Starts a server with its socket in `dir` (created private to this user).
     pub fn start_in(dir: &Path) -> io::Result<(Self, async_channel::Receiver<AskpassRequest>)> {
         static COUNTER: AtomicU32 = AtomicU32::new(0);
 
-        std::fs::DirBuilder::new()
-            .recursive(true)
-            .mode(0o700)
-            .create(dir)?;
-        std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700))?;
+        fs::create_private_dir(dir)?;
         let socket_path = dir.join(format!(
             "askpass-{}-{}.sock",
             std::process::id(),
             COUNTER.fetch_add(1, Ordering::Relaxed)
         ));
         let _ = std::fs::remove_file(&socket_path);
-        let listener = UnixListener::bind(&socket_path)?;
-        std::fs::set_permissions(&socket_path, std::fs::Permissions::from_mode(0o600))?;
+        let listener = Listener::bind(&socket_path)?;
+        fs::make_private(&socket_path)?;
 
         let token = random_token()?;
         let shutdown = Arc::new(AtomicBool::new(false));
@@ -164,13 +159,13 @@ impl Drop for AskpassServer {
     fn drop(&mut self) {
         self.shutdown.store(true, Ordering::Relaxed);
         // Wake the accept loop so its thread exits.
-        let _ = UnixStream::connect(&self.socket_path);
+        let _ = Stream::connect(&self.socket_path);
         let _ = std::fs::remove_file(&self.socket_path);
     }
 }
 
 fn serve(
-    mut stream: UnixStream,
+    mut stream: Stream,
     token: &str,
     tx: &async_channel::Sender<AskpassRequest>,
 ) -> io::Result<()> {
@@ -205,7 +200,7 @@ fn serve(
 
 /// Client side: sends `prompt` and waits for the user's answer (`None` = cancelled).
 pub fn request(socket: &Path, token: &str, prompt: &str) -> io::Result<Option<String>> {
-    let mut stream = UnixStream::connect(socket)?;
+    let mut stream = Stream::connect(socket)?;
     stream.write_all(MAGIC)?;
     stream.write_all(token.as_bytes())?;
     stream.write_all(b"\n")?;
@@ -247,7 +242,7 @@ pub fn run_helper(prompt: &str) -> ExitCode {
 
 fn random_token() -> io::Result<String> {
     let mut bytes = [0u8; 16];
-    std::fs::File::open("/dev/urandom")?.read_exact(&mut bytes)?;
+    gitweft_platform::random_bytes(&mut bytes)?;
     Ok(bytes.iter().map(|b| format!("{b:02x}")).collect())
 }
 
@@ -256,10 +251,15 @@ mod tests {
     use super::*;
 
     fn short_dir() -> tempfile::TempDir {
-        // Unix socket paths are limited to ~108 bytes; keep them short.
+        // Socket paths are limited to about 100 bytes; keep them short.
+        let base = if cfg!(unix) {
+            PathBuf::from("/tmp")
+        } else {
+            std::env::temp_dir()
+        };
         tempfile::Builder::new()
             .prefix("gw")
-            .tempdir_in("/tmp")
+            .tempdir_in(base)
             .unwrap()
     }
 
@@ -318,9 +318,13 @@ mod tests {
     fn socket_is_private() {
         let dir = short_dir();
         let (server, _requests) = AskpassServer::start_in(&dir.path().join("rt")).unwrap();
-        let mode = |p: &Path| std::fs::metadata(p).unwrap().permissions().mode() & 0o777;
-        assert_eq!(mode(&dir.path().join("rt")), 0o700);
-        assert_eq!(mode(server.socket_path()), 0o600);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = |p: &Path| std::fs::metadata(p).unwrap().permissions().mode() & 0o777;
+            assert_eq!(mode(&dir.path().join("rt")), 0o700);
+            assert_eq!(mode(server.socket_path()), 0o600);
+        }
         let path = server.socket_path().to_owned();
         drop(server);
         assert!(!path.exists(), "socket file is removed on drop");

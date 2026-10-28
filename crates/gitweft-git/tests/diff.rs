@@ -111,6 +111,7 @@ fn context_size_and_ignoring_whitespace() {
     assert_eq!(changed_texts, ["line 5", "line five"]);
 }
 
+#[cfg(unix)]
 #[test]
 fn a_commits_diff_of_a_path_that_isnt_utf8() {
     use std::os::unix::ffi::OsStrExt as _;
@@ -156,6 +157,7 @@ fn a_commits_diff_of_a_path_that_isnt_utf8() {
     assert_eq!(diff.path.as_slice(), name);
 }
 
+#[cfg(unix)]
 #[test]
 fn a_mode_change_is_reported_with_or_without_content_changes() {
     use std::os::unix::fs::PermissionsExt as _;

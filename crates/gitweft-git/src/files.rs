@@ -17,9 +17,9 @@
 
 use std::ffi::{OsStr, OsString};
 use std::io::Write;
-use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::path::{Path, PathBuf};
 
+use gitweft_platform::bytes::path_from_bytes;
 use gix::ObjectId;
 use gix::bstr::BString;
 
@@ -83,7 +83,7 @@ pub fn format_patches(
                     format!("fatal: git wrote no patch for {hex}"),
                 ));
             }
-            Ok(PathBuf::from(OsStr::from_bytes(name)))
+            Ok(path_from_bytes(name).into_owned())
         })
         .collect()
 }
@@ -510,14 +510,14 @@ fn git_path(
         .read_only()
         .run(cancel)?;
     let path = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
-    Ok(workdir.join(OsStr::from_bytes(path)))
+    Ok(workdir.join(path_from_bytes(path)))
 }
 
 /// `--opt=` followed by a path's bytes, as one argument.
 fn joined(option: &str, value: &OsStr) -> OsString {
-    let mut bytes = option.as_bytes().to_vec();
-    bytes.extend_from_slice(value.as_bytes());
-    OsString::from_vec(bytes)
+    let mut joined = OsString::from(option);
+    joined.push(value);
+    joined
 }
 
 #[cfg(test)]

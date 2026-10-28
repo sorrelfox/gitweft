@@ -10,14 +10,14 @@
 //! started there through `flatpak-spawn --host` ([`Host`]).
 
 use std::collections::HashMap;
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsString;
 use std::fmt;
 use std::io::Read;
-use std::os::unix::ffi::{OsStrExt, OsStringExt};
-use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
+
+use gitweft_platform::bytes::os_string_from_vec;
 
 /// How long [`launch`] waits for a program that fails at once (a bad option, a missing file).
 const QUICK_FAILURE: Duration = Duration::from_millis(1500);
@@ -291,9 +291,8 @@ impl Environment {
 }
 
 fn is_executable(path: &Path) -> bool {
-    use std::os::unix::fs::PermissionsExt;
     path.metadata()
-        .is_ok_and(|meta| meta.is_file() && meta.permissions().mode() & 0o111 != 0)
+        .is_ok_and(|meta| meta.is_file() && gitweft_platform::fs::is_executable(&meta))
 }
 
 /// Splits a command line into words as a shell would, without running one: spaces
@@ -362,10 +361,10 @@ fn expand(word: &str, path: &Path) -> (OsString, bool) {
     while let Some(part) = parts.next() {
         bytes.extend_from_slice(part.as_bytes());
         if parts.peek().is_some() {
-            bytes.extend_from_slice(path.as_os_str().as_bytes());
+            bytes.extend_from_slice(path.as_os_str().as_encoded_bytes());
         }
     }
-    (OsString::from_vec(bytes), true)
+    (os_string_from_vec(bytes), true)
 }
 
 /// A command setting run for `path`: its words with `{path}` expanded; with no `{path}`,
@@ -660,7 +659,7 @@ fn xdg_open(target: &Path, cwd: &Path, env: &Environment) -> Result<Launch, Laun
 /// comma or quote can't split a `dbus-send` argument.
 fn file_uri(path: &Path) -> String {
     let mut uri = String::from("file://");
-    for &byte in path.as_os_str().as_bytes() {
+    for &byte in path.as_os_str().as_encoded_bytes() {
         if byte.is_ascii_alphanumeric() || b"-._~/".contains(&byte) {
             uri.push(char::from(byte));
         } else {
@@ -670,7 +669,7 @@ fn file_uri(path: &Path) -> String {
     uri
 }
 
-/// Starts `launch` on its own (its own process group, no terminal input) and returns once
+/// Starts `launch` on its own (detached from us, no terminal input) and returns once
 /// it runs. A program that exits with an error within a moment (a bad option, `xdg-open`
 /// finding nothing to open with) reports its last message. Blocks for up to 1.5 s: run it
 /// off the UI thread.
@@ -680,20 +679,22 @@ pub fn launch(launch: &Launch) -> Result<(), LaunchError> {
         |name| name.to_string_lossy().into_owned(),
     );
     #[allow(clippy::disallowed_methods)] // The user's own programs, never git (see module docs).
-    let mut child = Command::new(&launch.program)
+    let mut command = Command::new(&launch.program);
+    command
         .args(&launch.args)
         .current_dir(&launch.cwd)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::piped())
-        .process_group(0)
-        .spawn()
-        .map_err(|err| match err.kind() {
-            std::io::ErrorKind::NotFound => LaunchError::NotFound(name.clone()),
-            _ => LaunchError::Failed {
-                program: name.clone(),
-                message: err.to_string(),
-            },
+        .stderr(Stdio::piped());
+    let mut child =
+        gitweft_platform::process::spawn_detached(&mut command).map_err(|err| {
+            match err.kind() {
+                std::io::ErrorKind::NotFound => LaunchError::NotFound(name.clone()),
+                _ => LaunchError::Failed {
+                    program: name.clone(),
+                    message: err.to_string(),
+                },
+            }
         })?;
     let mut stderr = child.stderr.take().expect("stderr is piped");
     // Read on a thread of its own: a chatty program must not block on a full pipe.
@@ -731,22 +732,19 @@ pub fn launch(launch: &Launch) -> Result<(), LaunchError> {
     Ok(())
 }
 
-/// A path as an [`OsStr`], for callers that have bytes.
-pub fn path_from_bytes(bytes: &[u8]) -> &Path {
-    Path::new(OsStr::from_bytes(bytes))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     /// A folder of fake programs to be `PATH`, and an environment using it.
+    #[cfg(unix)]
     fn programs(names: &[&str]) -> (tempfile::TempDir, Environment) {
+        use std::os::unix::fs::PermissionsExt;
+
         let dir = tempfile::tempdir().unwrap();
         for name in names {
             let path = dir.path().join(name);
             std::fs::write(&path, "#!/bin/sh\n").unwrap();
-            use std::os::unix::fs::PermissionsExt;
             std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).unwrap();
         }
         let env = Environment {
@@ -758,6 +756,7 @@ mod tests {
         (dir, env)
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_known_terminal_is_told_to_run_a_command() {
         let (_dir, env) = programs(&[
@@ -857,6 +856,7 @@ mod tests {
         assert_eq!(name(&run("").unwrap()), "konsole");
     }
 
+    #[cfg(unix)]
     fn args(launch: &Launch) -> Vec<String> {
         launch
             .args
@@ -865,6 +865,7 @@ mod tests {
             .collect()
     }
 
+    #[cfg(unix)]
     fn name(launch: &Launch) -> String {
         launch
             .program
@@ -900,10 +901,17 @@ mod tests {
             OsString::from("/r/a b:/r/a b")
         );
         assert_eq!(expand("-n", path), ("-n".into(), false));
-        let odd = path_from_bytes(b"/caf\xe9");
-        assert_eq!(expand("{path}", odd).0.as_bytes(), b"/caf\xe9");
     }
 
+    #[cfg(unix)]
+    #[test]
+    fn a_path_that_is_not_utf8_expands_as_it_is() {
+        let odd = gitweft_platform::bytes::path_from_bytes(b"/caf\xe9");
+        assert_eq!(expand("{path}", &odd).0.as_encoded_bytes(), b"/caf\xe9");
+        assert_eq!(file_uri(&odd), "file:///caf%E9");
+    }
+
+    #[cfg(unix)]
     #[test]
     fn terminals_are_found_and_opened_in_the_folder() {
         let dir = Path::new("/repo");
@@ -929,6 +937,7 @@ mod tests {
         assert_eq!(default_terminal(&env).as_deref(), Some("ptyxis"));
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_terminal_setting_is_used_as_written() {
         let dir = Path::new("/repo");
@@ -957,6 +966,7 @@ mod tests {
         assert_eq!(terminal("", dir, &empty), Err(LaunchError::NoTerminal));
     }
 
+    #[cfg(unix)]
     #[test]
     fn the_file_manager_selects_a_file_when_the_desktop_can() {
         let (bin, env) = programs(&["xdg-open", "dbus-send", "dolphin"]);
@@ -991,6 +1001,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn the_default_folder_handler_selects_the_file_itself() {
         let (bin, mut env) = programs(&["xdg-open", "dbus-send", "dolphin"]);
@@ -1027,6 +1038,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn editors_open_the_file() {
         let (_bin, env) = programs(&["xdg-open", "code"]);
@@ -1054,6 +1066,7 @@ mod tests {
 
     /// A stand-in for `flatpak-spawn` whose "host" has only `names` (fake programs) on its
     /// `PATH` and their `share` folder as `XDG_DATA_DIRS`, and an environment in a sandbox.
+    #[cfg(unix)]
     fn host(names: &[&str]) -> (tempfile::TempDir, Environment) {
         let (dir, _) = programs(names);
         let spawn = dir.path().join("spawn-stub");
@@ -1074,6 +1087,7 @@ mod tests {
     /// Writes a script and waits until it can be run: another test thread forking while it
     /// was written keeps it open in that child until the child execs, and running it fails
     /// with ETXTBSY meanwhile ("Text file busy"). Once it has run, nothing holds it open.
+    #[cfg(unix)]
     fn write_program(path: &Path, script: &str) {
         use std::os::unix::fs::PermissionsExt;
         std::fs::write(path, script).unwrap();
@@ -1094,10 +1108,12 @@ mod tests {
         }
     }
 
+    #[cfg(unix)]
     fn texts(launch: &Launch) -> (PathBuf, Vec<String>) {
         (launch.program.clone(), args(launch))
     }
 
+    #[cfg(unix)]
     #[test]
     fn in_a_sandbox_programs_are_the_hosts() {
         let (bin, env) = host(&["konsole", "xdg-open"]);
@@ -1132,6 +1148,7 @@ mod tests {
         assert_eq!(args(&launch)[3], "/repo/a.rs");
     }
 
+    #[cfg(unix)]
     #[test]
     fn in_a_sandbox_the_desktop_is_asked_on_the_host() {
         let (bin, env) = host(&["xdg-open", "dbus-send", "dolphin"]);
@@ -1165,6 +1182,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn in_a_sandbox_launching_runs_on_the_host_in_the_folder() {
         let (bin, env) = host(&["mark"]);
@@ -1192,9 +1210,9 @@ mod tests {
             file_uri(Path::new("/x y/'q',\"")),
             "file:///x%20y/%27q%27%2C%22"
         );
-        assert_eq!(file_uri(path_from_bytes(b"/caf\xe9")), "file:///caf%E9");
     }
 
+    #[cfg(unix)]
     #[test]
     fn launching_reports_quick_failures_only() {
         let sh = |script: &str| Launch {

@@ -4,13 +4,12 @@
 //! with git's prepared message as edited here (other operations continue).
 
 use std::collections::HashMap;
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt as _;
 
 use gitweft_core::conflicts::{self, ConflictRecord};
 use gitweft_diff::conflict::{conflict_count, parse_conflicts_sized};
 use gitweft_git::conflict_files::{binary_merge_paths, conflict_marker_size};
 use gitweft_git::merge::{prepared_conflicts, prepared_message};
+use gitweft_platform::bytes::path_from_bytes;
 
 use gpui_kit::component::menu::ContextMenuExt as _;
 
@@ -123,7 +122,7 @@ pub(super) fn read_conflicts(
             notes.insert(path, WholeNote::BinaryAttributes);
             continue;
         }
-        let file = workdir.join(OsStr::from_bytes(&path));
+        let file = workdir.join(path_from_bytes(&path));
         // Reading a link would read its target: a conflicted link has no markers.
         if file
             .symlink_metadata()
@@ -162,7 +161,7 @@ pub(super) fn read_conflicts(
         .chain(recorded_files.map(|path| BString::from(path.as_slice())))
         .filter(|path| {
             workdir
-                .join(OsStr::from_bytes(path))
+                .join(path_from_bytes(path))
                 .symlink_metadata()
                 .is_ok()
         })

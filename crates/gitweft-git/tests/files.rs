@@ -1,5 +1,3 @@
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
 use gitweft_git::files::{
@@ -11,6 +9,7 @@ use gitweft_git::gix::bstr::BString;
 use gitweft_git::merge::{Operation, OperationAction, operation_state, run_operation_action};
 use gitweft_git::ops::discard_paths;
 use gitweft_git::{CancelToken, GitErrorKind, ObjectId};
+use gitweft_platform::bytes::path_from_bytes;
 use gitweft_testkit::Sandbox;
 
 fn c() -> CancelToken {
@@ -22,7 +21,7 @@ fn id(hex: &str) -> ObjectId {
 }
 
 fn path(repo: &Path, name: &[u8]) -> PathBuf {
-    repo.join(OsStr::from_bytes(name))
+    repo.join(path_from_bytes(name))
 }
 
 /// Writes `content` to `name` (bytes, relative to `repo`), creating folders.
@@ -384,12 +383,12 @@ fn files_only(names: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
 fn archive_writes_zip_and_tar_gz_with_the_commit_files() {
     let sb = Sandbox::new();
     let repo = sb.init_repo("r");
-    for name in [
-        &b"a.txt"[..],
-        b"dir/sub file.txt",
-        b"-dash.txt",
-        b"caf\xe9.txt",
-    ] {
+    let mut names = vec![&b"a.txt"[..], b"dir/sub file.txt", b"-dash.txt"];
+    // A name that isn't UTF-8, where the system can hold one.
+    if cfg!(unix) {
+        names.push(b"caf\xe9.txt");
+    }
+    for name in &names {
         write(&repo, name, "x\n");
     }
     sb.run(&repo, &["add", "-A"]);
@@ -405,7 +404,7 @@ fn archive_writes_zip_and_tar_gz_with_the_commit_files() {
         .unwrap()
         .stdout;
     let expected = files_only(tree.split(|&b| b == 0).map(<[u8]>::to_vec).collect());
-    assert_eq!(expected.len(), 4);
+    assert_eq!(expected.len(), names.len());
 
     // Relative to the repository, and named like an option.
     archive(
@@ -525,6 +524,7 @@ fn clean_candidates_are_what_git_clean_would_remove() {
     assert_eq!(all, git_clean_list(&sb, &repo, true));
 }
 
+#[cfg(unix)]
 #[test]
 fn clean_candidates_keep_special_names_byte_exact() {
     let sb = Sandbox::new();
@@ -553,7 +553,9 @@ fn clean_candidates_keep_special_names_byte_exact() {
 fn discard_paths_moves_every_clean_candidate_to_the_trash() {
     let sb = Sandbox::new();
     let repo = clean_fixture(&sb);
-    write(&repo, b"caf\xe9 \"q\".txt", "x\n");
+    if cfg!(unix) {
+        write(&repo, b"caf\xe9 \"q\".txt", "x\n");
+    }
     let candidates = clean_candidates(sb.git(), &repo, true, &c()).unwrap();
     // Folders (with their trailing `/`), an empty one, ignored files and folders.
     for kind in ["u/", "empty/", "top.log", "build/", "logs/"] {
@@ -609,6 +611,7 @@ fn ignored_by(sb: &Sandbox, repo: &Path, name: &[u8]) -> Option<(BString, usize)
     }
 }
 
+#[cfg(unix)]
 #[test]
 fn path_patterns_ignore_exactly_that_path() {
     let sb = Sandbox::new();

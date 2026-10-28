@@ -4,10 +4,12 @@
 //! filters, rename detection and `diff.*` settings all behave like in a terminal.
 //! Line text is kept as raw bytes so patches can be rebuilt exactly.
 
+use std::borrow::Cow;
 use std::ffi::{OsStr, OsString};
-use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 
+use gitweft_platform::bytes::os_str_from_bytes;
+use gitweft_platform::fs;
 use gix::ObjectId;
 use gix::bstr::{BString, ByteSlice};
 
@@ -203,7 +205,12 @@ pub fn file_diff(
     }
     let mut args = diff_args(source, options.context, options.ignore_whitespace);
     args.push("--".into());
-    args.extend(old_path.into_iter().chain([path]).map(|p| os(p).to_owned()));
+    args.extend(
+        old_path
+            .into_iter()
+            .chain([path])
+            .map(|p| os(p).into_owned()),
+    );
 
     let output = git
         .command(workdir)
@@ -279,8 +286,8 @@ pub(crate) fn explain_refused_diff(
     }
 }
 
-fn os(path: &BString) -> &OsStr {
-    OsStr::from_bytes(path)
+fn os(path: &BString) -> Cow<'_, OsStr> {
+    os_str_from_bytes(path)
 }
 
 /// The raw bytes of both versions of a file that a diff compares.
@@ -314,7 +321,7 @@ pub fn file_versions(
         let run = |kind: &str| {
             git.command(workdir)
                 .args(["cat-file", kind])
-                .arg(OsStr::from_bytes(&spec))
+                .arg(os_str_from_bytes(&spec))
                 .allow_exit_codes(&[128])
                 .read_only()
                 .run(cancel)
@@ -359,18 +366,20 @@ fn untracked_diff(workdir: &Path, path: &BString) -> Result<FileDiff, ReadError>
         path: path.clone(),
         ..FileDiff::default()
     };
-    let full = workdir.join(Path::new(os(path)));
+    let full = workdir.join(os(path));
     let metadata = std::fs::symlink_metadata(&full)?;
     let mode = if metadata.file_type().is_symlink() {
         "120000"
-    } else if std::os::unix::fs::PermissionsExt::mode(&metadata.permissions()) & 0o111 != 0 {
+    } else if fs::is_executable(&metadata) {
         "100755"
     } else {
         "100644"
     };
     diff.new_file_mode = Some(mode.to_owned());
     let content: Vec<u8> = if metadata.file_type().is_symlink() {
-        std::fs::read_link(&full)?.as_os_str().as_bytes().to_vec()
+        std::fs::read_link(&full)?
+            .into_os_string()
+            .into_encoded_bytes()
     } else if metadata.is_dir() {
         return Ok(diff); // e.g. an untracked nested repository
     } else if metadata.len() > MAX_UNTRACKED_BYTES {

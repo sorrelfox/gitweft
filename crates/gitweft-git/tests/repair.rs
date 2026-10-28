@@ -1,7 +1,9 @@
 //! Getting past git's refusals with real git: an untrusted folder, a stale lock file, an
 //! unknown identity.
 
+#[cfg(unix)]
 use std::ffi::OsStr;
+#[cfg(unix)]
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::process::Child;
@@ -11,7 +13,7 @@ use gitweft_git::gix::bstr::BString;
 use gitweft_git::ops::{CommitOptions, ConfigOrigin, commit, identity};
 use gitweft_git::read::{DiffOptions, DiffSource, file_diff};
 use gitweft_git::repair::{
-    inspect_lock, remove_lock, set_identity, trust_directory, untrusted_folder, untrusted_path,
+    inspect_lock, remove_lock, set_identity, trust_directory, untrusted_path,
 };
 use gitweft_git::{CancelToken, GitCli, GitErrorKind, ObjectId};
 use gitweft_testkit::Sandbox;
@@ -256,20 +258,23 @@ fn removing_only_lock_files_in_the_git_dir() {
     std::fs::create_dir(git_dir.join("dir.lock")).unwrap();
     refused(&git_dir.join("dir.lock"));
     assert!(git_dir.join("dir.lock").is_dir());
-    // A symlink pointing outside: neither it nor its target goes.
-    let target = sb.path().join("precious");
-    std::fs::write(&target, "keep").unwrap();
-    std::os::unix::fs::symlink(&target, git_dir.join("x.lock")).unwrap();
-    refused(&git_dir.join("x.lock"));
-    assert!(git_dir.join("x.lock").is_symlink());
-    assert_eq!(std::fs::read_to_string(&target).unwrap(), "keep");
-    // A symlinked folder inside the git dir leading outside.
-    let elsewhere = sb.path().join("elsewhere");
-    std::fs::create_dir(&elsewhere).unwrap();
-    std::fs::write(elsewhere.join("a.lock"), "").unwrap();
-    std::os::unix::fs::symlink(&elsewhere, git_dir.join("link")).unwrap();
-    refused(&git_dir.join("link").join("a.lock"));
-    assert!(elsewhere.join("a.lock").exists());
+    #[cfg(unix)]
+    {
+        // A symlink pointing outside: neither it nor its target goes.
+        let target = sb.path().join("precious");
+        std::fs::write(&target, "keep").unwrap();
+        std::os::unix::fs::symlink(&target, git_dir.join("x.lock")).unwrap();
+        refused(&git_dir.join("x.lock"));
+        assert!(git_dir.join("x.lock").is_symlink());
+        assert_eq!(std::fs::read_to_string(&target).unwrap(), "keep");
+        // A symlinked folder inside the git dir leading outside.
+        let elsewhere = sb.path().join("elsewhere");
+        std::fs::create_dir(&elsewhere).unwrap();
+        std::fs::write(elsewhere.join("a.lock"), "").unwrap();
+        std::os::unix::fs::symlink(&elsewhere, git_dir.join("link")).unwrap();
+        refused(&git_dir.join("link").join("a.lock"));
+        assert!(elsewhere.join("a.lock").exists());
+    }
     // `..` out of the git dir.
     refused(&git_dir.join("..").join("tree.lock"));
 
@@ -495,8 +500,10 @@ fn identity_guessed_by_git() {
     assert!(!id.guessed);
 }
 
+#[cfg(unix)]
 #[test]
 fn a_folder_that_isnt_utf8_is_found_from_the_opened_one_and_trusted() {
+    use gitweft_git::repair::untrusted_folder;
     let sb = Sandbox::new();
     let parent = sb.path().canonicalize().unwrap();
     let root = parent.join(OsStr::from_bytes(b"caf\xe9 repo"));

@@ -1,8 +1,12 @@
 //! Repository maintenance operations (local writes through the git CLI).
 
+use std::borrow::Cow;
 use std::collections::HashMap;
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
+use gitweft_platform::bytes::os_str_from_bytes;
+use gitweft_platform::fs;
 use gix::ObjectId;
 use gix::bstr::BString;
 
@@ -388,13 +392,12 @@ fn hash_bytes(
 
 /// The target of the symlink at `path`, as bytes; `None` when it isn't one.
 fn link_text(path: &Path) -> Option<Vec<u8>> {
-    use std::os::unix::ffi::OsStringExt;
     std::fs::symlink_metadata(path)
         .ok()
         .filter(|meta| meta.is_symlink())?;
     std::fs::read_link(path)
         .ok()
-        .map(|target| target.into_os_string().into_vec())
+        .map(|target| target.into_os_string().into_encoded_bytes())
 }
 
 /// What a tracked path holds in the working tree.
@@ -407,7 +410,6 @@ struct WorktreeEntry {
 /// A file (and whether it's executable) or a symlink (a dangling one too) at `path`;
 /// `None` for nothing there, or a folder.
 fn worktree_entry(path: &Path) -> Option<WorktreeEntry> {
-    use std::os::unix::fs::PermissionsExt;
     let meta = std::fs::symlink_metadata(path).ok()?;
     if meta.is_symlink() {
         Some(WorktreeEntry {
@@ -416,7 +418,7 @@ fn worktree_entry(path: &Path) -> Option<WorktreeEntry> {
         })
     } else if meta.is_file() {
         Some(WorktreeEntry {
-            executable: meta.permissions().mode() & 0o111 != 0,
+            executable: fs::is_executable(&meta),
             symlink: false,
         })
     } else {
@@ -768,9 +770,8 @@ fn is_trailer(line: &str) -> bool {
 }
 
 /// A repository-relative path as a filesystem path (git paths are bytes on Unix).
-fn path_of(path: &BString) -> &Path {
-    use std::os::unix::ffi::OsStrExt;
-    Path::new(std::ffi::OsStr::from_bytes(path))
+fn path_of(path: &BString) -> Cow<'_, OsStr> {
+    os_str_from_bytes(path)
 }
 
 #[cfg(test)]

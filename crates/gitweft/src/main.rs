@@ -9,31 +9,9 @@ use std::process::ExitCode;
 
 use gitweft_workspace::cli_text;
 
-/// glibc gives threads that allocate at the same time arenas of their own, up to eight per
-/// core, and freed memory stays in them. On the Linux kernel's history the job threads'
-/// arenas kept about 25 MB resident after the load; two arenas keep it to a few, with no
-/// measurable cost to load time. Called first, before any thread starts. A limit the
-/// user set (`MALLOC_ARENA_MAX`, or `arena_max` in `GLIBC_TUNABLES`) is left alone.
-#[cfg(all(target_os = "linux", target_env = "gnu"))]
-fn limit_malloc_arenas() {
-    let tunables = std::env::var_os("GLIBC_TUNABLES").unwrap_or_default();
-    if std::env::var_os("MALLOC_ARENA_MAX").is_some()
-        || tunables.to_string_lossy().contains("arena_max")
-    {
-        return;
-    }
-    // SAFETY: no other thread exists yet; mallopt only changes the allocator's settings.
-    unsafe {
-        libc::mallopt(libc::M_ARENA_MAX, 2);
-    }
-}
-
-#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
-fn limit_malloc_arenas() {}
-
 fn main() -> ExitCode {
     let started = std::time::Instant::now();
-    limit_malloc_arenas();
+    gitweft_platform::limit_malloc_arenas();
     // git runs us as GIT_SEQUENCE_EDITOR during an interactive rebase: `--sequence-editor
     // <plan> <todo>`. Checked first, because the askpass variable below is set in every
     // git child's environment, including this one.
@@ -230,6 +208,7 @@ mod tests {
         assert_eq!(parse(args(&["-"])), Ok(open(false, &["-"])));
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_path_that_isnt_utf8_is_kept() {
         use std::os::unix::ffi::OsStringExt;

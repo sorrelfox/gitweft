@@ -174,11 +174,9 @@ pub fn ref_values(
             let output = git
                 .command(workdir)
                 .args(["rev-parse", "--quiet", "--verify", "--end-of-options"])
-                .arg(
-                    <std::ffi::OsStr as std::os::unix::ffi::OsStrExt>::from_bytes(&ref_name_bytes(
-                        name,
-                    )),
-                )
+                .arg(gitweft_platform::bytes::os_string_from_vec(ref_name_bytes(
+                    name,
+                )))
                 .allow_exit_codes(&[1])
                 .read_only()
                 .run(cancel)?;

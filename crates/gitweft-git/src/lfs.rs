@@ -4,10 +4,9 @@
 //! terminal. A missing git-lfs isn't an error here: [`lfs_status`] reports it, and the
 //! other calls fail like any command.
 
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
+use gitweft_platform::bytes::{os_str_from_bytes, path_from_bytes};
 use gix::bstr::{BString, ByteSlice};
 
 use crate::cancel::CancelToken;
@@ -72,7 +71,7 @@ fn local_store(git: &GitCli, workdir: &Path, cancel: &CancelToken) -> Result<Pat
         .read_only()
         .run(cancel)?;
     let dir = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
-    Ok(workdir.join(OsStr::from_bytes(dir)).join("lfs/objects"))
+    Ok(workdir.join(path_from_bytes(dir)).join("lfs/objects"))
 }
 
 /// Where the store keeps `oid` (64 hex digits): `<store>/<aa>/<bb>/<oid>`.
@@ -688,7 +687,7 @@ pub fn lfs_lock(
     let command = git
         .command(workdir)
         .args(["lfs", "lock", "--json", "--"])
-        .arg(OsStr::from_bytes(path));
+        .arg(os_str_from_bytes(path));
     let display = command.display();
     let output = command.run(cancel).map_err(locking_error)?;
     parse_lock_json(&output.stdout).ok_or_else(|| unexpected_output(display, &output))
@@ -710,7 +709,7 @@ pub fn lfs_unlock(
     }
     command
         .arg("--")
-        .arg(OsStr::from_bytes(path))
+        .arg(os_str_from_bytes(path))
         .run(cancel)
         .map_err(locking_error)?;
     Ok(())

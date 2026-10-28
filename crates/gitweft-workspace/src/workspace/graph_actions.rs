@@ -430,17 +430,12 @@ impl Workspace {
             t!("graph.rebase_failed").into_owned(),
             conflict,
             move |git, cwd, cancel| {
-                use std::os::unix::ffi::{OsStrExt as _, OsStringExt as _};
-                switch_branch(
-                    git,
-                    cwd,
-                    std::ffi::OsString::from_vec(branch_git.clone()),
-                    cancel,
-                )?;
+                use gitweft_platform::bytes::{os_str_from_bytes, os_string_from_vec};
+                switch_branch(git, cwd, os_string_from_vec(branch_git.clone()), cancel)?;
                 let record = Record::checked_out(label, Worktree::Follow);
                 let onto = [b"refs/heads/".as_slice(), &onto_git].concat();
                 recorded(git, cwd, Some(record), cancel, || {
-                    let onto = std::ffi::OsStr::from_bytes(&onto);
+                    let onto = os_str_from_bytes(&onto);
                     rewrite::rebase_onto(git, cwd, onto, keep_merges, cancel)
                 })
                 .map(|((), entry)| (done, entry))

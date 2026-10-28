@@ -504,7 +504,7 @@ fn row_items(
     commit: ObjectId,
     workdir: Option<&std::path::Path>,
 ) -> Vec<(String, TreeEvent)> {
-    let copy = workdir.map(|dir| dir.join(gitweft_core::external::path_from_bytes(path)));
+    let copy = workdir.map(|dir| dir.join(gitweft_platform::bytes::path_from_bytes(path)));
     let bisect = (
         t!("bisect.start_path").into_owned(),
         TreeEvent::Bisect { path: path.clone() },

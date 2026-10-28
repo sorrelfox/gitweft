@@ -12,11 +12,12 @@
 //! ([`BlameUpdate::Marks`]). A line git can't give to an older commit stays with the
 //! ignored one ([`LineMark::Unblamable`]).
 
+use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
-use std::ffi::{OsStr, OsString};
-use std::os::unix::ffi::{OsStrExt, OsStringExt};
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+use gitweft_platform::bytes::{os_str_from_bytes, path_buf_from_vec, path_from_bytes};
 use gix::ObjectId;
 use gix::bstr::BString;
 
@@ -126,7 +127,7 @@ pub fn blame(
         args.push(rev.to_string().into());
     }
     args.push("--".into());
-    args.push(OsStr::from_bytes(path).to_owned());
+    args.push(os_str_from_bytes(path).into_owned());
 
     std::thread::scope(|scope| {
         // The marked output comes only once git is done: that blame runs beside this one.
@@ -205,11 +206,11 @@ fn ignore_revs_files(
         .read_only()
         .allow_exit_codes(&[1])
         .run(cancel)?;
-    let values: Vec<&Path> = output
+    let values: Vec<Cow<'_, Path>> = output
         .stdout
         .split(|b| *b == 0)
         .filter(|value| !value.is_empty())
-        .map(|value| Path::new(OsStr::from_bytes(value)))
+        .map(|value| path_from_bytes(value))
         .collect();
     if values.is_empty() {
         return Ok(Vec::new());
@@ -239,7 +240,7 @@ fn working_tree_root(git: &GitCli, cwd: &Path, cancel: &CancelToken) -> PathBuf 
             root
         })
         .filter(|root| !root.is_empty())
-        .map(|root| PathBuf::from(OsString::from_vec(root)))
+        .map(path_buf_from_vec)
         .unwrap_or_else(|| cwd.to_path_buf())
 }
 
@@ -368,14 +369,14 @@ pub fn file_content(
     cancel: &CancelToken,
 ) -> Result<Vec<u8>, ReadError> {
     let Some(rev) = rev else {
-        return Ok(std::fs::read(cwd.join(OsStr::from_bytes(path)))?);
+        return Ok(std::fs::read(cwd.join(path_from_bytes(path)))?);
     };
     let mut spec = format!("{rev}:").into_bytes();
     spec.extend_from_slice(path);
     let output = git
         .command(cwd)
         .args(["cat-file", "blob"])
-        .arg(OsStr::from_bytes(&spec))
+        .arg(os_str_from_bytes(&spec))
         .read_only()
         .run(cancel);
     match output {

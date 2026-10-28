@@ -10,11 +10,12 @@
 //! back to guessing a tool (it does when a configured name is unknown), and a tool name
 //! that doesn't exist is an error instead.
 
+use std::borrow::Cow;
 use std::ffi::{OsStr, OsString};
 use std::fmt;
-use std::os::unix::ffi::OsStrExt as _;
 use std::path::Path;
 
+use gitweft_platform::bytes::os_str_from_bytes;
 use gix::ObjectId;
 use gix::bstr::BStr;
 use gix::hash::Kind;
@@ -277,7 +278,7 @@ pub fn mergetool_args(tool: &str, path: &BStr, backup_set: bool) -> Vec<OsString
         "--no-prompt".into(),
         format!("--tool={tool}").into(),
         "--".into(),
-        os(path).to_owned(),
+        os(path).into_owned(),
     ]);
     args
 }
@@ -298,8 +299,8 @@ fn tool_locale(var: impl Fn(&str) -> Option<OsString>) -> Vec<(&'static str, OsS
     env
 }
 
-fn os(path: &BStr) -> &OsStr {
-    OsStr::from_bytes(path)
+fn os(path: &BStr) -> Cow<'_, OsStr> {
+    os_str_from_bytes(path)
 }
 
 /// Runs `git difftool --no-prompt` for one file and waits until the tool is closed.

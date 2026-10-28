@@ -7,10 +7,10 @@
 //! Gitweft's own git commands and nothing else.
 
 use std::ffi::{OsStr, OsString};
-use std::io::Write;
-use std::os::unix::ffi::OsStrExt;
-use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::Path;
+
+use gitweft_platform::bytes::path_from_bytes;
+use gitweft_platform::fs;
 
 use crate::{CancelToken, GitCli};
 
@@ -56,10 +56,10 @@ pub fn host_bridge(
         .run(cancel)
         .map_err(|e| e.summary())?;
     let listed = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
-    let hooks = cwd.join(OsStr::from_bytes(listed));
+    let hooks = cwd.join(path_from_bytes(listed));
     let names = hook_names(&hooks);
     if !names.is_empty() {
-        let id = fnv1a(hooks.as_os_str().as_bytes());
+        let id = fnv1a(hooks.as_os_str().as_encoded_bytes());
         let dir = state.join("host-hooks").join(format!("{id:016x}"));
         write_hooks(&dir, &hooks, &names, spawn)?;
         entries.push(("core.hooksPath", dir.into_os_string()));
@@ -119,11 +119,11 @@ fn hook_names(dir: &Path) -> Vec<OsString> {
         .flatten()
         .filter(|entry| {
             let name = entry.file_name();
-            let name = name.as_bytes();
+            let name = name.as_encoded_bytes();
             !name.starts_with(b".")
                 && !name.ends_with(b".sample")
                 && std::fs::metadata(entry.path())
-                    .is_ok_and(|meta| meta.is_file() && meta.permissions().mode() & 0o111 != 0)
+                    .is_ok_and(|meta| meta.is_file() && fs::is_executable(&meta))
         })
         .map(|entry| entry.file_name())
         .collect();
@@ -199,14 +199,8 @@ fn write_script(path: &Path, script: &str) -> std::io::Result<()> {
     name.push(path.file_name().unwrap_or_default());
     name.push(format!(".{}.tmp", std::process::id()));
     let tmp = path.with_file_name(name);
-    let mut file = std::fs::OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .mode(0o755)
-        .open(&tmp)?;
-    file.write_all(script.as_bytes())?;
-    drop(file);
+    std::fs::write(&tmp, script)?;
+    fs::set_executable(&tmp, true)?;
     std::fs::rename(&tmp, path)
 }
 
@@ -269,6 +263,15 @@ mod tests {
             quote(Path::new("/a b/it's")).as_deref(),
             Some(r"'/a b/it'\''s'")
         );
-        assert_eq!(quote(Path::new(OsStr::from_bytes(b"/caf\xe9"))), None);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_path_that_is_not_utf8_is_not_quoted() {
+        use std::os::unix::ffi::OsStrExt;
+        assert_eq!(
+            quote(Path::new(std::ffi::OsStr::from_bytes(b"/caf\xe9"))),
+            None
+        );
     }
 }

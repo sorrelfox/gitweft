@@ -1,5 +1,6 @@
-//! App-wide settings, kept in `$XDG_CONFIG_HOME/gitweft/settings.json` (default
-//! `~/.config/gitweft`). Per-repository state stays in the data dir (`repo_settings`).
+//! App-wide settings, kept in `$XDG_CONFIG_HOME/gitweft/settings.json` (on Linux by
+//! default `~/.config/gitweft`; see [`crate::paths::config_dir`]). Per-repository state
+//! stays in the data dir (`repo_settings`).
 //!
 //! The file is forgiving in both directions:
 //! - a missing, unreadable or corrupt file gives the defaults (a corrupt one is kept as
@@ -666,6 +667,7 @@ mod tests {
     }
 
     /// A settings file a dotfile manager links in stays a link after a save.
+    #[cfg(unix)]
     #[test]
     fn a_linked_settings_file_stays_a_link() {
         let dir = tempfile::tempdir().unwrap();

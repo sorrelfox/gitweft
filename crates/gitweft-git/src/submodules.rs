@@ -7,10 +7,9 @@
 //! `st*r` or `-x` means exactly that folder.
 
 use std::collections::HashMap;
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
+use gitweft_platform::bytes::path_from_bytes;
 use gix::ObjectId;
 
 use crate::cancel::CancelToken;
@@ -419,7 +418,7 @@ fn parse_gitlinks(bytes: &[u8]) -> Vec<Gitlink> {
         if mode != b"160000" {
             continue;
         }
-        let path = PathBuf::from(OsStr::from_bytes(path));
+        let path = path_from_bytes(path).into_owned();
         let conflict = stage != b"0";
         match links.last_mut() {
             Some(last) if last.path == path => {
@@ -477,7 +476,7 @@ fn parse_gitmodules(bytes: &[u8]) -> Vec<Module> {
         });
         let module = &mut modules[index];
         match variable {
-            b"path" => module.path = value.map(|v| PathBuf::from(OsStr::from_bytes(v))),
+            b"path" => module.path = value.map(|v| path_from_bytes(v).into_owned()),
             b"url" => module.url = value.map(|v| String::from_utf8_lossy(v).into_owned()),
             _ => {}
         }
@@ -498,7 +497,7 @@ mod tests {
 
     fn link(path: &[u8], recorded: Option<ObjectId>, conflict: bool) -> Gitlink {
         Gitlink {
-            path: PathBuf::from(OsStr::from_bytes(path)),
+            path: path_from_bytes(path).into_owned(),
             recorded,
             conflict,
         }
@@ -553,7 +552,7 @@ mod tests {
             submodule.dup.path\nnew\0";
         let module = |name: &str, path: Option<&[u8]>, url: Option<&str>| Module {
             name: name.into(),
-            path: path.map(|p| PathBuf::from(OsStr::from_bytes(p))),
+            path: path.map(|p| path_from_bytes(p).into_owned()),
             url: url.map(Into::into),
         };
         assert_eq!(

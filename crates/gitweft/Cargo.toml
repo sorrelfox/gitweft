@@ -11,8 +11,8 @@ publish.workspace = true
 [dependencies]
 gitweft-core.workspace = true
 gitweft-git.workspace = true
+gitweft-platform.workspace = true
 gitweft-workspace.workspace = true
-libc.workspace = true
 
 [dev-dependencies]
 gitweft-testkit.workspace = true

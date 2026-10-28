@@ -5,10 +5,9 @@
 //! non-UTF-8 names survive; relative paths are resolved against `workdir`, like git does.
 //! Every path goes after `--`, so a folder named `-x` can't be read as an option.
 
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
+use gitweft_platform::bytes::path_from_bytes;
 use gix::ObjectId;
 use gix::bstr::BString;
 
@@ -66,7 +65,7 @@ fn parse_worktree_list(bytes: &[u8]) -> Vec<WorktreeInfo> {
         if key == b"worktree" {
             worktrees.extend(current.take());
             current = Some(WorktreeInfo {
-                path: PathBuf::from(OsStr::from_bytes(value.unwrap_or_default())),
+                path: path_from_bytes(value.unwrap_or_default()).into_owned(),
                 head: None,
                 branch: None,
                 bare: false,
@@ -270,7 +269,7 @@ mod tests {
 
     fn worktree(path: &[u8]) -> WorktreeInfo {
         WorktreeInfo {
-            path: PathBuf::from(OsStr::from_bytes(path)),
+            path: path_from_bytes(path).into_owned(),
             head: id(),
             branch: None,
             bare: false,

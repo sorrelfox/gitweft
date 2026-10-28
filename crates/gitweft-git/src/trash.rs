@@ -11,11 +11,11 @@
 //! Writing records lives here, next to the operations that move files (discard, clean,
 //! hard reset); listing, restoring and deleting entries is `gitweft_core::trash`.
 
-use std::ffi::OsStr;
+use std::borrow::Cow;
 use std::io;
-use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::path::{Component, Path, PathBuf};
 
+use gitweft_platform::bytes::{path_buf_from_vec, path_from_bytes};
 use gix::ObjectId;
 use gix::bstr::BString;
 use serde::{Deserialize, Serialize};
@@ -263,7 +263,7 @@ pub fn move_path(from: &Path, to: &Path) -> io::Result<()> {
 fn copy_recursively(from: &Path, to: &Path) -> io::Result<()> {
     let meta = std::fs::symlink_metadata(from)?;
     if meta.is_symlink() {
-        std::os::unix::fs::symlink(std::fs::read_link(from)?, to)
+        gitweft_platform::fs::symlink(&std::fs::read_link(from)?, to)
     } else if meta.is_dir() {
         std::fs::create_dir(to)?;
         for child in std::fs::read_dir(from)? {
@@ -281,7 +281,11 @@ fn copy_recursively(from: &Path, to: &Path) -> io::Result<()> {
 /// dropped.
 pub fn relative_path(path: &[u8]) -> Option<&Path> {
     let trimmed = path.strip_suffix(b"/").unwrap_or(path);
-    let relative = Path::new(OsStr::from_bytes(trimmed));
+    // A name this system can't hold as it is (not UTF-8, on Windows) isn't one we could
+    // put back either.
+    let Cow::Borrowed(relative) = path_from_bytes(trimmed) else {
+        return None;
+    };
     let normal = relative
         .components()
         .all(|component| matches!(component, Component::Normal(_) | Component::CurDir));
@@ -377,7 +381,7 @@ impl From<&TrashRecord> for WireRecord {
     fn from(record: &TrashRecord) -> Self {
         Self {
             version: record.version,
-            root: WireBytes::new(record.root.as_os_str().as_bytes()),
+            root: WireBytes::new(record.root.as_os_str().as_encoded_bytes()),
             time_ms: record.time_ms,
             action: record.action,
             files: record
@@ -409,7 +413,7 @@ impl TryFrom<WireRecord> for TrashRecord {
     type Error = io::Error;
 
     fn try_from(wire: WireRecord) -> io::Result<Self> {
-        let root = PathBuf::from(std::ffi::OsString::from_vec(wire.root.into_bytes()?));
+        let root = path_buf_from_vec(wire.root.into_bytes()?);
         let files = wire
             .files
             .into_iter()
@@ -451,7 +455,7 @@ mod tests {
     #[test]
     fn records_round_trip_non_utf8_paths() {
         let dir = tempfile::tempdir().unwrap();
-        let root = PathBuf::from(std::ffi::OsString::from_vec(b"/r/caf\xe9".to_vec()));
+        let root = path_buf_from_vec(b"/r/caf\xe9".to_vec());
         let blob = ObjectId::from_hex(b"0123456789abcdef0123456789abcdef01234567").unwrap();
         let mut record = TrashRecord::new(&root, TrashAction::Clean, 42);
         record.files = vec![

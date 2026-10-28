@@ -147,6 +147,7 @@ fn difftool_on_a_modified_working_tree_file() {
 /// A stand-in for `flatpak-spawn` (the "host" is this machine) that starts the command with
 /// no environment but `PATH` and its `--env` variables, as the host's session would, and
 /// logs each call's arguments, one line each. Returns the program and its log.
+#[cfg(unix)]
 fn spawner(sb: &Sandbox, body: &str) -> (PathBuf, PathBuf) {
     use std::os::unix::fs::PermissionsExt;
     let program = sb.path().join("spawn-stub");
@@ -188,6 +189,7 @@ fn spawner(sb: &Sandbox, body: &str) -> (PathBuf, PathBuf) {
     (program, log)
 }
 
+#[cfg(unix)]
 #[test]
 fn tools_run_on_the_host_through_the_spawner() {
     let sb = Sandbox::new();
@@ -236,6 +238,7 @@ fn tools_run_on_the_host_through_the_spawner() {
     assert!(!calls.contains("GIT_ASKPASS"), "{calls}");
 }
 
+#[cfg(unix)]
 #[test]
 fn a_host_without_git_is_refused() {
     let sb = Sandbox::new();
@@ -248,6 +251,7 @@ fn a_host_without_git_is_refused() {
 /// `tools_git` goes to the host only in a Flatpak, which it knows by the marker file at
 /// the sandbox's root. The askpass variables tell the two apart: the host's git
 /// doesn't get them.
+#[cfg(unix)]
 #[test]
 fn the_tools_git_is_the_hosts_only_in_a_flatpak() {
     use gitweft_git::tools::{ToolError, tools_git_with};

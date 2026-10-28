@@ -9,11 +9,11 @@
 //! worktree name: their undo logs stay apart.
 
 use std::collections::HashMap;
-use std::os::unix::ffi::OsStrExt as _;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use gitweft_git::{CancelToken, GitCli, gix};
+use gitweft_platform::bytes::path_from_bytes;
 
 use crate::paths::{file_name_part, fnv1a, legacy_repo_data_dir_in};
 
@@ -122,7 +122,7 @@ fn read_lines(file: &Path) -> Vec<PathBuf> {
         .unwrap_or_default()
         .split(|&b| b == b'\n')
         .filter(|line| !line.is_empty())
-        .map(|line| PathBuf::from(std::ffi::OsStr::from_bytes(line)))
+        .map(|line| path_from_bytes(line).into_owned())
         .collect()
 }
 
@@ -145,7 +145,7 @@ pub fn moved_to_in(data: &Path, old: &Path) -> Option<PathBuf> {
             return None;
         }
         let now = std::fs::read(folder.path().join(ROOT_FILE)).ok()?;
-        let now = PathBuf::from(std::ffi::OsStr::from_bytes(&now));
+        let now = path_from_bytes(&now).into_owned();
         now.is_dir().then_some(now)
     })
 }

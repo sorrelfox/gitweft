@@ -1,0 +1,18 @@
+[package]
+name = "gitweft-platform"
+description = "Gitweft's operating system seams: paths from bytes, folders, files, processes and local sockets on Linux, macOS and Windows"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

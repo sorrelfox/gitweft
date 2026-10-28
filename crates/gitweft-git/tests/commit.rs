@@ -1,5 +1,3 @@
-use std::os::unix::fs::PermissionsExt;
-
 use gitweft_git::ops::{CommitOptions, commit, commit_context, head_message, identity};
 use gitweft_git::{CancelToken, GitErrorKind};
 use gitweft_testkit::Sandbox;
@@ -76,7 +74,7 @@ fn failing_pre_commit_hook_blocks_with_its_output_unless_skipped() {
         "#!/bin/sh\necho 'lint: trailing whitespace in a.txt' >&2\nexit 1\n",
     )
     .unwrap();
-    std::fs::set_permissions(&hook, std::fs::Permissions::from_mode(0o755)).unwrap();
+    gitweft_platform::fs::set_executable(&hook, true).unwrap();
     std::fs::write(repo.join("a.txt"), "1 \n").unwrap();
     sb.run(&repo, &["add", "a.txt"]);
 
@@ -126,7 +124,7 @@ fn a_failing_commit_msg_hook_is_a_hook_failure_but_git_errors_stay_git_errors() 
         "#!/bin/sh\necho 'message must start with a ticket' >&2\nexit 1\n",
     )
     .unwrap();
-    std::fs::set_permissions(&hook, std::fs::Permissions::from_mode(0o755)).unwrap();
+    gitweft_platform::fs::set_executable(&hook, true).unwrap();
     std::fs::write(repo.join("a.txt"), "1\n").unwrap();
     sb.run(&repo, &["add", "a.txt"]);
     let attempt = || {

@@ -2,7 +2,6 @@
 //! file a crashed git left behind, and a commit identity git doesn't know.
 
 use std::io;
-use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
@@ -48,7 +47,7 @@ pub fn trust_directory(git: &GitCli, path: &Path, cancel: &CancelToken) -> Resul
         .read_only()
         .allow_exit_codes(&[1])
         .run(cancel)?;
-    let wanted = path.as_os_str().as_bytes();
+    let wanted = path.as_os_str().as_encoded_bytes();
     if listed
         .stdout
         .split(|b| *b == 0)
@@ -151,7 +150,7 @@ pub fn remove_lock(path: &Path, git_dirs: &[PathBuf]) -> io::Result<()> {
     let (Some(parent), Some(name)) = (path.parent(), path.file_name()) else {
         return Err(refuse("not a lock file"));
     };
-    if !name.as_bytes().ends_with(b".lock") {
+    if !name.as_encoded_bytes().ends_with(b".lock") {
         return Err(refuse("not a lock file"));
     }
     let parent = if parent.as_os_str().is_empty() {

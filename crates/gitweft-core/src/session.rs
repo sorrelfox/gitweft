@@ -16,8 +16,9 @@
 //! still gives its tabs. Callers read it once at start and write it off the UI thread.
 
 use std::io;
-use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
+
+use gitweft_platform::bytes::path_from_bytes;
 
 use crate::paths::data_dir;
 
@@ -77,7 +78,7 @@ fn parse(bytes: &[u8]) -> Session {
     let mut active = None;
     for line in lines {
         if let Some(path) = line.strip_prefix(b"tab ") {
-            let path = PathBuf::from(std::ffi::OsStr::from_bytes(path));
+            let path = path_from_bytes(path).into_owned();
             if path.is_absolute() && session.tabs.len() < MAX_TABS {
                 session.tabs.push(path);
             }
@@ -127,7 +128,7 @@ pub fn save(file: &Path, session: &Session) -> io::Result<()> {
     let mut active = None;
     let mut stored = 0;
     for (ix, path) in session.tabs.iter().enumerate() {
-        let raw = path.as_os_str().as_bytes();
+        let raw = path.as_os_str().as_encoded_bytes();
         if !path.is_absolute() || raw.contains(&b'\n') || stored == MAX_TABS {
             continue;
         }
@@ -150,10 +151,19 @@ pub fn save(file: &Path, session: &Session) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::paths::test_path;
 
+    /// A session of `tabs`, each written the Unix way (`/a`) unless it is relative.
     fn session(tabs: &[&str], active: Option<usize>, window: Option<WindowSize>) -> Session {
+        let path = |tab: &&str| {
+            if tab.starts_with('/') {
+                test_path(tab)
+            } else {
+                PathBuf::from(tab)
+            }
+        };
         Session {
-            tabs: tabs.iter().map(PathBuf::from).collect(),
+            tabs: tabs.iter().map(path).collect(),
             active,
             window,
         }
@@ -181,11 +191,12 @@ mod tests {
         assert_eq!(load(&file), written);
     }
 
+    #[cfg(unix)]
     #[test]
     fn non_utf8_paths_round_trip() {
         let dir = tempfile::tempdir().unwrap();
         let file = dir.path().join("session");
-        let odd = PathBuf::from(std::ffi::OsStr::from_bytes(b"/repos/caf\xe9"));
+        let odd = path_from_bytes(b"/repos/caf\xe9").into_owned();
         let written = Session {
             tabs: vec![odd],
             active: Some(0),
@@ -210,17 +221,34 @@ mod tests {
         assert_eq!(load(&file), session(&["/a"], None, None));
     }
 
+    /// `text` with each `tab /…` line's path made absolute on this system.
+    fn tabs_here(text: &[u8]) -> Vec<u8> {
+        let prefix = test_path("/").into_os_string().into_encoded_bytes();
+        let mut out = Vec::new();
+        for line in text.split_inclusive(|&byte| byte == b'\n') {
+            match line.strip_prefix(b"tab /") {
+                Some(rest) => {
+                    out.extend_from_slice(b"tab ");
+                    out.extend_from_slice(&prefix);
+                    out.extend_from_slice(rest);
+                }
+                None => out.extend_from_slice(line),
+            }
+        }
+        out
+    }
+
     #[test]
     fn reading_is_lenient() {
         // Not a session file at all.
-        assert_eq!(parse(b"tab /a\n"), Session::default());
+        assert_eq!(parse(&tabs_here(b"tab /a\n")), Session::default());
         assert_eq!(parse(b""), Session::default());
         // A newer version: known lines are read, others skipped.
         let text = b"gitweft-session 7\nsparkles on\ntab /a\ntab rel\nactive 9\nwindow wide 3\n\xff\xfe\ntab /b\n";
-        assert_eq!(parse(text), session(&["/a", "/b"], None, None));
+        assert_eq!(parse(&tabs_here(text)), session(&["/a", "/b"], None, None));
         // Sizes out of range are dropped, the rest kept.
         let text = b"gitweft-session 1\nwindow 50 800 windowed\ntab /a\nactive 0\n";
-        assert_eq!(parse(text), session(&["/a"], Some(0), None));
+        assert_eq!(parse(&tabs_here(text)), session(&["/a"], Some(0), None));
         let text = b"gitweft-session 1\nwindow 900 NaN windowed\n";
         assert_eq!(parse(text).window, None);
         let text = b"gitweft-session 1\nwindow 900 700\n";
@@ -240,8 +268,8 @@ mod tests {
         for n in 0..MAX_TABS + 10 {
             text.extend(format!("tab /r{n}\n").bytes());
         }
-        let parsed = parse(&text);
+        let parsed = parse(&tabs_here(&text));
         assert_eq!(parsed.tabs.len(), MAX_TABS);
-        assert_eq!(parsed.tabs[0], PathBuf::from("/r0"));
+        assert_eq!(parsed.tabs[0], test_path("/r0"));
     }
 }

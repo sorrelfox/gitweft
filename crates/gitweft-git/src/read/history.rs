@@ -1,9 +1,8 @@
 //! The commits that changed one file, newest first, following renames (`git log --follow`).
 
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 
+use gitweft_platform::bytes::os_str_from_bytes;
 use gix::ObjectId;
 use gix::bstr::BString;
 
@@ -57,7 +56,7 @@ pub fn file_history(
     }
     let output = command
         .arg("--")
-        .arg(OsStr::from_bytes(path))
+        .arg(os_str_from_bytes(path))
         // The path is a file name, not a pattern (`*.txt` is a file called that).
         .env("GIT_LITERAL_PATHSPECS", "1")
         .read_only()

@@ -55,6 +55,7 @@ pub fn helper_program() -> std::io::Result<std::path::PathBuf> {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(unix)]
     #[test]
     fn helpers_run_the_running_binary() {
         use std::os::unix::fs::MetadataExt as _;

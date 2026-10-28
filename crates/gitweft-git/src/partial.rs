@@ -4,9 +4,9 @@
 //! fails with [`GitErrorKind::MissingObjects`](crate::GitErrorKind::MissingObjects), and
 //! [`fetch_missing`] downloads just those objects, the way git's own lazy fetch would.
 
-use std::os::unix::ffi::OsStrExt as _;
 use std::path::Path;
 
+use gitweft_platform::bytes::os_str_from_bytes;
 use gix::bstr::{BStr, BString};
 
 use crate::cancel::CancelToken;
@@ -71,7 +71,7 @@ pub fn missing_blobs(
             .args(["ls-tree", "-z", "--full-tree", "--end-of-options"])
             .arg(commit)
             .arg("--")
-            .arg(std::ffi::OsStr::from_bytes(path))
+            .arg(os_str_from_bytes(path))
             .env("GIT_LITERAL_PATHSPECS", "1")
             .read_only()
             .run(cancel)?;
@@ -138,7 +138,7 @@ pub fn history_blobs(
         ])
         .arg(rev)
         .arg("--")
-        .arg(std::ffi::OsStr::from_bytes(path))
+        .arg(os_str_from_bytes(path))
         .env("GIT_LITERAL_PATHSPECS", "1")
         .read_only()
         .run(cancel)?;

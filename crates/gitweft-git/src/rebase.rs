@@ -17,6 +17,7 @@
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
+use gitweft_platform::bytes::path_from_bytes;
 use gix::ObjectId;
 
 use crate::cancel::CancelToken;
@@ -579,8 +580,7 @@ pub fn rebase_interactive(
         .run(cancel)?;
     // As bytes: a lossy path would put the message files somewhere else.
     let listed = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
-    let git_dir =
-        PathBuf::from(<std::ffi::OsStr as std::os::unix::ffi::OsStrExt>::from_bytes(listed));
+    let git_dir = path_from_bytes(listed);
     let dir = git_dir.join(PLAN_DIR);
     let io = |e: std::io::Error| GitError::new(GitErrorKind::Other, "rebase plan", e.to_string());
     // Left over from a rebase that was aborted or finished in a terminal.
@@ -835,7 +835,6 @@ mod tests {
 
     #[test]
     fn the_rewords_exec_runs_the_configured_git_and_refuses_paths_that_arent_text() {
-        use std::os::unix::ffi::OsStrExt as _;
         let items = [item(1, TodoAction::Reword)];
         let file = |index| PathBuf::from(format!("/g/{index}.msg"));
         // The program comes quoted, as `rebase_interactive` gives it.
@@ -845,8 +844,12 @@ mod tests {
             "{todo}"
         );
         // A message file whose path isn't UTF-8 would be named wrongly: refused.
-        let odd = |_| PathBuf::from(std::ffi::OsStr::from_bytes(b"/g/caf\xe9/0.msg"));
-        assert_eq!(compile(&items, "git", odd), Err(TodoProblem::PathNotUtf8));
+        #[cfg(unix)]
+        {
+            use std::os::unix::ffi::OsStrExt as _;
+            let odd = |_| PathBuf::from(std::ffi::OsStr::from_bytes(b"/g/caf\xe9/0.msg"));
+            assert_eq!(compile(&items, "git", odd), Err(TodoProblem::PathNotUtf8));
+        }
         assert_eq!(
             shell_quote(Path::new("/a b/it's")).as_deref(),
             Some("'/a b/it'\\''s'")

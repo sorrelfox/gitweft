@@ -143,7 +143,7 @@ impl Workspace {
         cx: &mut Context<Self>,
     ) {
         if let Some(folder) = self.repository_folder() {
-            let file = folder.join(programs::path_from_bytes(path));
+            let file = folder.join(gitweft_platform::bytes::path_from_bytes(path));
             self.open_in(program, file, window, cx);
         }
     }

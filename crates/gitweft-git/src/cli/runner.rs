@@ -1,16 +1,18 @@
 //! Runs the system `git` binary with a controlled environment, streamed stderr
-//! progress and process-group cancellation.
+//! progress and cancellation that ends git and everything it started.
 //!
 //! All calls are blocking; the job system runs them on worker threads.
 
 use std::ffi::{OsStr, OsString};
 use std::io::{Read, Write};
-use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
+use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant, SystemTime};
+
+use gitweft_platform::bytes::path_from_bytes;
+use gitweft_platform::{fs, process};
 
 use super::error::{GitError, GitErrorKind, classify};
 use super::progress::{StderrEvent, StderrSplitter, parse_stderr_line};
@@ -57,7 +59,7 @@ impl GitCli {
     pub fn discover() -> Result<Self, GitError> {
         let program = std::env::var_os("GITWEFT_GIT")
             .map(PathBuf::from)
-            .or_else(|| find_in_path("git"))
+            .or_else(|| process::find_program("git"))
             .ok_or_else(|| {
                 GitError::new(GitErrorKind::GitMissing, "git", "git was not found in PATH")
             })?;
@@ -471,11 +473,10 @@ impl GitCommand<'_> {
             Stdio::null()
         })
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        // Own process group, so cancellation also reaches ssh, hooks and helpers.
-        .process_group(0);
+        .stderr(Stdio::piped());
 
-        let mut child = cmd.spawn().map_err(spawn_error)?;
+        // A group of its own, so cancellation also reaches ssh, hooks and helpers.
+        let (mut child, tree) = process::spawn_tree(&mut cmd).map_err(spawn_error)?;
 
         let stdin_writer = match (self.stdin, child.stdin.take()) {
             (Some(bytes), Some(mut pipe)) => Some(thread::spawn(move || {
@@ -568,7 +569,7 @@ impl GitCommand<'_> {
             progress_rx.try_iter().for_each(&mut on_event);
             forward_stdout(&stdout_rx, &mut on_stdout);
             if cancel.is_cancelled() {
-                kill_group(&mut child);
+                tree.kill(&mut child, KILL_GRACE);
                 break None;
             }
             if let Some(status) = child.try_wait().map_err(spawn_error)? {
@@ -618,7 +619,7 @@ impl GitCommand<'_> {
             kind,
             command: display,
             stderr,
-            exit_code: status.code().or_else(|| status.signal().map(|s| 128 + s)),
+            exit_code: process::exit_code(status),
         })
     }
 }
@@ -627,9 +628,7 @@ impl GitCommand<'_> {
 /// `cwd` has one: an executable file where git looks (`git rev-parse --git-path hooks`,
 /// which follows `core.hooksPath`). Asked only after a failure git didn't explain.
 fn has_blocking_hook(cli: &GitCli, cwd: &std::path::Path, args: &[OsString]) -> bool {
-    use std::os::unix::ffi::OsStrExt as _;
-    use std::os::unix::fs::PermissionsExt as _;
-    let hooks: &[&str] = match args.first().map(|arg| arg.as_bytes()) {
+    let hooks: &[&str] = match args.first().map(|arg| arg.as_encoded_bytes()) {
         Some(b"commit") => &["pre-commit", "prepare-commit-msg", "commit-msg"],
         Some(b"merge") => &["pre-merge-commit", "prepare-commit-msg", "commit-msg"],
         Some(b"push") => &["pre-push"],
@@ -646,10 +645,10 @@ fn has_blocking_hook(cli: &GitCli, cwd: &std::path::Path, args: &[OsString]) -> 
         return false;
     };
     let listed = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
-    let dir = cwd.join(std::ffi::OsStr::from_bytes(listed));
+    let dir = cwd.join(path_from_bytes(listed));
     hooks.iter().any(|name| {
         std::fs::metadata(dir.join(name))
-            .is_ok_and(|meta| meta.is_file() && meta.permissions().mode() & 0o111 != 0)
+            .is_ok_and(|meta| meta.is_file() && fs::is_executable(&meta))
     })
 }
 
@@ -660,53 +659,4 @@ fn forward_stdout(chunks: &mpsc::Receiver<Vec<u8>>, on_stdout: &mut Option<Stdou
             on_stdout(&chunk);
         }
     }
-}
-
-/// SIGTERM the whole process group, then SIGKILL it after a grace period, or as soon as git
-/// itself has gone: a child that ignores SIGTERM (a hook, a credential helper) would keep
-/// stderr open, and its reader waiting, forever (an earlier version sent the SIGKILL only to a
-/// git that outlived the grace period). Git isn't reaped until then, so its pid, the group's
-/// id, can't be anybody else's meanwhile.
-fn kill_group(child: &mut Child) {
-    let Ok(pid) = i32::try_from(child.id()) else {
-        return;
-    };
-    // SAFETY: plain syscall on the process group we created with process_group(0).
-    unsafe { libc::kill(-pid, libc::SIGTERM) };
-    let deadline = Instant::now() + KILL_GRACE;
-    while Instant::now() < deadline && !exited_unreaped(pid) {
-        thread::sleep(POLL_INTERVAL);
-    }
-    // SAFETY: as above; the leader is at worst a zombie, so the group is still ours.
-    unsafe { libc::kill(-pid, libc::SIGKILL) };
-    let _ = child.wait();
-}
-
-/// Whether our child `pid` has exited, leaving it unreaped (`WNOWAIT`).
-fn exited_unreaped(pid: i32) -> bool {
-    let Ok(id) = libc::id_t::try_from(pid) else {
-        return true;
-    };
-    // SAFETY: a zeroed siginfo_t is valid; waitid only reads our own child's state here.
-    let mut info: libc::siginfo_t = unsafe { std::mem::zeroed() };
-    let flags = libc::WEXITED | libc::WNOHANG | libc::WNOWAIT;
-    // SAFETY: as above; `info` outlives the call.
-    let found = unsafe { libc::waitid(libc::P_PID, id, &mut info, flags) };
-    // SAFETY: si_pid is set by waitid (0 when the child is still running).
-    found == 0 && unsafe { info.si_pid() } != 0
-}
-
-fn find_in_path(name: &str) -> Option<PathBuf> {
-    std::env::var_os("PATH").and_then(|paths| {
-        std::env::split_paths(&paths)
-            .map(|dir| dir.join(name))
-            .find(|candidate| is_executable(candidate))
-    })
-}
-
-fn is_executable(path: &Path) -> bool {
-    use std::os::unix::fs::PermissionsExt;
-    path.metadata()
-        .map(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
-        .unwrap_or(false)
 }

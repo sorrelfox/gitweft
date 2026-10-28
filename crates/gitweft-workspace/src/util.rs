@@ -45,19 +45,16 @@ pub fn age_text(age: u64) -> String {
 /// `2026-08-29 12:27` (with the year) or `08-29 12:27`, in local time; the order and
 /// separators come from the locale (`time.date_time`, `time.date_time_short`).
 fn local_time(seconds: i64, with_year: bool) -> String {
-    let time = seconds as libc::time_t;
-    // SAFETY: an all-zero `tm` is a valid value; localtime_r only writes into it.
-    let mut tm: libc::tm = unsafe { std::mem::zeroed() };
-    // SAFETY: both pointers are valid for the duration of the call.
-    if unsafe { libc::localtime_r(&time, &mut tm) }.is_null() {
+    let Ok(time) = jiff::Timestamp::from_second(seconds) else {
         return String::new();
-    }
-    let month = format!("{:02}", tm.tm_mon + 1);
-    let day = format!("{:02}", tm.tm_mday);
-    let hour = format!("{:02}", tm.tm_hour);
-    let minute = format!("{:02}", tm.tm_min);
+    };
+    let time = time.to_zoned(jiff::tz::TimeZone::system());
+    let month = format!("{:02}", time.month());
+    let day = format!("{:02}", time.day());
+    let hour = format!("{:02}", time.hour());
+    let minute = format!("{:02}", time.minute());
     if with_year {
-        let year = format!("{:04}", tm.tm_year + 1900);
+        let year = format!("{:04}", time.year());
         t!(
             "time.date_time",
             year = year,
@@ -138,7 +135,7 @@ pub fn avatar(name: &str, email: &str, diameter: Pixels, p: &gitweft_ui::Palette
 #[cfg(test)]
 mod tests {
     // Not `super::*`: the gpui glob import would shadow `#[test]` with gpui's own macro.
-    use super::{age_text, avatar_lane, initials, join_list};
+    use super::{age_text, avatar_lane, initials, join_list, local_time};
 
     #[test]
     fn ages_take_their_plural_forms() {
@@ -147,6 +144,15 @@ mod tests {
         assert_eq!(age_text(5 * 60), "5 min ago");
         assert_eq!(age_text(3 * 3600 + 5), "3 h ago");
         assert_eq!(age_text(400 * 86400), "400 d ago");
+    }
+
+    #[test]
+    fn local_times_keep_their_shape() {
+        let full = local_time(1_700_000_000, true);
+        assert_eq!(full.len(), "2023-11-14 22:13".len(), "{full}");
+        assert_eq!(local_time(1_700_000_000, false).len(), "11-14 22:13".len());
+        // Beyond what a date can hold: nothing rather than a wrong date.
+        assert_eq!(local_time(i64::MAX, true), "");
     }
 
     #[test]

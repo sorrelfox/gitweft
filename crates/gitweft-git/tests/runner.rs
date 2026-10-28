@@ -132,11 +132,7 @@ fn cancellation_ends_even_when_a_child_ignores_sigterm() {
     // the SIGKILL only to a git that outlived the grace period, so the run waited for the `sleep`.
     let hook = repo.join(".git/hooks/pre-commit");
     std::fs::write(&hook, "#!/bin/sh\ntrap '' TERM\nsleep 30\n").unwrap();
-    std::fs::set_permissions(
-        &hook,
-        <std::fs::Permissions as std::os::unix::fs::PermissionsExt>::from_mode(0o755),
-    )
-    .unwrap();
+    gitweft_platform::fs::set_executable(&hook, true).unwrap();
     std::fs::write(repo.join("a.txt"), "a\n").unwrap();
     sb.run(&repo, &["add", "a.txt"]);
     let started = Instant::now();

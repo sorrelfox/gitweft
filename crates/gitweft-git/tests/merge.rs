@@ -1,12 +1,16 @@
+#[cfg(unix)]
 use std::ffi::OsStr;
+#[cfg(unix)]
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
+#[cfg(unix)]
 use gitweft_git::gix::bstr::BString;
 use gitweft_git::merge::{
     MergeMode, MergeOutcome, Operation, OperationAction, comment_prefix, merge, merge_preview,
     operation_state, prepared_conflicts, prepared_message, run_operation_action,
 };
+#[cfg(unix)]
 use gitweft_git::ops::{CommitOptions, commit};
 use gitweft_git::read::open_repo;
 use gitweft_git::{CancelToken, GitErrorKind, GitVersion};
@@ -46,6 +50,7 @@ fn diverged(sb: &Sandbox, conflict: bool) -> PathBuf {
     repo
 }
 
+#[cfg(unix)]
 #[test]
 fn a_branch_whose_name_isnt_utf8_is_previewed_and_merged() {
     let sb = Sandbox::new();
@@ -265,6 +270,7 @@ fn rebases_and_cherry_picks_started_in_a_terminal_are_detected() {
     assert_eq!(sb.run(&repo, &["rev-parse", "HEAD"]), head);
 }
 
+#[cfg(unix)]
 #[test]
 fn a_conflicting_merge_prepares_its_message_and_lists_its_conflicts() {
     let sb = Sandbox::new();

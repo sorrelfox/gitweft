@@ -223,7 +223,6 @@ fn push_sets_the_upstream_and_tracking_follows() {
 
 #[test]
 fn a_failing_pre_push_hook_is_a_hook_failure_in_its_own_words() {
-    use std::os::unix::fs::PermissionsExt as _;
     let sb = Sandbox::new();
     let (_, work) = remote_and_clone(&sb);
     let hook = work.join(".git/hooks/pre-push");
@@ -232,7 +231,7 @@ fn a_failing_pre_push_hook_is_a_hook_failure_in_its_own_words() {
         "#!/bin/sh\necho 'no pushing on Fridays' >&2\nexit 1\n",
     )
     .unwrap();
-    std::fs::set_permissions(&hook, std::fs::Permissions::from_mode(0o755)).unwrap();
+    gitweft_platform::fs::set_executable(&hook, true).unwrap();
     sb.commit_file(&work, "b.txt", "2\n", "second");
 
     // git adds only "failed to push some refs": the runner finds the hook, and the
@@ -249,6 +248,7 @@ fn a_failing_pre_push_hook_is_a_hook_failure_in_its_own_words() {
     assert_eq!(err.summary(), "no pushing on Fridays");
 }
 
+#[cfg(unix)]
 #[test]
 fn a_branch_whose_name_isnt_utf8_is_pushed_by_its_bytes() {
     use gitweft_git::undo::ref_name_text;
@@ -411,12 +411,11 @@ fn rewritten_history_needs_a_lease_push_which_protects_other_peoples_work() {
 
 #[test]
 fn cancel_kills_a_hanging_transport() {
-    use std::os::unix::fs::PermissionsExt;
     let sb = Sandbox::new();
     let repo = sb.init_repo("r");
     let hang = sb.path().join("hang.sh");
     std::fs::write(&hang, "#!/bin/sh\nsleep 30\n").unwrap();
-    std::fs::set_permissions(&hang, std::fs::Permissions::from_mode(0o755)).unwrap();
+    gitweft_platform::fs::set_executable(&hang, true).unwrap();
     sb.run(
         &repo,
         &[

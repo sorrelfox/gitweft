@@ -109,6 +109,7 @@ fn discard_a_line_of_an_untracked_file_keeps_it_untracked() {
     assert!(sb.run(&repo, &["ls-files", "new.txt"]).is_empty());
 }
 
+#[cfg(unix)]
 #[test]
 fn partially_staged_executable_keeps_its_mode() {
     use std::os::unix::fs::PermissionsExt;
@@ -340,10 +341,13 @@ fn whole_file_changes_do_not_support_partial_staging() {
     // Binary, a symlink, and an empty file (no hunks).
     std::fs::write(repo.join("bin.dat"), b"\0\x01\x02\n").unwrap();
     assert!(!partial(DiffSource::Untracked, "bin.dat"));
-    std::os::unix::fs::symlink(FILE, repo.join("link")).unwrap();
-    let link = diff_of(&sb, &repo, DiffSource::Untracked, "link");
-    assert_eq!(link.new_file_mode.as_deref(), Some("120000"));
-    assert!(!supports_partial(&link));
+    #[cfg(unix)]
+    {
+        std::os::unix::fs::symlink(FILE, repo.join("link")).unwrap();
+        let link = diff_of(&sb, &repo, DiffSource::Untracked, "link");
+        assert_eq!(link.new_file_mode.as_deref(), Some("120000"));
+        assert!(!supports_partial(&link));
+    }
     std::fs::write(repo.join("empty.txt"), "").unwrap();
     assert!(!partial(DiffSource::Untracked, "empty.txt"));
 

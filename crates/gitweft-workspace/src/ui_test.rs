@@ -29,8 +29,7 @@ fn install_sequence_editor() {
         let script = dir.join("sequence-editor");
         // `$1` is `--sequence-editor`, `$2` the plan, `$3` git's todo file.
         std::fs::write(&script, "#!/bin/sh\nsed '1,/^todo$/d' \"$2\" > \"$3\"\n").unwrap();
-        use std::os::unix::fs::PermissionsExt as _;
-        std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+        gitweft_platform::fs::set_executable(&script, true).unwrap();
         script
     });
 }
@@ -1130,6 +1129,7 @@ mod tests {
     }
 
     /// Whether a process runs with `arg` in its command line.
+    #[cfg(target_os = "linux")]
     fn running(arg: &str) -> bool {
         std::fs::read_dir("/proc").unwrap().flatten().any(|entry| {
             std::fs::read(entry.path().join("cmdline"))
@@ -1141,6 +1141,7 @@ mod tests {
     /// stop the command"), leaving the bisect and no process behind; then `! grep -q bug
     /// value.txt` finds c11, the first commit with the bug, and selects it in the graph.
     /// (Was graphite-g12b-test.sh's part 1.)
+    #[cfg(target_os = "linux")]
     #[test]
     fn a_bisect_run_can_be_stopped_and_finds_the_first_bad_commit() {
         let sb = Sandbox::new();

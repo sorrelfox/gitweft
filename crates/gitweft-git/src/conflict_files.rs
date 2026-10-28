@@ -16,11 +16,12 @@
 //! Paths stay bytes and are taken literally (`GIT_LITERAL_PATHSPECS`, or plumbing that
 //! reads paths from stdin), so a file named `*.txt` is only ever that file.
 
+use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt as _;
 use std::path::Path;
 
+use gitweft_platform::bytes::os_str_from_bytes;
 use gix::ObjectId;
 use gix::bstr::{BStr, BString};
 
@@ -121,8 +122,8 @@ struct UnmergedEntry {
     stage: u8,
 }
 
-fn os(path: &BStr) -> &OsStr {
-    OsStr::from_bytes(path)
+fn os(path: &BStr) -> Cow<'_, OsStr> {
+    os_str_from_bytes(path)
 }
 
 fn parse_error(command: &str, what: impl std::fmt::Display) -> GitError {
@@ -195,7 +196,7 @@ pub fn conflict_marker_size(
             .arg("check-attr")
             .args(source)
             .args(["-z", "conflict-marker-size", "--"])
-            .arg(std::ffi::OsStr::from_bytes(path))
+            .arg(os_str_from_bytes(path))
             .read_only()
             .run(cancel)
     };

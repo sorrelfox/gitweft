@@ -1848,7 +1848,8 @@ fn config_place(origin: &ConfigOrigin) -> String {
     if origin.file.is_empty() {
         return scope.into_owned();
     }
-    let file = home_relative(&origin.file, std::env::var("HOME").ok().as_deref());
+    let home = gitweft_platform::dirs::home();
+    let file = home_relative(&origin.file, home.as_deref().and_then(|home| home.to_str()));
     t!("commit.config_place", file = file, scope = scope).into_owned()
 }
 

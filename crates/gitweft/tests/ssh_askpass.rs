@@ -2,7 +2,6 @@
 //! through `$SSH_ASKPASS` exactly like OpenSSH does; the gitweft binary (helper mode)
 //! relays the prompt to the in-process AskpassServer, and the answer unlocks the fetch.
 
-use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::thread;
 
@@ -55,7 +54,7 @@ fn setup(
 
     let fake_ssh = sb.path().join("fake-ssh");
     std::fs::write(&fake_ssh, FAKE_SSH).unwrap();
-    std::fs::set_permissions(&fake_ssh, std::fs::Permissions::from_mode(0o755)).unwrap();
+    gitweft_platform::fs::set_executable(&fake_ssh, true).unwrap();
     let mut git = sb.git().clone();
     for (key, value) in server.git_env(Path::new(HELPER)) {
         git.set_env(key, value);

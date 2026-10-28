@@ -1,7 +1,7 @@
 //! Network operations: fetch, pull and push. They always run the user's `git`, so
 //! credential helpers, `~/.ssh/config`, proxies and hooks behave as in a terminal.
 //! `--progress` makes git report progress on stderr even without a terminal; cancelling
-//! kills the whole process group, ssh included.
+//! kills everything git started, ssh included.
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -408,14 +408,13 @@ pub fn push(
     }
     // The branch names as bytes: they may be encoded (`undo::ref_name_text`) for a name
     // that isn't UTF-8; any other text is taken as it is.
-    use std::os::unix::ffi::OsStringExt as _;
     let mut refspec = b"refs/heads/".to_vec();
     refspec.extend(crate::undo::ref_name_bytes(&request.branch));
     refspec.extend_from_slice(b":refs/heads/");
     refspec.extend(crate::undo::ref_name_bytes(&request.remote_branch));
     command
         .arg(&request.remote)
-        .arg(std::ffi::OsString::from_vec(refspec))
+        .arg(gitweft_platform::bytes::os_string_from_vec(refspec))
         .run_with_events(cancel, on_event)
 }
 

@@ -239,6 +239,7 @@ fn a_deleted_branch_comes_back_with_its_upstream_and_goes_again_without_it() {
     assert_eq!(config("branch.a.b.remote"), "origin\n");
 }
 
+#[cfg(unix)]
 #[test]
 fn a_config_value_that_isnt_utf8_comes_back_byte_for_byte() {
     use gitweft_git::branch::{config_value_bytes, config_value_text};
@@ -286,6 +287,7 @@ fn a_config_value_that_isnt_utf8_comes_back_byte_for_byte() {
     assert_eq!(config_value_bytes("café"), "café".as_bytes());
 }
 
+#[cfg(unix)]
 #[test]
 fn deleting_a_branch_whose_name_isnt_utf8_is_undone() {
     use gitweft_git::undo::ref_name_text;

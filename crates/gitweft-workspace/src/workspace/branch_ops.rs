@@ -6,8 +6,7 @@ impl Workspace {
     /// A revision or ref name as git gets it: a name encoded by `undo::ref_name_text` (one
     /// that isn't UTF-8) as its bytes, any other text as it is.
     pub(super) fn git_arg(text: &str) -> std::ffi::OsString {
-        use std::os::unix::ffi::OsStringExt as _;
-        std::ffi::OsString::from_vec(gitweft_git::undo::ref_name_bytes(text))
+        gitweft_platform::bytes::os_string_from_vec(gitweft_git::undo::ref_name_bytes(text))
     }
 
     /// The name git has for the local branch shown as `shown`: its bytes, since the
@@ -135,10 +134,9 @@ impl Workspace {
                 };
                 // The branch's name as git has it (bytes), else as it was given.
                 let git_name = |given: &str| -> std::ffi::OsString {
-                    use std::os::unix::ffi::OsStringExt as _;
                     job_git_name
                         .clone()
-                        .map_or_else(|| given.into(), std::ffi::OsString::from_vec)
+                        .map_or_else(|| given.into(), gitweft_platform::bytes::os_string_from_vec)
                 };
                 let run = || -> Result<String, GitError> {
                     let message = match job_op {
@@ -170,10 +168,8 @@ impl Workspace {
                         }
                         BranchOp::SwitchRemote { remote, branch } => {
                             let name = match &remote_branch_bytes {
-                                Some(bytes) => {
-                                    std::os::unix::ffi::OsStrExt::from_bytes(bytes.as_slice())
-                                }
-                                None => std::ffi::OsStr::new(branch.as_str()),
+                                Some(bytes) => gitweft_platform::bytes::os_str_from_bytes(bytes),
+                                None => std::ffi::OsStr::new(branch.as_str()).into(),
                             };
                             let local = switch_to_remote_branch(
                                 &git,

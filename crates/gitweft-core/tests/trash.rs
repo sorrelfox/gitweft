@@ -1,6 +1,3 @@
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -8,6 +5,7 @@ use gitweft_core::trash::{self, INDEX_FILE, TrashAction, TrashError, TrashFileKi
 use gitweft_git::CancelToken;
 use gitweft_git::gix::bstr::BString;
 use gitweft_git::ops::{clean_paths, discard_paths};
+use gitweft_platform::bytes::path_from_bytes;
 use gitweft_testkit::Sandbox;
 
 fn c() -> CancelToken {
@@ -15,7 +13,7 @@ fn c() -> CancelToken {
 }
 
 fn path(base: &Path, name: &[u8]) -> PathBuf {
-    base.join(OsStr::from_bytes(name))
+    base.join(path_from_bytes(name))
 }
 
 fn write(base: &Path, name: &[u8], content: &[u8]) {
@@ -50,11 +48,9 @@ fn a_discard_is_recorded_listed_and_restored_byte_for_byte() {
     let trash_root = sb.path().join("trash");
     let edit = b"precious \xff edit\n";
     write(&repo, b"keep.txt", edit);
-    std::fs::set_permissions(
-        repo.join("keep.txt"),
-        std::fs::Permissions::from_mode(0o755),
-    )
-    .unwrap();
+    // Only Unix has an executable bit to keep.
+    #[cfg(unix)]
+    gitweft_platform::fs::set_executable(&repo.join("keep.txt"), true).unwrap();
     let scratch = [0u8, 1, 2, 255, b'\n'];
     write(&repo, b"dir/scratch.bin", &scratch);
 
@@ -85,7 +81,8 @@ fn a_discard_is_recorded_listed_and_restored_byte_for_byte() {
     assert_eq!(entry.files[0].path, "keep.txt");
     assert!(matches!(
         entry.files[0].kind,
-        TrashFileKind::Tracked { blob: b, left: Some(_), executable: true, symlink: false } if b == blob
+        TrashFileKind::Tracked { blob: b, left: Some(_), executable, symlink: false }
+            if b == blob && executable == cfg!(unix)
     ));
     assert_eq!(entry.files[1].path, "dir/scratch.bin");
     assert_eq!(entry.files[1].kind, TrashFileKind::Untracked);
@@ -98,11 +95,16 @@ fn a_discard_is_recorded_listed_and_restored_byte_for_byte() {
     assert!(report.conflicts.is_empty() && report.failed.is_empty());
     assert!(!report.emptied);
     assert_eq!(read(&repo, b"keep.txt"), edit);
-    let mode = std::fs::metadata(repo.join("keep.txt"))
-        .unwrap()
-        .permissions()
-        .mode();
-    assert_eq!(mode & 0o111, 0o111);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+
+        let mode = std::fs::metadata(repo.join("keep.txt"))
+            .unwrap()
+            .permissions()
+            .mode();
+        assert_eq!(mode & 0o111, 0o111);
+    }
     let entry = trash::list(&trash_root).remove(0);
     assert_eq!(entry.files.len(), 1);
 
@@ -116,6 +118,7 @@ fn a_discard_is_recorded_listed_and_restored_byte_for_byte() {
 
 /// A tracked symlink's discarded version is its target text (as git stores a link), a
 /// dangling one included, and a restore makes it a symlink again.
+#[cfg(unix)]
 #[test]
 fn a_discarded_symlink_comes_back_as_a_symlink() {
     use std::os::unix::fs::symlink;
@@ -498,6 +501,7 @@ fn a_file_where_a_folder_is_needed_blocks_a_restore_until_moved_aside() {
     assert_eq!(read(&moved.files_dir, b"dir"), b"a file now\n");
 }
 
+#[cfg(unix)]
 #[test]
 fn non_utf8_paths_and_roots_round_trip() {
     let sb = Sandbox::new();

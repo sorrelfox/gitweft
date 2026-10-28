@@ -14,10 +14,11 @@ gitweft-core.workspace = true
 gitweft-diff.workspace = true
 gitweft-git.workspace = true
 gitweft-graph.workspace = true
+gitweft-platform.workspace = true
 gitweft-syntax.workspace = true
 gitweft-ui.workspace = true
 gpui-kit.workspace = true
-libc.workspace = true
+jiff.workspace = true
 rust-i18n.workspace = true
 unicode-width.workspace = true
 

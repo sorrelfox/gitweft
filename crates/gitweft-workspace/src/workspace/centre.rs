@@ -1671,7 +1671,7 @@ impl Workspace {
     /// bisect start -- <path>`); the banner then asks for a bad and a good commit, marked
     /// in the graph, so the tree makes way for it. One bisect at a time.
     pub(super) fn bisect_path(&mut self, path: &BString, cx: &mut Context<Self>) {
-        let path = gitweft_core::external::path_from_bytes(path).to_path_buf();
+        let path = gitweft_platform::bytes::path_from_bytes(path).into_owned();
         let running = matches!(self.operation, Some(Operation::Bisect));
         self.with_window(
             move |this, window, cx| {

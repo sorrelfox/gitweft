@@ -2,7 +2,6 @@
 //! gitweft binary in helper mode, an in-process AskpassServer), but the run is
 //! non-interactive, so a prompt fails at once and nothing reaches the server.
 
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
@@ -32,7 +31,7 @@ fn socket_dir() -> tempfile::TempDir {
 fn executable(sb: &Sandbox, name: &str, script: &str) -> PathBuf {
     let path = sb.path().join(name);
     std::fs::write(&path, script).unwrap();
-    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).unwrap();
+    gitweft_platform::fs::set_executable(&path, true).unwrap();
     path
 }
 

@@ -2,9 +2,10 @@
 //! running, which opens it in a tab (or switches to the tab that shows it) and comes
 //! forward; the new process then exits.
 //!
-//! The running app listens on a Unix socket in `$XDG_RUNTIME_DIR/gitweft/` (a 0700 folder,
-//! the socket 0600, so only the same user can connect). Its name carries a hash of the
-//! data dir: an instance started with another `XDG_DATA_HOME` (a test, a second profile)
+//! The running app listens on a local socket in a folder only this user may enter
+//! (`$XDG_RUNTIME_DIR/gitweft/` on Linux, 0700 with the socket 0600; a private folder of
+//! the user's own elsewhere), so only the same user can connect. Its name carries a hash of
+//! the data dir: an instance started with another `XDG_DATA_HOME` (a test, a second profile)
 //! has its own recent list and session, and so its own socket.
 //!
 //! Wire protocol (one request per connection):
@@ -14,14 +15,15 @@
 
 use std::io::{self, Read, Write};
 use std::net::Shutdown;
-use std::os::unix::ffi::OsStrExt;
-use std::os::unix::fs::{DirBuilderExt, MetadataExt, PermissionsExt};
-use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::time::Duration;
+
+use gitweft_platform::bytes::path_from_bytes;
+use gitweft_platform::local_socket::{Listener, Stream};
+use gitweft_platform::{dirs, fs};
 
 use crate::paths::{data_dir, fnv1a};
 
@@ -33,20 +35,13 @@ const TIMEOUT: Duration = Duration::from_secs(5);
 
 /// The socket of the Gitweft using this process's data dir.
 pub fn socket_path() -> PathBuf {
-    let runtime = std::env::var_os("XDG_RUNTIME_DIR")
-        .map(PathBuf::from)
-        .filter(|path| path.is_absolute());
-    socket_path_in(runtime, &data_dir())
+    socket_path_in(&dirs::socket_dir(), &data_dir())
 }
 
-/// `<runtime dir>/gitweft/ipc-<hash of data_dir>.sock`. Without a runtime dir, a folder of
-/// this user's own in the temp dir.
-fn socket_path_in(runtime: Option<PathBuf>, data_dir: &Path) -> PathBuf {
-    let dir = runtime.map_or_else(
-        || std::env::temp_dir().join(format!("gitweft-{}", crate::paths::own_uid())),
-        |runtime| runtime.join("gitweft"),
-    );
-    let hash = fnv1a(data_dir.as_os_str().as_bytes());
+/// `<socket dir>/ipc-<hash of data_dir>.sock`. The socket dir is `$XDG_RUNTIME_DIR/gitweft`
+/// when there is one, otherwise a folder of this user's own (see [`dirs::socket_dir`]).
+fn socket_path_in(dir: &Path, data_dir: &Path) -> PathBuf {
+    let hash = fnv1a(data_dir.as_os_str().as_encoded_bytes());
     dir.join(format!("ipc-{hash:016x}.sock"))
 }
 
@@ -61,10 +56,10 @@ fn send_within(socket: &Path, paths: &[PathBuf], timeout: Duration) -> io::Resul
     // Only to a socket in a folder of our own: another user may have made the fallback
     // folder in /tmp to receive our repositories' paths.
     if let Some(dir) = socket.parent() {
-        check_private(dir, crate::paths::own_uid())?;
+        check_private(dir)?;
     }
     let request = encode(paths)?;
-    let mut stream = UnixStream::connect(socket)?;
+    let mut stream = Stream::connect(socket)?;
     // Connected: a Gitweft is there, so anything from here on is it not answering.
     let answered = (|| {
         stream.set_read_timeout(Some(timeout))?;
@@ -119,7 +114,7 @@ pub fn is_no_answer(err: &io::Error) -> bool {
 fn encode(paths: &[PathBuf]) -> io::Result<Vec<u8>> {
     let mut bytes = MAGIC.to_vec();
     for path in paths {
-        let raw = path.as_os_str().as_bytes();
+        let raw = path.as_os_str().as_encoded_bytes();
         if !path.is_absolute() {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
@@ -138,7 +133,7 @@ fn decode(request: &[u8]) -> Option<Vec<PathBuf>> {
     let paths = rest
         .split(|&byte| byte == 0)
         .filter(|raw| !raw.is_empty())
-        .map(|raw| PathBuf::from(std::ffi::OsStr::from_bytes(raw)))
+        .map(|raw| path_from_bytes(raw).into_owned())
         .filter(|path| path.is_absolute())
         .collect();
     Some(paths)
@@ -170,12 +165,8 @@ impl IpcServer {
         spawn: impl FnOnce(Box<dyn FnOnce() + Send>) -> io::Result<()>,
     ) -> io::Result<(Self, async_channel::Receiver<Vec<PathBuf>>)> {
         if let Some(dir) = socket.parent() {
-            std::fs::DirBuilder::new()
-                .recursive(true)
-                .mode(0o700)
-                .create(dir)?;
-            std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700))?;
-            check_private(dir, crate::paths::own_uid())?;
+            fs::create_private_dir(dir)?;
+            check_private(dir)?;
         }
         let shutdown = Arc::new(AtomicBool::new(false));
         let (tx, rx) = async_channel::unbounded();
@@ -186,20 +177,20 @@ impl IpcServer {
         // meanwhile refused the next start as in use, so neither ran. A failure after
         // the bind removes the socket, which is this start's own, for the next start.
         crate::datafile::with_lock(socket, || {
-            let listener = match UnixListener::bind(socket) {
+            let listener = match Listener::bind(socket) {
                 Ok(listener) => listener,
                 Err(err) if err.kind() == io::ErrorKind::AddrInUse => {
                     // A live app accepts the connection; a stale file refuses it.
-                    if UnixStream::connect(socket).is_ok() {
+                    if Stream::connect(socket).is_ok() {
                         return Err(err);
                     }
                     std::fs::remove_file(socket)?;
-                    UnixListener::bind(socket)?
+                    Listener::bind(socket)?
                 }
                 Err(err) => return Err(err),
             };
             let serve_from = || -> io::Result<()> {
-                std::fs::set_permissions(socket, std::fs::Permissions::from_mode(0o600))?;
+                fs::make_private(socket)?;
                 let shutdown = Arc::clone(&shutdown);
                 spawn(Box::new(move || {
                     for stream in listener.incoming() {
@@ -237,14 +228,14 @@ impl Drop for IpcServer {
     fn drop(&mut self) {
         self.shutdown.store(true, Ordering::Relaxed);
         // Wake the accept loop so its thread exits.
-        let _ = UnixStream::connect(&self.socket_path);
+        let _ = Stream::connect(&self.socket_path);
         let _ = std::fs::remove_file(&self.socket_path);
     }
 }
 
-/// `dir` holds our socket only if it's a real folder (not a link), owned by `uid`, that
+/// `dir` holds our socket only if it's a real folder (not a link), this user's own, that
 /// no one else may enter.
-fn check_private(dir: &Path, uid: u32) -> io::Result<()> {
+fn check_private(dir: &Path) -> io::Result<()> {
     let meta = std::fs::symlink_metadata(dir)?;
     let refused = |why: &str| {
         Err(io::Error::new(
@@ -255,16 +246,13 @@ fn check_private(dir: &Path, uid: u32) -> io::Result<()> {
     if !meta.is_dir() {
         return refused("isn't a folder");
     }
-    if meta.uid() != uid {
-        return refused("belongs to another user");
+    match fs::private_dir_problem(&meta) {
+        Some(why) => refused(why),
+        None => Ok(()),
     }
-    if meta.mode() & 0o077 != 0 {
-        return refused("is open to other users");
-    }
-    Ok(())
 }
 
-fn serve(mut stream: UnixStream, tx: &async_channel::Sender<Vec<PathBuf>>) -> io::Result<()> {
+fn serve(mut stream: Stream, tx: &async_channel::Sender<Vec<PathBuf>>) -> io::Result<()> {
     stream.set_read_timeout(Some(TIMEOUT))?;
     let mut request = Vec::new();
     (&mut stream).take(MAX_REQUEST).read_to_end(&mut request)?;
@@ -280,12 +268,18 @@ fn serve(mut stream: UnixStream, tx: &async_channel::Sender<Vec<PathBuf>>) -> io
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::paths::test_path;
 
     fn short_dir() -> tempfile::TempDir {
-        // Unix socket paths are limited to ~108 bytes; keep them short.
+        // Socket paths are limited to ~108 bytes; keep them short.
+        let base = if cfg!(unix) {
+            PathBuf::from("/tmp")
+        } else {
+            std::env::temp_dir()
+        };
         tempfile::Builder::new()
             .prefix("gw")
-            .tempdir_in("/tmp")
+            .tempdir_in(base)
             .unwrap()
     }
 
@@ -294,8 +288,11 @@ mod tests {
         let dir = short_dir();
         let socket = dir.path().join("rt/ipc.sock");
         let (_server, requests) = IpcServer::start(&socket).unwrap();
-        let odd = PathBuf::from(std::ffi::OsStr::from_bytes(b"/repos/caf\xe9"));
-        let paths = vec![PathBuf::from("/a b"), odd];
+        #[allow(unused_mut)]
+        let mut paths = vec![test_path("/a b")];
+        // Not UTF-8, which only Unix allows in a name.
+        #[cfg(unix)]
+        paths.push(path_from_bytes(b"/repos/caf\xe9").into_owned());
         send(&socket, &paths).unwrap();
         assert_eq!(requests.recv_blocking().unwrap(), paths);
         // No paths: "come forward".
@@ -322,9 +319,9 @@ mod tests {
     fn a_running_app_that_doesnt_answer_is_told_apart() {
         let dir = short_dir();
         // As a server makes it: `send` only uses a folder of our own.
-        std::fs::set_permissions(dir.path(), std::fs::Permissions::from_mode(0o700)).unwrap();
+        fs::create_private_dir(dir.path()).unwrap();
         let socket = dir.path().join("ipc.sock");
-        let listener = UnixListener::bind(&socket).unwrap();
+        let listener = Listener::bind(&socket).unwrap();
         let hung = thread::spawn(move || {
             let (stream, _) = listener.accept().unwrap();
             thread::sleep(Duration::from_millis(500));
@@ -336,7 +333,7 @@ mod tests {
 
         // One that answers wrongly counts the same.
         let socket = dir.path().join("rude.sock");
-        let listener = UnixListener::bind(&socket).unwrap();
+        let listener = Listener::bind(&socket).unwrap();
         let rude = thread::spawn(move || {
             let (mut stream, _) = listener.accept().unwrap();
             stream.write_all(b"no\n").unwrap();
@@ -354,18 +351,20 @@ mod tests {
         let err = IpcServer::start(&socket).err().expect("a second server");
         assert_eq!(err.kind(), io::ErrorKind::AddrInUse);
         // The probe of the refused start isn't a request.
-        send(&socket, &[PathBuf::from("/x")]).unwrap();
-        assert_eq!(requests.recv_blocking().unwrap(), [PathBuf::from("/x")]);
+        send(&socket, &[test_path("/x")]).unwrap();
+        assert_eq!(requests.recv_blocking().unwrap(), [test_path("/x")]);
         drop(server);
-        assert!(!socket.exists(), "the socket file is removed on drop");
+        // Not `exists()`: Windows can't follow a socket file, so that says false for one.
+        let there = |path: &Path| std::fs::symlink_metadata(path).is_ok();
+        assert!(!there(&socket), "the socket file is removed on drop");
 
         // A crashed app's socket file: nobody accepts on it.
-        drop(UnixListener::bind(&socket).unwrap());
-        assert!(socket.exists());
+        drop(Listener::bind(&socket).unwrap());
+        assert!(there(&socket));
         assert!(send(&socket, &[]).is_err());
         let (_server, requests) = IpcServer::start(&socket).unwrap();
-        send(&socket, &[PathBuf::from("/y")]).unwrap();
-        assert_eq!(requests.recv_blocking().unwrap(), [PathBuf::from("/y")]);
+        send(&socket, &[test_path("/y")]).unwrap();
+        assert_eq!(requests.recv_blocking().unwrap(), [test_path("/y")]);
     }
 
     #[test]
@@ -373,7 +372,7 @@ mod tests {
         let dir = short_dir();
         let socket = dir.path().join("ipc.sock");
         let (_server, requests) = IpcServer::start(&socket).unwrap();
-        let mut stream = UnixStream::connect(&socket).unwrap();
+        let mut stream = Stream::connect(&socket).unwrap();
         stream.write_all(b"hello\0/etc\0").unwrap();
         stream.shutdown(Shutdown::Write).unwrap();
         let mut reply = Vec::new();
@@ -382,8 +381,11 @@ mod tests {
         assert!(requests.try_recv().is_err());
     }
 
+    #[cfg(unix)]
     #[test]
     fn socket_is_private() {
+        use std::os::unix::fs::PermissionsExt;
+
         let dir = short_dir();
         let socket = dir.path().join("rt/ipc.sock");
         let (_server, _requests) = IpcServer::start(&socket).unwrap();
@@ -392,27 +394,32 @@ mod tests {
         assert_eq!(mode(&socket), 0o600);
     }
 
+    #[cfg(unix)]
     #[test]
     fn only_a_folder_of_our_own_holds_the_socket() {
+        use std::os::unix::fs::{DirBuilderExt, MetadataExt, PermissionsExt};
+
         let dir = short_dir();
-        let uid = crate::paths::own_uid();
         let folder = dir.path().join("f");
         std::fs::DirBuilder::new()
             .mode(0o700)
             .create(&folder)
             .unwrap();
-        check_private(&folder, uid).unwrap();
-        // Another user's folder: the owner is someone else.
-        let err = check_private(&folder, uid.wrapping_add(1)).unwrap_err();
-        assert_eq!(err.kind(), io::ErrorKind::PermissionDenied);
+        check_private(&folder).unwrap();
+        // Another user's folder: root's, unless root runs the tests.
+        if std::fs::metadata(&folder).unwrap().uid() != 0 {
+            let err = check_private(Path::new("/")).unwrap_err();
+            assert_eq!(err.kind(), io::ErrorKind::PermissionDenied);
+            assert!(err.to_string().contains("another user"), "{err}");
+        }
         // Open to others.
         std::fs::set_permissions(&folder, std::fs::Permissions::from_mode(0o755)).unwrap();
-        assert!(check_private(&folder, uid).is_err());
+        assert!(check_private(&folder).is_err());
         // A link to a folder isn't the folder.
         std::fs::set_permissions(&folder, std::fs::Permissions::from_mode(0o700)).unwrap();
         let link = dir.path().join("link");
         std::os::unix::fs::symlink(&folder, &link).unwrap();
-        assert!(check_private(&link, uid).is_err());
+        assert!(check_private(&link).is_err());
 
         // So neither a client nor a server uses a socket there.
         let open = dir.path().join("open");
@@ -422,7 +429,7 @@ mod tests {
             .unwrap();
         std::fs::set_permissions(&open, std::fs::Permissions::from_mode(0o755)).unwrap();
         let socket = open.join("ipc.sock");
-        drop(UnixListener::bind(&socket).unwrap());
+        drop(Listener::bind(&socket).unwrap());
         assert_eq!(
             send(&socket, &[]).unwrap_err().kind(),
             io::ErrorKind::PermissionDenied
@@ -435,7 +442,7 @@ mod tests {
             let dir = short_dir();
             let socket = dir.path().join("ipc.sock");
             // A crashed app's socket file.
-            drop(UnixListener::bind(&socket).unwrap());
+            drop(Listener::bind(&socket).unwrap());
             let starts: Vec<_> = (0..2)
                 .map(|_| {
                     let socket = socket.clone();
@@ -491,28 +498,28 @@ mod tests {
             Some(io::ErrorKind::WouldBlock)
         );
         let (server, requests) = next.expect("the next start serves");
-        send(server.socket_path(), &[PathBuf::from("/a")]).unwrap();
-        assert_eq!(requests.recv_blocking().unwrap(), [PathBuf::from("/a")]);
+        send(server.socket_path(), &[test_path("/a")]).unwrap();
+        assert_eq!(requests.recv_blocking().unwrap(), [test_path("/a")]);
     }
 
     #[test]
     fn each_data_dir_has_its_own_socket() {
-        let runtime = Some(PathBuf::from("/run/user/1000"));
-        let a = socket_path_in(runtime.clone(), Path::new("/home/u/.local/share/gitweft"));
-        let b = socket_path_in(runtime, Path::new("/tmp/test/data/gitweft"));
+        let dir = Path::new("/run/user/1000/gitweft");
+        let a = socket_path_in(dir, Path::new("/home/u/.local/share/gitweft"));
+        let b = socket_path_in(dir, Path::new("/tmp/test/data/gitweft"));
         assert_ne!(a, b);
-        assert!(a.starts_with("/run/user/1000/gitweft"));
-        assert!(a.to_string_lossy().ends_with(".sock"));
-        let fallback = socket_path_in(None, Path::new("/d"));
-        assert!(fallback.starts_with(std::env::temp_dir()));
+        assert_eq!(a.parent(), Some(dir));
+        let name = a.file_name().unwrap().to_string_lossy();
         assert!(
-            fallback
-                .parent()
-                .unwrap()
-                .file_name()
-                .unwrap()
-                .to_string_lossy()
-                .starts_with("gitweft-")
+            name.starts_with("ipc-") && name.ends_with(".sock"),
+            "{name}"
         );
+        assert_eq!(name.len(), "ipc-".len() + 16 + ".sock".len(), "{name}");
+        // The same data dir, the same socket: that is how a second start finds the first.
+        assert_eq!(
+            a,
+            socket_path_in(dir, Path::new("/home/u/.local/share/gitweft"))
+        );
+        assert!(socket_path().starts_with(dirs::socket_dir()));
     }
 }

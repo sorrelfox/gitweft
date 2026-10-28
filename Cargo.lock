@@ -2368,9 +2368,9 @@ version = "1.0.1"
 dependencies = [
  "gitweft-core",
  "gitweft-git",
+ "gitweft-platform",
  "gitweft-testkit",
  "gitweft-workspace",
- "libc",
  "proptest",
  "tempfile",
 ]
@@ -2382,8 +2382,8 @@ dependencies = [
  "async-channel",
  "gitweft-git",
  "gitweft-graph",
+ "gitweft-platform",
  "gitweft-testkit",
- "libc",
  "notify",
  "proptest",
  "serde",
@@ -2406,9 +2406,9 @@ name = "gitweft-git"
 version = "1.0.1"
 dependencies = [
  "async-channel",
+ "gitweft-platform",
  "gitweft-testkit",
  "gix",
- "libc",
  "proptest",
  "serde",
  "serde_json",
@@ -2423,6 +2423,15 @@ version = "1.0.1"
 dependencies = [
  "criterion",
  "proptest",
+]
+
+[[package]]
+name = "gitweft-platform"
+version = "1.0.1"
+dependencies = [
+ "libc",
+ "tempfile",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2460,11 +2469,12 @@ dependencies = [
  "gitweft-diff",
  "gitweft-git",
  "gitweft-graph",
+ "gitweft-platform",
  "gitweft-syntax",
  "gitweft-testkit",
  "gitweft-ui",
  "gpui-kit",
- "libc",
+ "jiff",
  "rust-i18n",
  "serde_json",
  "tempfile",

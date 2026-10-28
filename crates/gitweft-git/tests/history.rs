@@ -1,4 +1,6 @@
+#[cfg(unix)]
 use std::ffi::OsStr;
+#[cfg(unix)]
 use std::os::unix::ffi::OsStrExt;
 
 use gitweft_git::read::{ChangeKind, FileRevision, file_history};
@@ -88,6 +90,7 @@ fn limit_caps_the_number_of_commits() {
     assert_eq!(summaries, ["Commit 4", "Commit 3"]);
 }
 
+#[cfg(unix)]
 #[test]
 fn non_utf8_and_pattern_like_names_work() {
     let sb = Sandbox::new();

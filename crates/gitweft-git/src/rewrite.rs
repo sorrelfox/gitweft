@@ -9,10 +9,9 @@
 //!   the target's files would overwrite are moved to the trash. [`recorded_reset`] also
 //!   returns the undo entry, which puts the saved changes (or the old index) back.
 
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
+use gitweft_platform::bytes::path_from_bytes;
 use gix::ObjectId;
 use gix::bstr::BString;
 
@@ -435,7 +434,7 @@ fn trash_untracked_in_the_way(
         .stdout
         .split(|&byte| byte == 0)
         .filter(|raw| !raw.is_empty())
-        .filter_map(|raw| blocking_path(workdir, Path::new(OsStr::from_bytes(raw))))
+        .filter_map(|raw| blocking_path(workdir, &path_from_bytes(raw)))
         .collect();
     if in_the_way.is_empty() {
         return Ok(None);
@@ -462,7 +461,7 @@ fn trash_untracked_in_the_way(
             break;
         }
         record.files.push(TrashFile {
-            path: BString::from(relative.as_os_str().as_bytes()),
+            path: BString::from(relative.as_os_str().as_encoded_bytes()),
             kind: TrashFileKind::Untracked,
         });
     }

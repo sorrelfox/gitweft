@@ -2,8 +2,11 @@
 //! with real merges, cherry-picks and rebases in a sandbox.
 
 use std::collections::HashSet;
+#[cfg(unix)]
 use std::ffi::OsStr;
+#[cfg(unix)]
 use std::os::unix::ffi::OsStrExt as _;
+#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 
@@ -372,6 +375,7 @@ fn a_text_conflict_is_for_the_line_tool_an_add_add_has_no_base() {
     commit_no_edit(&sb, &repo);
 }
 
+#[cfg(unix)]
 #[test]
 fn modes_are_taken_exactly_executable_bits_and_symlinks() {
     let sb = Sandbox::new();
@@ -428,6 +432,7 @@ fn modes_are_taken_exactly_executable_bits_and_symlinks() {
     commit_no_edit(&sb, &repo);
 }
 
+#[cfg(unix)]
 fn relink(repo: &Path, path: &str, target: &[u8]) {
     let link = repo.join(path);
     if std::fs::symlink_metadata(&link).is_ok() {
@@ -436,6 +441,7 @@ fn relink(repo: &Path, path: &str, target: &[u8]) {
     std::os::unix::fs::symlink(OsStr::from_bytes(target), link).unwrap();
 }
 
+#[cfg(unix)]
 #[test]
 fn stages_know_symlink_targets_and_executable_bits() {
     let sb = Sandbox::new();

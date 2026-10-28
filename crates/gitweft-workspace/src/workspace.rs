@@ -2941,10 +2941,7 @@ impl Workspace {
         let Some(workdir) = repo.workdir.clone() else {
             return;
         };
-        let file = {
-            use std::os::unix::ffi::OsStrExt;
-            workdir.join(std::ffi::OsStr::from_bytes(&path))
-        };
+        let file = workdir.join(gitweft_platform::bytes::path_from_bytes(&path));
         /// The line-by-line tool's text, or what each side has for a whole-file conflict
         /// (and the incoming commit, to name that side: the file has no markers).
         enum Opened {
@@ -3108,10 +3105,7 @@ impl Workspace {
         let job = self
             .jobs
             .spawn(Lane::Write, move |cancel| -> Result<String, GitError> {
-                let file = {
-                    use std::os::unix::ffi::OsStrExt;
-                    workdir.join(std::ffi::OsStr::from_bytes(&path))
-                };
+                let file = workdir.join(gitweft_platform::bytes::path_from_bytes(&path));
                 std::fs::write(&file, content.as_bytes())
                     .map_err(|err| GitError::new(GitErrorKind::Other, "write", err.to_string()))?;
                 if mark_resolved {

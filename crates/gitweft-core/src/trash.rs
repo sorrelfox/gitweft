@@ -17,8 +17,6 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::io;
-use std::os::unix::ffi::OsStrExt;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -28,6 +26,7 @@ use gitweft_git::trash::{
     unprotect,
 };
 use gitweft_git::{CancelToken, GitCli, GitError, GitErrorKind, ObjectId};
+use gitweft_platform::bytes::path_from_bytes;
 
 pub use gitweft_git::trash::{FILES_DIR, INDEX_FILE, TrashAction, TrashFile, TrashFileKind};
 
@@ -151,7 +150,8 @@ fn walk(base: &Path, dir: &Path, files: &mut Vec<TrashFile>) {
         let path = child.path();
         let name = child.file_name();
         if dir == base
-            && (name == INDEX_FILE || name.as_bytes() == format!("{INDEX_FILE}.tmp").as_bytes())
+            && (name == INDEX_FILE
+                || name.as_encoded_bytes() == format!("{INDEX_FILE}.tmp").as_bytes())
         {
             continue;
         }
@@ -163,7 +163,7 @@ fn walk(base: &Path, dir: &Path, files: &mut Vec<TrashFile>) {
         }
         if let Ok(relative) = path.strip_prefix(base) {
             files.push(TrashFile {
-                path: BString::from(relative.as_os_str().as_bytes()),
+                path: BString::from(relative.as_os_str().as_encoded_bytes()),
                 kind: TrashFileKind::Untracked,
             });
         }
@@ -455,7 +455,7 @@ pub fn restore(
         };
         let target = root.join(relative);
         if let Some(blocker) = blocker_in(root, relative) {
-            let blocker = BString::from(blocker.as_os_str().as_bytes());
+            let blocker = BString::from(blocker.as_os_str().as_encoded_bytes());
             report.blocked.push((file.path.clone(), blocker));
             continue;
         }
@@ -544,22 +544,11 @@ fn restore_tracked(
         std::fs::remove_file(target)?;
     }
     if symlink {
-        std::os::unix::fs::symlink(std::ffi::OsStr::from_bytes(&content), target)?;
+        gitweft_platform::fs::symlink(&path_from_bytes(&content), target)?;
         return Ok(Outcome::Restored);
     }
     std::fs::write(target, content)?;
-    let mut permissions = std::fs::metadata(target)?.permissions();
-    let mode = permissions.mode();
-    let wanted = if executable {
-        // Executable for whoever may read it, like git checks files out.
-        mode | ((mode & 0o444) >> 2)
-    } else {
-        mode & !0o111
-    };
-    if wanted != mode {
-        permissions.set_mode(wanted);
-        std::fs::set_permissions(target, permissions)?;
-    }
+    gitweft_platform::fs::set_executable(target, executable)?;
     Ok(Outcome::Restored)
 }
 

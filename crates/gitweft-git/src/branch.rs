@@ -6,6 +6,8 @@
 use std::ffi::OsStr;
 use std::path::Path;
 
+use gitweft_platform::bytes::os_str_from_bytes;
+
 use crate::cancel::CancelToken;
 use crate::cli::{GitCli, GitError};
 
@@ -154,7 +156,6 @@ pub fn set_branch_config(
     entries: &[(String, String)],
     cancel: &CancelToken,
 ) -> Result<(), GitError> {
-    use std::os::unix::ffi::OsStrExt as _;
     if entries.is_empty() {
         // Exit 128: there was no such section.
         git.command(workdir)
@@ -176,7 +177,7 @@ pub fn set_branch_config(
             .args(["config", "--local"])
             .arg(if first { "--replace-all" } else { "--add" })
             .arg(key)
-            .arg(std::ffi::OsStr::from_bytes(&config_value_bytes(value)))
+            .arg(os_str_from_bytes(&config_value_bytes(value)))
             .run(cancel)?;
         if first {
             written.push(key);

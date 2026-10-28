@@ -34,9 +34,9 @@ use std::cell::RefCell;
 use std::collections::HashSet;
 use std::ffi::OsString;
 use std::io::ErrorKind;
-use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::path::{Path, PathBuf};
 
+use gitweft_platform::bytes::{os_string_from_vec, path_buf_from_vec};
 use gix::ObjectId;
 
 use crate::cancel::CancelToken;
@@ -253,7 +253,7 @@ pub struct BisectRunOutcome {
 ///
 /// Refused before git runs when no bisect is running or it lacks a bad or a good commit
 /// (git would exit 1 without a word), and for an empty command. Cancelling kills git, the
-/// shell and whatever the command started (one process group); the bisect keeps running
+/// shell and whatever the command started; the bisect keeps running
 /// where it was.
 pub fn bisect_run(
     git: &GitCli,
@@ -446,7 +446,7 @@ fn running_bisect(
     while dir.last() == Some(&b'\n') {
         dir.pop();
     }
-    let git_dir = PathBuf::from(OsString::from_vec(dir));
+    let git_dir = path_buf_from_vec(dir);
     if !git_dir.join("BISECT_START").is_file() {
         return Ok(None);
     }
@@ -651,7 +651,7 @@ impl Bisect {
             // Exactly as git passes them, a `--` of their own included (`start -- <path>`):
             // the second `--` is a pathspec that matches nothing.
             args.push("--".into());
-            args.extend(names.iter().map(|name| OsString::from_vec(name.clone())));
+            args.extend(names.iter().map(|name| os_string_from_vec(name.clone())));
         }
         args
     }
@@ -855,8 +855,8 @@ fn bisect_command<'a>(git: &'a GitCli, workdir: &Path) -> GitCommand<'a> {
 
 fn literal_pathspec(path: &Path) -> OsString {
     let mut bytes = LITERAL.to_vec();
-    bytes.extend_from_slice(path.as_os_str().as_bytes());
-    OsString::from_vec(bytes)
+    bytes.extend_from_slice(path.as_os_str().as_encoded_bytes());
+    os_string_from_vec(bytes)
 }
 
 /// The paths in the words of `BISECT_NAMES`: git writes `--` before them (and nothing
@@ -870,7 +870,7 @@ fn bisect_paths(names: &[Vec<u8>]) -> Vec<PathBuf> {
         .iter()
         .map(|name| {
             let path = name.strip_prefix(LITERAL).unwrap_or(name);
-            PathBuf::from(OsString::from_vec(path.to_vec()))
+            path_buf_from_vec(path.to_vec())
         })
         .collect()
 }

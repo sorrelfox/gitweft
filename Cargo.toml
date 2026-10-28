@@ -29,7 +29,23 @@ gix = { version = "0.87.1", default-features = false, features = [
 ] }
 
 async-channel = "2"
+# Local time for dates shown in the views, with the system time zone; already in the tree
+# through gix.
+jiff = "0.2"
 libc = "0.2"
+# The Win32 API, for the parts of gitweft-platform that only Windows has (job objects,
+# AF_UNIX sockets, BCryptGenRandom); already in the tree through GPUI.
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_Networking_WinSock",
+    "Win32_Security",
+    "Win32_Security_Cryptography",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_IO",
+    "Win32_System_JobObjects",
+    "Win32_System_Threading",
+] }
 # inotify file watching; already in the tree through gpui-component, so no new code.
 notify = { version = "7.0.0", default-features = false }
 similar = { version = "3.2", features = ["unicode"] }
@@ -51,6 +67,7 @@ gitweft-diff = { path = "crates/gitweft-diff" }
 gitweft-syntax = { path = "crates/gitweft-syntax" }
 gitweft-git = { path = "crates/gitweft-git" }
 gitweft-graph = { path = "crates/gitweft-graph" }
+gitweft-platform = { path = "crates/gitweft-platform" }
 gitweft-workspace = { path = "crates/gitweft-workspace" }
 gitweft-testkit = { path = "crates/gitweft-testkit" }
 gitweft-ui = { path = "crates/gitweft-ui" }

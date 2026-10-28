@@ -331,8 +331,6 @@ impl Line {
 
 #[cfg(test)]
 mod tests {
-    use std::os::unix::ffi::OsStrExt;
-
     use super::*;
 
     fn id(byte: u8) -> ObjectId {
@@ -492,7 +490,13 @@ mod tests {
         assert_ne!(a, oplog_file(Path::new("/home/u/other/app")));
         let folder = a.parent().unwrap().file_name().unwrap().to_string_lossy();
         assert!(folder.starts_with("app-"), "{folder}");
-        let odd = oplog_file(Path::new(std::ffi::OsStr::from_bytes(b"/r/caf\xe9 x")));
+    }
+
+    /// A folder name that isn't UTF-8 (which only Unix allows) still makes a readable one.
+    #[cfg(unix)]
+    #[test]
+    fn a_path_that_is_not_utf8_has_a_file_too() {
+        let odd = oplog_file(&gitweft_platform::bytes::path_from_bytes(b"/r/caf\xe9 x"));
         let folder = odd.parent().unwrap().file_name().unwrap().to_string_lossy();
         assert!(folder.starts_with("caf__x-"), "{folder}");
     }

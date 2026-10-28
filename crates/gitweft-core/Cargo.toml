@@ -12,10 +12,13 @@ publish.workspace = true
 async-channel.workspace = true
 gitweft-git.workspace = true
 gitweft-graph.workspace = true
-libc.workspace = true
+gitweft-platform.workspace = true
 notify.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+notify = { workspace = true, features = ["macos_fsevent"] }
 
 [features]
 # Lets another crate's tests keep Gitweft's own files out of the user's data dir.

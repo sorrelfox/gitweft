@@ -299,6 +299,7 @@ mod tests {
     }
 
     /// The folder's names other than `keep`: a save leaves no temporary file behind.
+    #[cfg(unix)]
     fn leftovers(dir: &Path, keep: &[&str]) -> Vec<String> {
         let mut names: Vec<String> = std::fs::read_dir(dir)
             .unwrap()
@@ -309,6 +310,7 @@ mod tests {
         names
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_save_through_a_link_keeps_the_link() {
         use std::os::unix::fs::symlink;
@@ -337,6 +339,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_link_to_a_missing_file_creates_that_file() {
         use std::os::unix::fs::symlink;
@@ -348,6 +351,7 @@ mod tests {
         assert!(meta.file_type().is_symlink());
     }
 
+    #[cfg(unix)]
     #[test]
     fn an_unreadable_linked_file_is_set_aside_where_it_is() {
         use std::os::unix::fs::symlink;
@@ -364,6 +368,7 @@ mod tests {
         assert!(meta.file_type().is_symlink());
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_link_loop_is_an_error_not_a_hang() {
         use std::os::unix::fs::symlink;

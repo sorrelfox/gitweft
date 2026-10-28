@@ -18,7 +18,6 @@
 
 use std::collections::{BTreeSet, HashSet};
 use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{self, RecvTimeoutError};
 use std::time::{Duration, Instant};
@@ -224,7 +223,7 @@ fn classify_git_path(relative: &Path) -> GitPath {
     let Some(first) = relative.components().next() else {
         return GitPath::Irrelevant;
     };
-    match first.as_os_str().as_bytes() {
+    match first.as_os_str().as_encoded_bytes() {
         b"index" => GitPath::Index,
         b"HEAD" => GitPath::Head,
         b"refs" | b"packed-refs" | b"reftable" | b"config" => GitPath::Refs,
@@ -235,7 +234,7 @@ fn classify_git_path(relative: &Path) -> GitPath {
         // this repository's status (the submodule turns modified, or clean again).
         b"modules" => {
             let in_logs = relative.components().any(|c| c.as_os_str() == "logs");
-            match relative.file_name().map(OsStrExt::as_bytes) {
+            match relative.file_name().map(OsStr::as_encoded_bytes) {
                 Some(b"HEAD" | b"index") if !in_logs => GitPath::Submodule,
                 _ => GitPath::Irrelevant,
             }
@@ -512,7 +511,7 @@ impl Worker {
                 if dir.is_empty() {
                     workdir.clone()
                 } else {
-                    workdir.join(path_of(dir))
+                    workdir.join(gitweft_platform::bytes::path_from_bytes(dir))
                 }
             })
             .collect();
@@ -652,7 +651,7 @@ impl Worker {
         }
         self.pending
             .worktree
-            .push(BString::from(relative.as_os_str().as_bytes()));
+            .push(BString::from(relative.as_os_str().as_encoded_bytes()));
         self.pending.arm(WORKTREE_WINDOW);
     }
 
@@ -721,10 +720,6 @@ fn set_difference<'a, T: Ord>(
     new: &'a BTreeSet<T>,
 ) -> (Vec<&'a T>, Vec<&'a T>) {
     (new.difference(old).collect(), old.difference(new).collect())
-}
-
-fn path_of(path: &BString) -> &Path {
-    Path::new(OsStr::from_bytes(path))
 }
 
 #[cfg(test)]
