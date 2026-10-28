@@ -20,6 +20,7 @@ gitweft                  the binary: picks the mode from the arguments
     ├── gitweft-ui       palette, metrics, fonts, icons, settings store   (uses GPUI)
     ├── gitweft-core     repositories, jobs, watcher, undo, review, trash
     │   └── gitweft-git  read/ with gix, cli/ with the system git, the operations
+    │       └── gitweft-platform  folders, files, processes, local sockets per system
     ├── gitweft-graph    lane layout
     ├── gitweft-diff     word diffs, moved lines, conflict markers
     ├── gitweft-syntax   highlighting
@@ -53,10 +54,10 @@ runs the same binary as a helper:
 
 | Invocation | What it does |
 |---|---|
-| `gitweft [PATH...]` | The window, one tab per path. If a Gitweft is already running, the paths are handed to it over a Unix socket (`gitweft-core/src/ipc.rs`) and this process exits; `--new-instance` skips the hand-off. |
+| `gitweft [PATH...]` | The window, one tab per path. If a Gitweft is already running, the paths are handed to it over a local socket (`gitweft-core/src/ipc.rs`) and this process exits; `--new-instance` skips the hand-off. |
 | `gitweft --headless-smoke [PATH]` | Loads the repository without a window and prints timings. The offline checks run this. |
 | `gitweft --sequence-editor PLAN TODO` | Git runs this as `GIT_SEQUENCE_EDITOR` during an interactive rebase: it writes the plan Gitweft prepared into git's todo file. |
-| as askpass | Git and ssh run the binary as `GIT_ASKPASS` and `SSH_ASKPASS`, recognised by an environment variable that only git children of Gitweft have. The helper sends the prompt over a Unix socket to the running window, which shows a dialog, and prints the answer back to git (`gitweft-git/src/askpass.rs`). |
+| as askpass | Git and ssh run the binary as `GIT_ASKPASS` and `SSH_ASKPASS`, recognised by an environment variable that only git children of Gitweft have. The helper sends the prompt over a local socket to the running window, which shows a dialog, and prints the answer back to git (`gitweft-git/src/askpass.rs`). |
 | `--version`, `--help` | What you expect. |
 
 Git finds the helper as `/proc/<pid>/exe`, which is always the running binary, even after a
@@ -90,8 +91,8 @@ cannot do something correctly, the fallback is the git command line in read-only
 
 - sets a fixed environment: `GIT_TERMINAL_PROMPT=0`, `LC_MESSAGES=C`, the askpass helper, and for
   read-only runs `GIT_NO_LAZY_FETCH=1`, so a partial clone never fetches on its own;
-- puts each child in a process group of its own, so that cancelling stops the whole tree, the
-  ssh it started included;
+- starts each child as a process tree of its own (a process group on Linux and macOS, a job
+  object on Windows), so that cancelling stops the whole tree, the ssh it started included;
 - streams stderr and parses git's progress lines, which is where the progress bars come from;
 - classifies failures into `GitErrorKind` (a conflict, a rejected push, a missing identity, an
   untrusted directory, and so on), which is how the UI knows what to offer next;
@@ -127,7 +128,9 @@ The data for a repository lives under `$XDG_DATA_HOME/gitweft/repos/<id>/`. The 
 `gitweft.id` value written once into the repository's own `.git/config`, so the data follows the
 repository when it is moved or renamed. App-wide settings are in
 `$XDG_CONFIG_HOME/gitweft/settings.json` (`settings.rs`): a versioned JSON file that tolerates
-unknown keys and is never overwritten by an older build.
+unknown keys and is never overwritten by an older build. Those are the Linux folders; on macOS
+both are under `~/Library/Application Support`, on Windows under `%LOCALAPPDATA%` and
+`%APPDATA%`, unless the XDG variables are set.
 
 ## The UI layer
 
@@ -152,6 +155,15 @@ Views take colors from `cx.palette()` and sizes from `cx.metrics()` (`gitweft-ui
 gpui-kit's theme fields or pixel literals, and the kit's own theme is built from the same
 palette, so kit widgets and Gitweft's views agree. Every user-visible string is a key in
 `locales/app.yml`, read with `t!` or `tn!`.
+
+## Linux, macOS and Windows
+
+Everything that differs between the systems lives in `gitweft-platform`: turning the bytes git
+prints into paths, where the data and settings folders are, private folders and the executable
+bit, starting a process tree and stopping it, and the local sockets (Unix sockets; on Windows,
+the AF_UNIX sockets Windows 10 and 11 have). It is the only crate that uses `std::os`, `libc` or
+`windows-sys`, so the crates above it are the same code on every system. cargo-deny checks the
+dependency graph of all three.
 
 ## In the Flatpak
 
