@@ -1,6 +1,8 @@
 # Release builds. A tag `vX.Y.Z` (matching Cargo.toml's version) builds every package with
-# the same scripts as `just release` (scripts/dist/, docs/PACKAGING.md), tests them, and
-# creates a draft GitHub Release with the files and SHA256SUMS to review and publish. Each
+# the same scripts as `just release` (scripts/dist/, docs/PACKAGING.md), and the macOS disk
+# image and the Windows installer and zip with those of `just macos` and `just windows`,
+# tests them, and creates a draft GitHub Release with the files and SHA256SUMS to review and
+# publish. Each
 # package also gets a build provenance attestation, which `gh attestation verify` checks.
 # The Release's notes are the version's CHANGELOG.md entry, and the run's "flathub" artifact
 # holds the files of the app's Flathub repository for this version (scripts/dist/flathub.sh).
@@ -179,10 +181,92 @@ jobs:
           path: out/flatpak/*.flatpak
           if-no-files-found: error
 
+  # macOS and Windows build from the checkout, not from the tarballs: the vendor tarball
+  # holds only stubs of their crates (sources.py). Signing needs the repository's secrets
+  # (docs/PACKAGING.md); without them the app is signed ad hoc on macOS and not at all on
+  # Windows.
+  macos:
+    name: macOS (universal)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust (rust-toolchain.toml)
+        run: rustup toolchain install "$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" --profile minimal
+      - name: Developer ID certificate, into a keychain of this run's own
+        env:
+          CERTIFICATE: ${{ secrets.GITWEFT_MACOS_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.GITWEFT_MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          if [ -z "$CERTIFICATE" ]; then echo "No certificate: the app is signed ad hoc."; exit 0; fi
+          keychain=$RUNNER_TEMP/signing.keychain-db
+          password=$(openssl rand -hex 24)
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          printf '%s' "$CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" -P "$CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+      - name: Build both architectures, sign, pack
+        env:
+          GITWEFT_MACOS_SIGN_IDENTITY: ${{ secrets.GITWEFT_MACOS_SIGN_IDENTITY }}
+          GITWEFT_MACOS_NOTARY_APPLE_ID: ${{ secrets.GITWEFT_MACOS_NOTARY_APPLE_ID }}
+          GITWEFT_MACOS_NOTARY_TEAM_ID: ${{ secrets.GITWEFT_MACOS_NOTARY_TEAM_ID }}
+          GITWEFT_MACOS_NOTARY_PASSWORD: ${{ secrets.GITWEFT_MACOS_NOTARY_PASSWORD }}
+        run: bash scripts/dist/macos.sh out/macos
+      - name: From the disk image, both architectures, smoke-test offline
+        run: bash scripts/dist/test-macos.sh out/macos/Gitweft-*.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: out/macos/*.dmg
+          if-no-files-found: error
+
+  windows:
+    name: Windows (x86_64)
+    runs-on: windows-latest
+    defaults:
+      run:
+        # Git for Windows brings bash, which the scripts are written for.
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust (rust-toolchain.toml)
+        run: rustup toolchain install "$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" --profile minimal
+      - name: Inno Setup
+        run: |
+          # The runner image comes with it; if it ever doesn't, the version pins.env names.
+          . scripts/dist/pins.env
+          [ -f "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" ] \
+            || choco install innosetup --version "$GITWEFT_PIN_INNO_SETUP_VERSION" --yes --no-progress
+      - name: Code-signing certificate
+        env:
+          CERTIFICATE: ${{ secrets.GITWEFT_WINDOWS_CERTIFICATE }}
+        run: |
+          if [ -z "$CERTIFICATE" ]; then echo "No certificate: the files stay unsigned."; exit 0; fi
+          file=$(cygpath -u "$RUNNER_TEMP")/certificate.pfx
+          printf '%s' "$CERTIFICATE" | base64 --decode > "$file"
+          echo "GITWEFT_WINDOWS_CERTIFICATE=$file" >> "$GITHUB_ENV"
+      - name: Build, sign, pack
+        env:
+          GITWEFT_WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.GITWEFT_WINDOWS_CERTIFICATE_PASSWORD }}
+        run: bash scripts/dist/windows.sh out/windows
+      - name: Install, smoke-test, uninstall; the zip too
+        run: bash scripts/dist/test-windows.sh out/windows/Gitweft-*-setup.exe out/windows/Gitweft-*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            out/windows/*.exe
+            out/windows/*.zip
+          if-no-files-found: error
+
   release:
     name: Draft release
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [sources, reproducible, rpm, deb, appimage, flatpak]
+    needs: [sources, reproducible, rpm, deb, appimage, flatpak, macos, windows]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -197,7 +281,8 @@ jobs:
         run: |
           mkdir files
           cp artifacts/sources/gitweft-*.tar.xz artifacts/rpm-*/*.rpm artifacts/deb-*/*.deb \
-            artifacts/appimage-*/*.AppImage artifacts/flatpak/*.flatpak files/
+            artifacts/appimage-*/*.AppImage artifacts/flatpak/*.flatpak artifacts/macos/*.dmg \
+            artifacts/windows/*.exe artifacts/windows/*.zip files/
           (cd files && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
       - name: Build provenance attestations
         uses: actions/attest-build-provenance@v2
@@ -208,6 +293,9 @@ jobs:
             files/*.deb
             files/*.AppImage
             files/*.flatpak
+            files/*.dmg
+            files/*.exe
+            files/*.zip
       - name: Flathub manifest, sources from this Release
         run: bash scripts/dist/flathub.sh files flathub
       - uses: actions/upload-artifact@v4

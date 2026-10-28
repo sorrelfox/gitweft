@@ -1,12 +1,12 @@
 # Building the packages
 
-How the RPM, DEB, AppImage and Flatpak are made, how to build them on your machine with one
-command each, and how a release is cut. If you only want the binary, `just build dist` is
-enough; this page is about the packages.
+How the RPM, DEB, AppImage and Flatpak are made, and the macOS disk image and the Windows
+installer, how to build them on your machine with one command each, and how a release is cut.
+If you only want the binary, `just build dist` is enough; this page is about the packages.
 
 ## The idea
 
-Every package is built from the same two files:
+Every Linux package is built from the same two files:
 
 - `gitweft-VERSION.tar.xz`, the source tree as committed, and
 - `gitweft-VERSION-vendor.tar.xz`, every Rust crate the build needs, taken from cargo's cache,
@@ -40,6 +40,8 @@ compares the binaries byte for byte.
 | AppImage | squashfs-tools, curl and podman, plus the DEB's binary and libraries, which are built for you when they are missing |
 | Flatpak | flatpak and flatpak-builder; the SDK is installed for your user from Flathub on the first run |
 | `just release` | all of the above, plus desktop-file-utils and appstream for the metadata check |
+| `just macos` | a Mac with Xcode, rustup and Python 3.11 or later (see "macOS") |
+| `just windows` | Windows with Git for Windows, rustup, the Visual Studio Build Tools, Python 3.11 or later and Inno Setup 6.3 or later (see "Windows") |
 
 The containers download their own build dependencies with dnf or apt, and the DEB build installs
 the pinned Rust with rustup when its image has none. Each build needs about 10 GB of free
@@ -58,6 +60,8 @@ with it, the RPM's link needed more than the 16 GB of a GitHub runner and was ki
 | `just flatpak` | the Flatpak bundle, built in the Freedesktop SDK and smoke-tested in the sandbox | `target/flatpak/` |
 | `just release` | all of the above, plus `SHA256SUMS` | `target/release/VERSION/` |
 | `just repro-check` | two builds, compared | |
+| `just macos` | the app in a disk image, one universal binary for Apple silicon and Intel, smoke-tested from the image | `target/macos/` |
+| `just windows` | the installer and the zip, installed, smoke-tested and uninstalled | `target/windows/` |
 
 Each command prints the path of the finished file at the end. The tarballs are made from the
 last commit; `just rpm --worktree` (and the same for the others) takes the working tree instead,
@@ -98,7 +102,153 @@ own for both architectures.
 | `check-version.sh` | Every file that carries the version agrees with `Cargo.toml` (see "Making a release"). This is `just versions`. |
 | `release-entry.sh` | Prints the newest release's date and note from the metainfo, the one source the RPM and DEB changelogs follow. |
 | `arch.sh` | Which architecture the other scripts build for (`GITWEFT_ARCH`, else the machine's), and the names the packages give it. |
-| `pins.env`, `update-pins.sh`, `flatpak-pins.sh`, `rustup-init.sh` | The pinned inputs, next. |
+| `macos.sh`, `test-macos.sh` | The macOS app and disk image, and its test (see "macOS"). |
+| `windows.sh`, `test-windows.sh` | The Windows installer and zip, and their test (see "Windows"). |
+| `notices.py` | `THIRD-PARTY-LICENSES.txt` for the crates of a macOS or Windows build, the same text `sources.py` writes for Linux, with the license files read from cargo's cache. |
+| `pins.env`, `update-pins.sh`, `flatpak-pins.sh`, `rustup-init.sh` | The pinned inputs (see "Pinned inputs"). |
+
+## macOS
+
+`just macos`, on a Mac, makes `target/macos/Gitweft-VERSION-macos-universal.dmg`: a disk image
+with `Gitweft.app` and a link to the Applications folder to drag it onto. `scripts/dist/macos.sh`
+does the work:
+
+- It builds the binary with the `dist` profile twice, for Apple silicon (`aarch64-apple-darwin`)
+  and for Intel (`x86_64-apple-darwin`), and joins the two with `lipo` into one universal
+  binary. One download that runs on every Mac is worth the second build and the bigger file.
+- The app's `Info.plist` is `packaging/macos/Info.plist` with the version from `Cargo.toml`
+  filled in. The bundle id is `io.github.sorrelfox.Gitweft`, the Linux app id, and folders are
+  declared as a document type, so that a folder can be dropped on the app's icon.
+- The icon is made during the build: resvg renders the scalable SVG of `packaging/linux/icons`
+  at each size of an icon set, and `iconutil` turns the set into `Gitweft.icns`. resvg is
+  built once, with `cargo install` at the version in `pins.env`, into `target/tools/`.
+- `notices.py` writes `THIRD-PARTY-LICENSES.txt` for the crates of the macOS build. It goes
+  into `Contents/Resources`, next to the GPL and the fonts' licenses.
+- The oldest macOS the app runs on is 10.15.7 (Catalina): GPUI compiles its Metal shaders for
+  that version, and the script sets `MACOSX_DEPLOYMENT_TARGET` to match. Macs with Apple
+  silicon have macOS 11 or later anyway.
+
+Unlike the Linux packages, the macOS and Windows builds start from the checkout, not from the
+release tarballs: the vendor tarball holds only stubs of the crates those systems need.
+`cargo fetch --locked` downloads the crates once, checked against `Cargo.lock`, and the builds
+then run with `--frozen`, offline.
+
+What you need: Xcode, rustup and Python 3.11 or later. Xcode itself, not only the Command
+Line Tools, because GPUI's build compiles its Metal shaders with `xcrun metal`, which only
+Xcode has; recent versions of Xcode download it separately (`xcodebuild -downloadComponent
+MetalToolchain`). rustup adds the two targets itself. The Command Line Tools' `python3` is too
+old for `notices.py`; Homebrew's is fine.
+
+`test-macos.sh` mounts the image, checks the app's layout and signature, and runs `--version`
+and the smoke test on a fresh repository from the image, with the network denied by
+`sandbox-exec`: on a Mac with Apple silicon once natively and once under Rosetta as Intel,
+when Rosetta is installed, so that both halves of the binary are tried.
+
+### Signing and notarisation
+
+Without anything set up, the app is signed ad hoc (`codesign --sign -`). That is enough for
+Apple silicon, which runs no unsigned program at all, but Gatekeeper does not trust it: the
+first time the downloaded app is opened, macOS refuses, and the user has to allow it once, in
+System Settings, Privacy & Security, "Open Anyway" (on macOS 14 and older, also with Open in
+the app's context menu in Finder).
+
+A signature Gatekeeper accepts needs a membership of the Apple Developer Program and its
+"Developer ID Application" certificate in your keychain. Then
+
+```sh
+GITWEFT_MACOS_SIGN_IDENTITY="Developer ID Application: NAME (TEAM ID)" just macos
+```
+
+signs the app, with the hardened runtime, and the disk image with it. The hardened runtime
+blocks Apple events unless the app is entitled to send them, and Gitweft sends one when it
+asks Terminal to run a command (through `osascript`, when no terminal is set in the
+settings), so the app is signed with `packaging/macos/Gitweft.entitlements`, which allows
+them. The first time, macOS asks the user whether Gitweft may control Terminal, with the
+reason in `Info.plist`'s `NSAppleEventsUsageDescription`. When notarytool has
+credentials as well, both are notarised by Apple and the tickets stapled to them: either a
+keychain profile, saved once with `xcrun notarytool store-credentials gitweft` and named with
+`GITWEFT_MACOS_NOTARY_PROFILE=gitweft`, or `GITWEFT_MACOS_NOTARY_APPLE_ID`,
+`GITWEFT_MACOS_NOTARY_TEAM_ID` and `GITWEFT_MACOS_NOTARY_PASSWORD` (an app-specific password
+of that Apple ID). The app is notarised on its own first, so that it carries its own ticket
+and opens without a network connection once copied out of the image.
+
+The release workflow does the same with the repository's secrets: `GITWEFT_MACOS_CERTIFICATE`
+(the certificate with its private key, exported from Keychain Access as a .p12 file, in
+base64), `GITWEFT_MACOS_CERTIFICATE_PASSWORD` (the .p12 file's password),
+`GITWEFT_MACOS_SIGN_IDENTITY`, and the three `GITWEFT_MACOS_NOTARY_*` above. Without them it
+signs ad hoc.
+
+### git on macOS
+
+Gitweft runs the `git` it finds on `PATH`. An app started from Finder or the Dock does not
+get the `PATH` of your shell, only the system's: `/usr/bin:/bin:/usr/sbin:/sbin`. There,
+`/usr/bin/git` is Apple's: it runs the git of the Xcode Command Line Tools (or of Xcode), and
+offers to install the Command Line Tools when neither is there. Its version (2.39 or later
+in the Command Line Tools of recent years) is new enough. A git from Homebrew (in `/opt/homebrew/bin`, or
+`/usr/local/bin` on Intel) or MacPorts is not on that `PATH`, so the app uses Apple's git even
+when another one is installed. Started from a terminal as
+`/Applications/Gitweft.app/Contents/MacOS/gitweft`, it gets the shell's `PATH` and its git.
+
+## Windows
+
+`just windows`, on Windows, in Git Bash, makes two files in `target/windows`:
+`Gitweft-VERSION-windows-x86_64-setup.exe`, an installer, and
+`Gitweft-VERSION-windows-x86_64.zip`, the same files to unpack anywhere. `scripts/dist/windows.sh`
+
+- builds the binary with the `dist` profile for `x86_64-pc-windows-msvc`. The executable
+  carries its icon and version details (`crates/gitweft/build.rs` embeds
+  `crates/gitweft/resources/windows/gitweft.ico`), and the installer uses the same icon;
+- puts `gitweft.exe`, the GPL as `LICENSE.txt`, the fonts' licenses and
+  `THIRD-PARTY-LICENSES.txt` (`notices.py`'s, for the crates of the Windows build) in one
+  folder, and zips it with Windows' own `tar.exe`;
+- compiles `packaging/windows/gitweft.iss` with Inno Setup, with the version from `Cargo.toml`.
+
+The installer installs for the current user by default, into
+`%LOCALAPPDATA%\Programs\Gitweft`, and needs no administrator rights; its first page offers an
+installation for all users instead. It adds a Start menu entry, a desktop icon if you tick it,
+and an uninstaller in the list of installed apps. `/VERYSILENT /CURRENTUSER` (or `/ALLUSERS`)
+installs without any questions.
+
+There is no build for Windows on ARM: those machines run the x86_64 build through Windows'
+own emulation.
+
+`test-windows.sh` runs the installer without questions into a temporary folder, checks the
+Start menu entry, runs `--version` and the smoke test with the installed app, uninstalls it
+and checks that nothing is left; then it does the same from the unpacked zip. Where Gitweft is
+installed already, it skips the installer, which would replace that installation. Unlike on
+Linux and macOS, the smoke test runs with the network available: Windows has no simple way to
+take it away from one program.
+
+What you need: Git for Windows (its bash runs the scripts), rustup with the MSVC toolchain,
+the Visual Studio Build Tools with "Desktop development with C++" (the linker and the Windows
+SDK), Python 3.11 or later, and Inno Setup 6.3 or later. GitHub's Windows runners have all of
+it; if a runner ever lacks Inno Setup, the release workflow installs the version in `pins.env`
+with Chocolatey.
+
+### Signing
+
+Unless you give a code-signing certificate, nothing is signed, and Windows SmartScreen warns
+when the installer or the program is started ("Windows protected your PC": "More info", then
+"Run anyway") until the files have gathered a reputation. A signature needs a code-signing
+certificate from a certificate authority. With one in a .pfx file,
+
+```sh
+GITWEFT_WINDOWS_CERTIFICATE=path/to/certificate.pfx GITWEFT_WINDOWS_CERTIFICATE_PASSWORD=... just windows
+```
+
+signs `gitweft.exe` and the installer with signtool, from the Windows SDK, with a timestamp
+(`GITWEFT_WINDOWS_TIMESTAMP_URL` picks the server; DigiCert's by default). The uninstaller that
+Inno Setup writes stays unsigned. Certificates issued since June 2023 live on a hardware token
+or in a cloud signing service rather than in a .pfx file; with one of those, the `sign`
+function in `windows.sh` is the one place to change. The release workflow takes the .pfx file
+in base64 and its password from the secrets `GITWEFT_WINDOWS_CERTIFICATE` and
+`GITWEFT_WINDOWS_CERTIFICATE_PASSWORD`.
+
+### git on Windows
+
+Gitweft runs the `git` it finds on `PATH`. Git for Windows puts `C:\Program Files\Git\cmd` on
+`PATH` with its recommended choice, "Git from the command line and also from 3rd-party
+software"; with "Use Git from Git Bash only", the app finds no git.
 
 ## Pinned inputs
 
@@ -108,10 +258,15 @@ starts from the same inputs:
 - the container images (Fedora 44, Ubuntu 24.04 and 26.04, Debian 13) by digest;
 - rustup by version, and `rustup-init` by its SHA-256 for each architecture, instead of piping
   `sh.rustup.rs` into a shell;
-- the Flatpak SDK, Platform and Rust extension by commit.
+- the Flatpak SDK, Platform and Rust extension by commit;
+- resvg, which renders the macOS icon, by version (cargo checks the crate against the
+  registry's checksum and builds it with its own `Cargo.lock`);
+- Inno Setup by version, used only when a Windows runner has none (Chocolatey checks the
+  download against the package's checksum).
 
 `scripts/dist/update-pins.sh` fetches the current digests and commits and rewrites the file; read
-the diff, rebuild the packages, and commit. `GITWEFT_RPM_IMAGE`, `GITWEFT_DEB_IMAGE` and
+the diff, rebuild the packages, and commit. It keeps the resvg and Inno Setup versions as they
+are; change those by hand. `GITWEFT_RPM_IMAGE`, `GITWEFT_DEB_IMAGE` and
 `GITWEFT_DEB_TEST_IMAGES` point the scripts at other images (a local mirror, say) without
 touching the pins.
 
@@ -131,10 +286,12 @@ Flatpak apps you use; `GITWEFT_FLATPAK_DEPS=flathub just flatpak` says that is f
    paragraph). `just versions` checks all of it; it is also the first step of `just check` and
    of `just release`. The Flatpak manifest and the DEB's `control.in` take the version from
    `Cargo.toml` themselves.
-3. Run `just check` and `just release`, and try the packages.
+3. Run `just check` and `just release`, and try the packages. `just macos` and `just windows`
+   need those systems; without them, the release workflow is where those packages are built.
 4. Commit, then push a tag `vVERSION`. The release workflow (`.github/workflows/release.yml`)
    checks that the tag matches `Cargo.toml`, builds and tests every package with the same
-   scripts, checks that the build is reproducible, attests every package's build provenance
+   scripts (the macOS and Windows ones on GitHub's macOS and Windows runners, signed when the
+   repository has the secrets described above), checks that the build is reproducible, attests every package's build provenance
    (`actions/attest-build-provenance`, checked with `gh attestation verify FILE --repo
    sorrelfox/gitweft`), and creates a **draft** GitHub Release with the files, `SHA256SUMS` and
    the version's `CHANGELOG.md` entry as its notes. Read it over, then publish it. The run also

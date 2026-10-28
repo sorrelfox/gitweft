@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Gitweft.app's Info.plist. scripts/dist/macos.sh fills in @VERSION@ from Cargo.toml. -->
+<plist version="1.0">
+<dict>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en</string>
+  <key>CFBundleDisplayName</key>
+  <string>Gitweft</string>
+  <key>CFBundleExecutable</key>
+  <string>gitweft</string>
+  <key>CFBundleIconFile</key>
+  <string>Gitweft</string>
+  <key>CFBundleIdentifier</key>
+  <string>io.github.sorrelfox.Gitweft</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleName</key>
+  <string>Gitweft</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>@VERSION@</string>
+  <key>CFBundleVersion</key>
+  <string>@VERSION@</string>
+  <key>LSApplicationCategoryType</key>
+  <string>public.app-category.developer-tools</string>
+  <!-- GPUI's Metal shaders are compiled for 10.15.7 and no older. -->
+  <key>LSMinimumSystemVersion</key>
+  <string>10.15.7</string>
+  <!-- Shown by macOS the first time the app asks Terminal (with osascript) to run a command. -->
+  <key>NSAppleEventsUsageDescription</key>
+  <string>Gitweft asks Terminal to run commands you start from Gitweft.</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  <key>NSHumanReadableCopyright</key>
+  <string>Gitweft is free software, under the GNU General Public License, version 3 or later.</string>
+  <!-- Folders may be dropped on the app's icon in the Dock and in Finder; macOS hands them
+       to the app as an "open" event. "Alternate": the app takes folders, but never becomes
+       the one that opens them by default. -->
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeName</key>
+      <string>Folder</string>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+      <key>LSHandlerRank</key>
+      <string>Alternate</string>
+      <key>LSItemContentTypes</key>
+      <array>
+        <string>public.folder</string>
+      </array>
+    </dict>
+  </array>
+</dict>
+</plist>

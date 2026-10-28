@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Refreshes scripts/dist/pins.env: the images' current index digests (skopeo), the
 # newest rustup and its checksum, and Flathub's current SDK, Platform and Rust extension
-# commits (flatpak remote-info, the user's flathub remote). Prints the diff; review it,
-# rebuild the packages, and commit. Needs network, skopeo, curl and flatpak.
+# commits (flatpak remote-info, the user's flathub remote). The resvg and Inno Setup versions
+# of the macOS and Windows packages are kept as they are; change those by hand. Prints the
+# diff; review it, rebuild the packages, and commit. Needs network, skopeo, curl and flatpak.
 set -euo pipefail
 cd "$(dirname "$0")"
 digest() { printf 'sha256:%s' "$(skopeo inspect --raw "docker://$1" | sha256sum | cut -d' ' -f1)"; }
@@ -23,5 +24,6 @@ GITWEFT_PIN_FLATPAK_SDK=$(commit org.freedesktop.Sdk)
 GITWEFT_PIN_FLATPAK_PLATFORM=$(commit org.freedesktop.Platform)
 GITWEFT_PIN_FLATPAK_RUST=$(commit org.freedesktop.Sdk.Extension.rust-stable)
 PINS
+grep -E '^GITWEFT_PIN_(RESVG|INNO_SETUP)_VERSION=' pins.env >> "$new"
 diff -u pins.env "$new" || true
 mv "$new" pins.env

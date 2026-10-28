@@ -156,3 +156,19 @@ flathub dir="target/dist-src":
 # recipes build for GITWEFT_ARCH (x86_64 or aarch64) when it is set.
 release *flags:
     bash scripts/dist/release.sh {{flags}}
+
+# The macOS app and disk image in target/macos: one universal binary for Apple silicon and
+# Intel, signed ad hoc, or with a Developer ID and notarised when the environment names one
+# (scripts/dist/macos.sh), then smoke-tested offline from the image (test-macos.sh).
+# Needs a Mac with Xcode, rustup and Python 3.11 or later (docs/PACKAGING.md, "macOS")
+macos:
+    bash scripts/dist/macos.sh target/macos
+    bash scripts/dist/test-macos.sh target/macos/Gitweft-*.dmg
+
+# The Windows installer and portable zip in target/windows (scripts/dist/windows.sh), then
+# the installer run for your user, smoke-tested and uninstalled (skipped when Gitweft is
+# installed already) and the zip smoke-tested (test-windows.sh). Needs Windows with Git
+# Bash, rustup, the MSVC build tools, Python 3.11+ and Inno Setup (docs/PACKAGING.md)
+windows:
+    bash scripts/dist/windows.sh target/windows
+    bash scripts/dist/test-windows.sh target/windows/Gitweft-*-setup.exe target/windows/Gitweft-*.zip
