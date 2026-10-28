@@ -1,9 +1,10 @@
 //! Getting past git's refusals with real git: an untrusted folder, a stale lock file, an
 //! unknown identity.
 
-#[cfg(unix)]
+// macOS file systems refuse names that aren't UTF-8.
+#[cfg(all(unix, not(target_os = "macos")))]
 use std::ffi::OsStr;
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::process::Child;
@@ -505,7 +506,7 @@ fn identity_guessed_by_git() {
     assert!(!id.guessed);
 }
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn a_folder_that_isnt_utf8_is_found_from_the_opened_one_and_trusted() {
     use gitweft_git::repair::untrusted_folder;

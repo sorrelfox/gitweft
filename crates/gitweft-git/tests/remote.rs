@@ -248,7 +248,8 @@ fn a_failing_pre_push_hook_is_a_hook_failure_in_its_own_words() {
     assert_eq!(err.summary(), "no pushing on Fridays");
 }
 
-#[cfg(unix)]
+// macOS file systems refuse names that aren't UTF-8.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn a_branch_whose_name_isnt_utf8_is_pushed_by_its_bytes() {
     use gitweft_git::undo::ref_name_text;

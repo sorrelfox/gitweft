@@ -126,7 +126,8 @@ fn add_a_new_branch_an_existing_branch_and_detached() {
 }
 
 /// A worktree on a branch whose name isn't UTF-8 lists it byte for byte.
-#[cfg(unix)]
+// macOS file systems refuse names that aren't UTF-8.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn a_worktree_branch_that_isnt_utf8_keeps_its_bytes() {
     use std::os::unix::ffi::OsStrExt as _;

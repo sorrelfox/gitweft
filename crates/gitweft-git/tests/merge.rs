@@ -50,7 +50,8 @@ fn diverged(sb: &Sandbox, conflict: bool) -> PathBuf {
     repo
 }
 
-#[cfg(unix)]
+// macOS file systems refuse names that aren't UTF-8.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn a_branch_whose_name_isnt_utf8_is_previewed_and_merged() {
     let sb = Sandbox::new();
@@ -275,12 +276,17 @@ fn rebases_and_cherry_picks_started_in_a_terminal_are_detected() {
 fn a_conflicting_merge_prepares_its_message_and_lists_its_conflicts() {
     let sb = Sandbox::new();
     let repo = diverged(&sb, true);
-    // Two more conflicts: both sides add these, one with a name that isn't UTF-8.
-    let latin1 = OsStr::from_bytes(b"caf\xe9.txt");
+    // More conflicts: both sides add these, one with a name that isn't UTF-8.
+    let added: &[&[u8]] = &[
+        b"Z.txt",
+        #[cfg(all(unix, not(target_os = "macos")))]
+        b"caf\xe9.txt",
+    ];
     for (branch, content) in [("feature", "feature\n"), ("main", "main\n")] {
         sb.run(&repo, &["switch", "-q", branch]);
-        std::fs::write(repo.join("Z.txt"), content).unwrap();
-        std::fs::write(repo.join(latin1), content).unwrap();
+        for name in added {
+            std::fs::write(repo.join(OsStr::from_bytes(name)), content).unwrap();
+        }
         sb.run(&repo, &["add", "-A"]);
         sb.run(&repo, &["commit", "-q", "-m", "add files"]);
     }
@@ -290,11 +296,13 @@ fn a_conflicting_merge_prepares_its_message_and_lists_its_conflicts() {
     // Git lists the conflicted files as comments (which `git commit --file` would keep),
     // in index order and unquoted.
     let raw = std::fs::read(repo.join(".git/MERGE_MSG")).unwrap();
-    assert!(
-        raw.ends_with(b"\n\n# Conflicts:\n#\tZ.txt\n#\ta.txt\n#\tcaf\xe9.txt\n"),
-        "{}",
-        String::from_utf8_lossy(&raw)
-    );
+    let listed = [
+        &b"\n\n# Conflicts:\n#\tZ.txt\n#\ta.txt\n"[..],
+        #[cfg(all(unix, not(target_os = "macos")))]
+        b"#\tcaf\xe9.txt\n",
+    ]
+    .concat();
+    assert!(raw.ends_with(&listed), "{}", String::from_utf8_lossy(&raw));
     assert_eq!(
         prepared_message(&open_isolated(&repo), sb.git().version()).as_deref(),
         Some("Merge branch 'feature'")
@@ -302,6 +310,7 @@ fn a_conflicting_merge_prepares_its_message_and_lists_its_conflicts() {
     let conflicted = [
         BString::from("Z.txt"),
         BString::from("a.txt"),
+        #[cfg(all(unix, not(target_os = "macos")))]
         BString::from(&b"caf\xe9.txt"[..]),
     ];
     assert_eq!(
@@ -317,8 +326,9 @@ fn a_conflicting_merge_prepares_its_message_and_lists_its_conflicts() {
         conflicted
     );
 
-    std::fs::write(repo.join("Z.txt"), "both\n").unwrap();
-    std::fs::write(repo.join(latin1), "both\n").unwrap();
+    for name in added {
+        std::fs::write(repo.join(OsStr::from_bytes(name)), "both\n").unwrap();
+    }
     sb.run(&repo, &["add", "-A"]);
     let message = "Merge feature, keeping both\n\nBody line";
     commit(sb.git(), &repo, message, CommitOptions::default(), &cancel).unwrap();

@@ -10,7 +10,8 @@ fn details(sb: &Sandbox, repo: &std::path::Path, rev: &str) -> gitweft_git::read
     commit_details(sb.git(), &git_dir, id, &CancelToken::new()).unwrap()
 }
 
-#[cfg(unix)]
+// macOS file systems refuse names that aren't UTF-8.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn a_path_that_isnt_utf8_keeps_its_bytes_and_its_count() {
     use std::os::unix::ffi::OsStrExt as _;

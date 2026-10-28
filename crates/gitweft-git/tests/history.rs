@@ -95,7 +95,12 @@ fn limit_caps_the_number_of_commits() {
 fn non_utf8_and_pattern_like_names_work() {
     let sb = Sandbox::new();
     let repo = sb.init_repo("r");
-    let name: &[u8] = b"caf\xe9 *.txt";
+    // macOS file systems refuse names that aren't UTF-8.
+    let name: &[u8] = if cfg!(all(unix, not(target_os = "macos"))) {
+        b"caf\xe9 *.txt"
+    } else {
+        b"cafe *.txt"
+    };
     std::fs::write(repo.join(OsStr::from_bytes(name)), "1\n").unwrap();
     // A file whose name the pattern would also match must not be listed.
     std::fs::write(repo.join("cafe x.txt"), "1\n").unwrap();

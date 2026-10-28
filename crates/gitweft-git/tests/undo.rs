@@ -287,7 +287,8 @@ fn a_config_value_that_isnt_utf8_comes_back_byte_for_byte() {
     assert_eq!(config_value_bytes("café"), "café".as_bytes());
 }
 
-#[cfg(unix)]
+// macOS file systems refuse names that aren't UTF-8.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn deleting_a_branch_whose_name_isnt_utf8_is_undone() {
     use gitweft_git::undo::ref_name_text;

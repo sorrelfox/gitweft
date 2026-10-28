@@ -29,7 +29,8 @@ fn repo(sb: &Sandbox) -> (PathBuf, String) {
     (repo, first)
 }
 
-#[cfg(unix)]
+// macOS file systems refuse names that aren't UTF-8.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn a_branch_whose_name_isnt_utf8_is_switched_renamed_and_deleted() {
     use std::os::unix::ffi::OsStrExt as _;
@@ -187,7 +188,7 @@ fn a_remote_branch_becomes_a_local_tracking_branch() {
 
 /// A remote branch whose name isn't UTF-8 is checked out by its bytes, tracks its upstream,
 /// and pushes there without setting the upstream again.
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn a_remote_branch_that_isnt_utf8_tracks_and_pushes_to_its_upstream() {
     use gitweft_git::remote::push_target;

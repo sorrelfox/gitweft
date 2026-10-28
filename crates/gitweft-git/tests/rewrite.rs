@@ -445,7 +445,8 @@ fn mixed_and_hard_resets_refuse_during_conflicts() {
 }
 
 /// A branch rebased onto one whose name isn't UTF-8, named by its bytes.
-#[cfg(unix)]
+// macOS file systems refuse names that aren't UTF-8.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn a_branch_is_rebased_onto_one_whose_name_isnt_utf8() {
     use std::os::unix::ffi::OsStrExt as _;

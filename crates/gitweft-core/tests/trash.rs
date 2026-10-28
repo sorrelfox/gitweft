@@ -501,7 +501,8 @@ fn a_file_where_a_folder_is_needed_blocks_a_restore_until_moved_aside() {
     assert_eq!(read(&moved.files_dir, b"dir"), b"a file now\n");
 }
 
-#[cfg(unix)]
+// macOS file systems refuse names that aren't UTF-8.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn non_utf8_paths_and_roots_round_trip() {
     let sb = Sandbox::new();

@@ -399,8 +399,8 @@ fn archive_writes_zip_and_tar_gz_with_the_commit_files() {
     let sb = Sandbox::new();
     let repo = sb.init_repo("r");
     let mut names = vec![&b"a.txt"[..], b"dir/sub file.txt", b"-dash.txt"];
-    // A name that isn't UTF-8, where the system can hold one.
-    if cfg!(unix) {
+    // A name that isn't UTF-8, where the system can hold one (macOS file systems can't).
+    if cfg!(all(unix, not(target_os = "macos"))) {
         names.push(b"caf\xe9.txt");
     }
     for name in &names {
@@ -542,9 +542,10 @@ fn clean_candidates_keep_special_names_byte_exact() {
     let sb = Sandbox::new();
     let repo = sb.init_repo("r");
     sb.commit_file(&repo, "tracked.txt", "t\n", "init");
-    let names: [&[u8]; 7] = [
+    let names: &[&[u8]] = &[
         b"-dash",
         b"back\\slash",
+        #[cfg(all(unix, not(target_os = "macos")))]
         b"caf\xe9",
         b"nl\nx",
         b"tab\tx",
@@ -565,7 +566,7 @@ fn clean_candidates_keep_special_names_byte_exact() {
 fn discard_paths_moves_every_clean_candidate_to_the_trash() {
     let sb = Sandbox::new();
     let repo = clean_fixture(&sb);
-    if cfg!(unix) {
+    if cfg!(all(unix, not(target_os = "macos"))) {
         write(&repo, b"caf\xe9 \"q\".txt", "x\n");
     }
     let candidates = clean_candidates(sb.git(), &repo, true, &c()).unwrap();
@@ -639,6 +640,7 @@ fn path_patterns_ignore_exactly_that_path() {
         (b"back\\slash", b"backslash"),
         (b"dir/sub file.txt", b"other/dir/sub file.txt"),
         (b"x/n.txt", b"y/x/n.txt"),
+        #[cfg(all(unix, not(target_os = "macos")))]
         (b"caf\xe9.txt", b"cafe.txt"),
         (b"cr\r", b"cr"),
     ];

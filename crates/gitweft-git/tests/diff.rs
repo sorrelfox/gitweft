@@ -111,7 +111,8 @@ fn context_size_and_ignoring_whitespace() {
     assert_eq!(changed_texts, ["line 5", "line five"]);
 }
 
-#[cfg(unix)]
+// macOS file systems refuse names that aren't UTF-8.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn a_commits_diff_of_a_path_that_isnt_utf8() {
     use std::os::unix::ffi::OsStrExt as _;

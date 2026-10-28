@@ -1,7 +1,8 @@
 //! The Flatpak bridge (credential helpers and hooks run on the host), with a stand-in for
 //! `flatpak-spawn` whose "host" is this machine with a home and config of the sandbox's.
 
-#![cfg(unix)]
+// Flatpak is Linux only.
+#![cfg(target_os = "linux")]
 
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
