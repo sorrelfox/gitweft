@@ -660,13 +660,21 @@ fn paths_are_literal() {
     let cancel = CancelToken::new();
 
     // Difftool: `*.txt` is that one file, not a glob matching the others. Windows has no
-    // `*` in a file name; `[c].txt` is a glob for `c.txt` there.
+    // `*` in a file name; `[c].txt` is a glob for `c.txt` there. Git for Windows' own
+    // scripts glob the arguments they're started with, so there it goes without `c.txt`:
+    // like the mergetool below, such a name is only safe while nothing else matches it.
     let glob = if cfg!(unix) { "*.txt" } else { "[c].txt" };
-    for (file, content) in [(glob, "star"), ("a b.txt", "space"), ("c.txt", "c")] {
+    let others: &[_] = if cfg!(unix) {
+        &[("a b.txt", "space"), ("c.txt", "c")]
+    } else {
+        &[("a b.txt", "space")]
+    };
+    for &(file, content) in [(glob, "star")].iter().chain(others) {
         sb.commit_file(&repo, file, &format!("{content}\n"), file);
     }
     let head = id(&sb.run(&repo, &["rev-parse", "HEAD"]));
-    for (file, content) in [(glob, "STAR"), ("a b.txt", "SPACE"), ("c.txt", "C")] {
+    for &(file, content) in [(glob, "star")].iter().chain(others) {
+        let content = content.to_uppercase();
         std::fs::write(repo.join(file), format!("{content}\n")).unwrap();
     }
     let out = fake_difftool(&sb, &repo, "fake");

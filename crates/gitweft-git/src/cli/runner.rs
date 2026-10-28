@@ -195,7 +195,7 @@ impl GitCli {
 
 /// Environment applied to every git child process.
 fn base_env() -> Vec<(OsString, OsString)> {
-    let mut env = [
+    [
         // Never block on a terminal prompt; prompts go through GIT_ASKPASS.
         ("GIT_TERMINAL_PROMPT", "0"),
         ("GIT_PAGER", "cat"),
@@ -208,26 +208,7 @@ fn base_env() -> Vec<(OsString, OsString)> {
     ]
     .into_iter()
     .map(|(k, v)| (k.into(), v.into()))
-    .collect::<Vec<_>>();
-    if cfg!(windows) {
-        env.push((
-            "MSYS".into(),
-            msys_without_globbing(std::env::var_os("MSYS")),
-        ));
-    }
-    env
-}
-
-/// Git for Windows' shell and tools expand wildcards in the arguments they're started with,
-/// since no Windows shell did it for them: a file named `[c].txt` handed to a difftool would
-/// arrive as `c.txt`. `noglob` turns that off; the user's own settings are kept.
-fn msys_without_globbing(current: Option<OsString>) -> OsString {
-    let mut value = current.unwrap_or_default();
-    if !value.is_empty() {
-        value.push(" ");
-    }
-    value.push("noglob");
-    value
+    .collect()
 }
 
 pub struct GitCommand<'a> {
@@ -678,19 +659,5 @@ fn forward_stdout(chunks: &mpsc::Receiver<Vec<u8>>, on_stdout: &mut Option<Stdou
         for chunk in chunks.try_iter() {
             on_stdout(&chunk);
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn msys_settings_are_kept_and_globbing_is_turned_off() {
-        assert_eq!(msys_without_globbing(None), "noglob");
-        assert_eq!(
-            msys_without_globbing(Some("winsymlinks:nativestrict".into())),
-            "winsymlinks:nativestrict noglob"
-        );
     }
 }
