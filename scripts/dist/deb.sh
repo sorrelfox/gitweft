@@ -84,7 +84,7 @@ rm -rf "$out"/gitweft_*.deb "$out/gitweft" "$out/icons" "$out/lib"
     depends="$linked, libvulkan1, libwayland-client0, libegl1, libwayland-egl1, git (>= 1:2.39)"
     size=$(du -sk --apparent-size $root | cut -f1)
     mkdir -p $root/DEBIAN
-    sed -e "s/@VERSION@/$VERSION/" -e "s/@SIZE@/$size/" -e "s/@DEPENDS@/$depends/" \
+    sed -e "s/@VERSION@/$VERSION/" -e "s/@ARCH@/$DEB_ARCH/" -e "s/@SIZE@/$size/" -e "s/@DEPENDS@/$depends/" \
         packaging/deb/control.in > $root/DEBIAN/control
     find $root -exec touch -h -d @$SOURCE_DATE_EPOCH {} +
     dpkg-deb --root-owner-group -Zxz --build $root /out/gitweft_${VERSION}-1_${DEB_ARCH}.deb > /dev/null

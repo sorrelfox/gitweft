@@ -68,6 +68,8 @@ jobs:
     name: RPM (Fedora 44, ${{ matrix.arch }})
     needs: sources
     strategy:
+      # Each architecture's result counts on its own: one failing doesn't cancel the other.
+      fail-fast: false
       matrix:
         include:
           - { arch: x86_64, runner: ubuntu-24.04 }
@@ -94,6 +96,7 @@ jobs:
     name: DEB (Debian, Ubuntu, ${{ matrix.arch }})
     needs: sources
     strategy:
+      fail-fast: false
       matrix:
         include:
           - { arch: x86_64, runner: ubuntu-24.04 }
@@ -123,6 +126,7 @@ jobs:
     name: AppImage (${{ matrix.arch }})
     needs: [sources, deb]
     strategy:
+      fail-fast: false
       matrix:
         include:
           - { arch: x86_64, runner: ubuntu-24.04 }

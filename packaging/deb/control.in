@@ -1,6 +1,6 @@
 Package: gitweft
 Version: @VERSION@-1
-Architecture: amd64
+Architecture: @ARCH@
 Maintainer: sorrelfox <sorrelfox@users.noreply.github.com>
 Installed-Size: @SIZE@
 Depends: @DEPENDS@
