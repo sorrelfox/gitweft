@@ -27,6 +27,10 @@ gitweft                  the binary: picks the mode from the arguments
     └── gitweft-testkit  sandboxed repositories, for tests only
 ```
 
+`gitweft-console` stands apart: on Windows it builds `gitweft.com`, a console program that runs
+`gitweft.exe` and waits for it, so `gitweft --version` in cmd or PowerShell prints before the
+prompt comes back.
+
 Dependencies point downwards only: the views depend on the core, the core never depends on the
 views.
 

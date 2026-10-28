@@ -2,7 +2,9 @@
 //! helper modes (and the headless smoke test) never touch the display or the GPU.
 
 // A release build for Windows is a GUI program, so starting it from Explorer doesn't open
-// a console window next to it. Debug builds keep the console: `cargo run` then shows the
+// a console window next to it. cmd and PowerShell don't wait for such a program, so a bare
+// `gitweft` typed there runs gitweft.com instead, the console twin in crates/gitweft-console,
+// which runs this one and waits. Debug builds keep the console: `cargo run` then shows the
 // logs and panics of the window, and the shell waits for the command-line modes to end.
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
@@ -51,8 +53,9 @@ fn main() -> ExitCode {
 
     let invocation = parse(std::env::args_os().skip(1));
     // On Windows, the modes that print borrow the console they were started from (a GUI
-    // program has none of its own). Not the window, which would end when that console is
-    // closed, and not the helpers above, which git runs with pipes as their output.
+    // program has none of its own); started by gitweft.com, that is the twin's, the user's
+    // console. Not the window, which would end when that console is closed, and not the
+    // helpers above, which git runs with pipes as their output.
     if !matches!(invocation, Ok(Invocation::Open { .. })) {
         gitweft_platform::attach_parent_console();
     }

@@ -1,0 +1,19 @@
+[package]
+name = "gitweft-console"
+description = "gitweft.com, the console twin of Gitweft's Windows executable: runs gitweft.exe and waits for it"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# Nothing but std: it stays small and builds without GPUI.
+[dependencies]
+
+[build-dependencies]
+embed-resource = "3.0"
+
+[dev-dependencies]
+gitweft-platform.workspace = true
+tempfile.workspace = true

@@ -1,6 +1,6 @@
 ; Gitweft's Windows installer, for Inno Setup 6.3 or later. scripts/dist/windows.sh compiles it
 ; with what it built as defines: AppVersion (Cargo.toml's), Stage (the folder holding
-; gitweft.exe and the license files), SetupIcon, OutputDir and OutputName.
+; gitweft.exe, gitweft.com and the license files), SetupIcon, OutputDir and OutputName.
 ;
 ; It installs for the current user by default, into %LOCALAPPDATA%\Programs\Gitweft, without
 ; administrator rights. The first page offers an installation for all users instead, and
@@ -42,6 +42,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#Stage}\gitweft.exe"; DestDir: "{app}"; Flags: ignoreversion
+; The console twin, for `gitweft` typed in cmd or PowerShell. The folder is not added to PATH.
+Source: "{#Stage}\gitweft.com"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Stage}\*.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

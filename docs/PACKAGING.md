@@ -195,10 +195,11 @@ when another one is installed. Started from a terminal as
 `Gitweft-VERSION-windows-x86_64-setup.exe`, an installer, and
 `Gitweft-VERSION-windows-x86_64.zip`, the same files to unpack anywhere. `scripts/dist/windows.sh`
 
-- builds the binary with the `dist` profile for `x86_64-pc-windows-msvc`. The executable
-  carries its icon and version details (`crates/gitweft/build.rs` embeds
-  `crates/gitweft/resources/windows/gitweft.ico`), and the installer uses the same icon;
-- puts `gitweft.exe`, the GPL as `LICENSE.txt`, the fonts' licenses and
+- builds the binary with the `dist` profile for `x86_64-pc-windows-msvc`, and its console
+  twin (see below). The executable carries its icon and version details
+  (`crates/gitweft/build.rs` embeds `crates/gitweft/resources/windows/gitweft.ico`), and the
+  installer uses the same icon;
+- puts `gitweft.exe`, `gitweft.com`, the GPL as `LICENSE.txt`, the fonts' licenses and
   `THIRD-PARTY-LICENSES.txt` (`notices.py`'s, for the crates of the Windows build) in one
   folder, and zips it with Windows' own `tar.exe`;
 - compiles `packaging/windows/gitweft.iss` with Inno Setup, with the version from `Cargo.toml`.
@@ -213,17 +214,34 @@ There is no build for Windows on ARM: those machines run the x86_64 build throug
 own emulation.
 
 `test-windows.sh` runs the installer without questions into a temporary folder, checks the
-Start menu entry, runs `--version` and the smoke test with the installed app, uninstalls it
-and checks that nothing is left; then it does the same from the unpacked zip. Where Gitweft is
-installed already, it skips the installer, which would replace that installation. Unlike on
-Linux and macOS, the smoke test runs with the network available: Windows has no simple way to
-take it away from one program.
+Start menu entry, runs `--version` and the smoke test with the installed app, checks that
+`gitweft.com` prints the same version and passes on an exit code, uninstalls it and checks
+that nothing is left; then it does the same from the unpacked zip. Where Gitweft is installed
+already, it skips the installer, which would replace that installation. Unlike on Linux and
+macOS, the smoke test runs with the network available: Windows has no simple way to take it
+away from one program.
 
 What you need: Git for Windows (its bash runs the scripts), rustup with the MSVC toolchain,
 the Visual Studio Build Tools with "Desktop development with C++" (the linker and the Windows
 SDK), Python 3.11 or later, and Inno Setup 6.3 or later. GitHub's Windows runners have all of
 it; if a runner ever lacks Inno Setup, the release workflow installs the version in `pins.env`
 with Chocolatey.
+
+### gitweft.com
+
+The release `gitweft.exe` is a GUI program, so starting it from Explorer or a shortcut opens
+no console window. But cmd and PowerShell don't wait for a GUI program: `gitweft.exe --version`
+would print after the prompt is back, and its exit code would be lost. So next to it there is
+`gitweft.com`, a small console program (`crates/gitweft-console`, nothing but std) that runs
+`gitweft.exe` from its own folder with the same arguments, waits for it, and returns its exit
+code. For a bare `gitweft`, cmd and PowerShell try `.com` before `.exe` (the order in
+`PATHEXT`), so they run the twin; Explorer, the shortcuts and git, which runs Gitweft as a
+helper, use the full path of `gitweft.exe`. The twin has the same icon and version details
+(its own `build.rs`). Like in a Linux terminal, `gitweft PATH` then waits until the window is
+closed, unless a running Gitweft takes the path; `gitweft.exe PATH` returns at once.
+
+The installer does not add its folder to `PATH`. To type `gitweft` anywhere, add
+`%LOCALAPPDATA%\Programs\Gitweft` (or the folder you chose) to your `PATH`.
 
 ### Signing
 
@@ -236,11 +254,11 @@ certificate from a certificate authority. With one in a .pfx file,
 GITWEFT_WINDOWS_CERTIFICATE=path/to/certificate.pfx GITWEFT_WINDOWS_CERTIFICATE_PASSWORD=... just windows
 ```
 
-signs `gitweft.exe` and the installer with signtool, from the Windows SDK, with a timestamp
-(`GITWEFT_WINDOWS_TIMESTAMP_URL` picks the server; DigiCert's by default). The uninstaller that
-Inno Setup writes stays unsigned. Certificates issued since June 2023 live on a hardware token
-or in a cloud signing service rather than in a .pfx file; with one of those, the `sign`
-function in `windows.sh` is the one place to change. The release workflow takes the .pfx file
+signs `gitweft.exe`, `gitweft.com` and the installer with signtool, from the Windows SDK, with
+a timestamp (`GITWEFT_WINDOWS_TIMESTAMP_URL` picks the server; DigiCert's by default). The
+uninstaller that Inno Setup writes stays unsigned. Certificates issued since June 2023 live on
+a hardware token or in a cloud signing service rather than in a .pfx file; with one of those,
+the `sign` function in `windows.sh` is the one place to change. The release workflow takes the .pfx file
 in base64 and its password from the secrets `GITWEFT_WINDOWS_CERTIFICATE` and
 `GITWEFT_WINDOWS_CERTIFICATE_PASSWORD`.
 

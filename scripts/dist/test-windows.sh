@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Runs the installer without questions for the current user, into a temporary folder,
 # checks its Start menu entry, runs the smoke test on a fresh repository with the installed
-# app, and uninstalls it again, checking that nothing stays behind; then the same smoke test
-# from the unpacked zip. The installer's part is skipped when Gitweft is installed already,
-# because it would replace that installation.
+# app and checks its console twin gitweft.com, and uninstalls it again, checking that nothing
+# stays behind; then the same tests from the unpacked zip. The installer's part is skipped
+# when Gitweft is installed already, because it would replace that installation.
 # Usage: scripts/dist/test-windows.sh SETUP_EXE ZIP   (on Windows, in Git Bash)
 set -euo pipefail
 setup=${1:?usage: test-windows.sh SETUP_EXE ZIP}
@@ -17,10 +17,17 @@ repo=$work/repo
 git init -q "$repo"
 git -C "$repo" -c user.name=T -c user.email=t@example.com commit -q --allow-empty -m first
 smoke() {
-    local version
+    local version twin=${1%.exe}.com twin_version status=0
     version=$("$1" --version)
     [ -n "$version" ] || fail "$1 --version printed nothing"
     echo "$version"
+    # The twin prints what gitweft.exe prints and returns its exit code: 2 for an unknown
+    # option.
+    twin_version=$("$twin" --version) || fail "$twin --version failed"
+    [ "$twin_version" = "$version" ] || fail "$twin --version printed \"$twin_version\""
+    "$twin" --no-such-option 2> /dev/null || status=$?
+    [ "$status" -eq 2 ] || fail "$twin returned $status for an unknown option, not 2"
+    echo "gitweft.com passes on the output and the exit code"
     "$1" --headless-smoke "$(cygpath -w "$repo")" | tail -1
 }
 
@@ -40,10 +47,11 @@ else
     native "$app/unins000.exe" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
     # The uninstaller runs from a copy of itself in the temporary folder and returns at once.
     for _ in $(seq 60); do
-        [ -e "$app/gitweft.exe" ] || [ -e "$shortcut" ] || break
+        [ -e "$app/gitweft.exe" ] || [ -e "$app/gitweft.com" ] || [ -e "$shortcut" ] || break
         sleep 1
     done
-    [ ! -e "$app/gitweft.exe" ] && [ ! -e "$shortcut" ] || fail "the uninstaller left the app or its shortcut"
+    [ ! -e "$app/gitweft.exe" ] && [ ! -e "$app/gitweft.com" ] && [ ! -e "$shortcut" ] \
+        || fail "the uninstaller left the app or its shortcut"
     ! native reg query "$key" > /dev/null 2>&1 || fail "the uninstaller left its registry key"
     echo "uninstalled"
 fi

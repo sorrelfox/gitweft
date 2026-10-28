@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # The Windows installer and portable zip. Builds the release binary for x86_64 (its icon and
-# version details come from crates/gitweft/build.rs), writes the license notices of the
-# crates in it, packs it with them into a zip, and compiles packaging/windows/gitweft.iss
-# with Inno Setup into an installer.
+# version details come from crates/gitweft/build.rs) and its console twin gitweft.com
+# (crates/gitweft-console), writes the license notices of the crates in them, packs it all
+# into a zip, and compiles packaging/windows/gitweft.iss with Inno Setup into an installer.
 # Usage: scripts/dist/windows.sh [OUT_DIR]
 # Writes OUT_DIR (default target/windows)/Gitweft-VERSION-windows-x86_64-setup.exe and
 # Gitweft-VERSION-windows-x86_64.zip.
 #
 # Signing: none, unless GITWEFT_WINDOWS_CERTIFICATE names a code-signing certificate, a .pfx
 # file with its password in GITWEFT_WINDOWS_CERTIFICATE_PASSWORD. Then signtool, from the
-# Windows SDK (SIGNTOOL names another), signs gitweft.exe and the installer, with a timestamp
-# from GITWEFT_WINDOWS_TIMESTAMP_URL (default DigiCert's).
+# Windows SDK (SIGNTOOL names another), signs gitweft.exe, gitweft.com and the installer, with
+# a timestamp from GITWEFT_WINDOWS_TIMESTAMP_URL (default DigiCert's).
 #
 # Runs on Windows, in Git Bash, with rustup, the Visual Studio build tools (the MSVC linker
 # and the Windows SDK), Python 3.11 or later and Inno Setup 6.3 or later (ISCC names its
@@ -76,7 +76,7 @@ unset RUSTFLAGS
 step "build ($target)"
 rustup target add "$target"
 cargo fetch --locked
-cargo build --frozen --profile dist -p gitweft --target "$target"
+cargo build --frozen --profile dist -p gitweft -p gitweft-console --target "$target"
 
 step "files"
 rm -f "$out"/Gitweft-*-windows-*
@@ -85,7 +85,10 @@ trap 'rm -rf "$work"' EXIT
 stage=$work/Gitweft-$version
 mkdir "$stage"
 cp "target/$target/dist/gitweft.exe" "$stage/"
+# cmd and PowerShell pick gitweft.com before gitweft.exe for a bare `gitweft`.
+cp "target/$target/dist/gitweft-console.exe" "$stage/gitweft.com"
 sign "$stage/gitweft.exe"
+sign "$stage/gitweft.com"
 cp LICENSE "$stage/LICENSE.txt"
 cp assets/fonts/IBMPlex-OFL.txt assets/fonts/Inter-OFL.txt assets/fonts/JetBrainsMono-OFL.txt "$stage/"
 "$python" -X utf8 scripts/dist/notices.py "$stage/THIRD-PARTY-LICENSES.txt" "$target"

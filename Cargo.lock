@@ -2377,6 +2377,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gitweft-console"
+version = "1.0.1"
+dependencies = [
+ "embed-resource",
+ "gitweft-platform",
+ "tempfile",
+]
+
+[[package]]
 name = "gitweft-core"
 version = "1.0.1"
 dependencies = [
