@@ -2,6 +2,14 @@
 //! the background for a folder or file of a repository. Settings hold a command for each
 //! (`{path}` stands for the folder or file); an empty one picks what the desktop offers.
 //!
+//! What it offers depends on the [`System`]: on Linux the desktop's own terminal and file
+//! manager and `xdg-open`, on macOS Terminal, the Finder and the default text editor
+//! (`macos`), on Windows Windows Terminal or a console, Explorer and Notepad (`windows`).
+//!
+//! A command setting is split into words the same way on every system ([`split_command`]):
+//! a backslash escapes the next character there too, so a Windows path goes in single quotes
+//! (`'C:\Program Files\Notepad++\notepad++.exe' {path}`) or is written with forward slashes.
+//!
 //! Git's own diff and merge tools run through git (`gitweft_git::tools`), not from here.
 //!
 //! Finding programs looks at `PATH` and a few files, so callers run it off the UI thread.
@@ -18,6 +26,9 @@ use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
 use gitweft_platform::bytes::os_string_from_vec;
+
+mod macos;
+mod windows;
 
 /// How long [`launch`] waits for a program that fails at once (a bad option, a missing file).
 const QUICK_FAILURE: Duration = Duration::from_millis(1500);
@@ -76,9 +87,39 @@ impl fmt::Display for LaunchError {
 
 impl std::error::Error for LaunchError {}
 
+/// The system whose programs are picked when nothing is set. Linux stands for the other
+/// free desktops too (the BSDs), which offer the same.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum System {
+    Linux,
+    MacOs,
+    Windows,
+}
+
+impl System {
+    /// The system Gitweft runs on.
+    pub const fn current() -> Self {
+        if cfg!(target_os = "macos") {
+            System::MacOs
+        } else if cfg!(windows) {
+            System::Windows
+        } else {
+            System::Linux
+        }
+    }
+}
+
+impl Default for System {
+    fn default() -> Self {
+        Self::current()
+    }
+}
+
 /// What finding programs depends on, so tests can set it.
 #[derive(Debug, Clone, Default)]
 pub struct Environment {
+    /// Which system's programs and ways are used.
+    pub system: System,
     /// `PATH`.
     pub path: Option<OsString>,
     /// `$TERMINAL`, a common way to name one's terminal.
@@ -185,8 +226,10 @@ fn host_lookup(spawn: &Path, names: &[String]) -> HashMap<String, PathBuf> {
 
 impl Environment {
     pub fn current() -> Self {
+        let system = System::current();
         let terminal = std::env::var_os("TERMINAL").filter(|value| !value.is_empty());
-        let host = gitweft_git::flatpak::in_flatpak().then(|| {
+        let in_flatpak = system == System::Linux && gitweft_git::flatpak::in_flatpak();
+        let host = in_flatpak.then(|| {
             let named: Vec<String> = terminal
                 .as_ref()
                 .and_then(|value| split_command(&value.to_string_lossy()).ok())
@@ -195,6 +238,7 @@ impl Environment {
             Host::new("flatpak-spawn".into(), &named)
         });
         Self {
+            system,
             path: std::env::var_os("PATH"),
             terminal,
             desktop: std::env::var("XDG_CURRENT_DESKTOP").ok(),
@@ -246,18 +290,28 @@ impl Environment {
         }
     }
 
-    /// `name` on `PATH` (a name with a slash is taken as it is).
+    /// `name` on `PATH` (a name with a slash is taken as it is). Windows finds a program
+    /// named without an extension by trying the extensions programs have there.
     fn find(&self, name: &str) -> Option<PathBuf> {
         if let Some(host) = &self.host {
             return host.find(name);
         }
-        if name.contains('/') {
-            let path = PathBuf::from(name);
-            return is_executable(&path).then_some(path);
+        let on_windows = self.system == System::Windows;
+        let candidates = |path: PathBuf| {
+            if on_windows {
+                windows::candidates(path)
+            } else {
+                vec![path]
+            }
+        };
+        if name.contains('/') || (on_windows && name.contains('\\')) {
+            return candidates(PathBuf::from(name))
+                .into_iter()
+                .find(|candidate| is_executable(candidate));
         }
         let paths = self.path.as_ref()?;
         std::env::split_paths(paths)
-            .map(|dir| dir.join(name))
+            .flat_map(|dir| candidates(dir.join(name)))
             .find(|candidate| is_executable(candidate))
     }
 
@@ -291,13 +345,29 @@ impl Environment {
 }
 
 fn is_executable(path: &Path) -> bool {
-    path.metadata()
-        .is_ok_and(|meta| meta.is_file() && gitweft_platform::fs::is_executable(&meta))
+    path.metadata().is_ok_and(|meta| {
+        // Windows has no executable bit; being a file is enough there.
+        meta.is_file() && (cfg!(windows) || gitweft_platform::fs::is_executable(&meta))
+    })
+}
+
+/// The program `word` names, to be matched against the ones Gitweft knows: its file name,
+/// on Windows in lower case and without `.exe`, as Windows reads names.
+fn program_name(word: &str, system: System) -> String {
+    if system == System::Windows {
+        let name = word.rsplit(['/', '\\']).next().unwrap_or(word);
+        let name = name.to_ascii_lowercase();
+        return name.strip_suffix(".exe").unwrap_or(&name).to_owned();
+    }
+    Path::new(word)
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default()
 }
 
 /// Splits a command line into words as a shell would, without running one: spaces
 /// separate words, `'…'` and `"…"` group them, a backslash escapes the next character
-/// (outside single quotes).
+/// (outside single quotes). The same on every system, Windows included.
 pub fn split_command(text: &str) -> Result<Vec<String>, LaunchError> {
     let bad = || LaunchError::BadCommand(text.to_owned());
     let mut words = Vec::new();
@@ -401,7 +471,10 @@ fn from_setting(
 
 /// The arguments that open a known terminal in `dir` (others start in their working
 /// folder, which is `dir` too).
-fn terminal_args(name: &str, dir: &Path) -> Vec<OsString> {
+fn terminal_args(name: &str, dir: &Path, system: System) -> Vec<OsString> {
+    if system == System::Windows && name == windows::TERMINAL {
+        return windows::terminal_args(dir);
+    }
     let flag = |flag: &str| {
         let mut arg = OsString::from(flag);
         arg.push(dir.as_os_str());
@@ -419,8 +492,14 @@ fn terminal_args(name: &str, dir: &Path) -> Vec<OsString> {
 }
 
 /// The terminal used when none is set: `$TERMINAL`, the desktop's own, then the first of
-/// [`TERMINALS`] installed. Its name, for the settings page.
+/// [`TERMINALS`] installed. On macOS it's Terminal; on Windows Windows Terminal, else cmd.
+/// Its name, for the settings page.
 pub fn default_terminal(env: &Environment) -> Option<String> {
+    match env.system {
+        System::MacOs => return Some(macos::TERMINAL.to_owned()),
+        System::Windows => return windows::default_terminal(env),
+        System::Linux => {}
+    }
     let from_env = env
         .terminal
         .as_ref()
@@ -455,15 +534,24 @@ pub fn terminal(setting: &str, dir: &Path, env: &Environment) -> Result<Launch, 
         setting.to_owned()
     };
     let words = split_command(&command)?;
-    let name = Path::new(&words[0])
-        .file_name()
-        .map(|name| name.to_string_lossy().into_owned())
-        .unwrap_or_default();
+    let name = program_name(&words[0], env.system);
+    if words.len() == 1 && env.system == System::MacOs && macos::is_terminal(&name) {
+        return macos::terminal(dir, env);
+    }
     let mut launch = from_setting(&command, dir, false, dir, env)?;
     if words.len() == 1 {
-        launch.args = terminal_args(&name, dir);
+        launch.args = terminal_args(&name, dir, env.system);
     }
-    Ok(env.on_host(launch))
+    as_terminal(launch, &name, env)
+}
+
+/// A terminal (`name`) as it's started: on the host from a Flatpak; on Windows through a
+/// console of its own (see [`windows::in_console`]), unless it's Windows Terminal.
+fn as_terminal(launch: Launch, name: &str, env: &Environment) -> Result<Launch, LaunchError> {
+    match env.system {
+        System::Windows if name != windows::TERMINAL => windows::in_console(launch, env),
+        _ => Ok(env.on_host(launch)),
+    }
 }
 
 /// Where a terminal command of one's own takes the command to run: a word of its own
@@ -484,7 +572,8 @@ fn shell_line(words: &[OsString]) -> Option<String> {
 /// A terminal in `dir` that runs `command` (a program and its arguments) and closes when it
 /// ends. A terminal Gitweft knows, set or found by its bare name, is told what to run in
 /// its own way; a command setting of the user's own says where with `{command}` (without
-/// it: [`LaunchError::NoCommandForm`]).
+/// it: [`LaunchError::NoCommandForm`]). Terminal on macOS is given it as a line for the
+/// user's shell; on Windows the command gets a console of its own, or a Windows Terminal tab.
 pub fn terminal_running(
     setting: &str,
     dir: &Path,
@@ -519,35 +608,43 @@ pub fn terminal_running(
             args,
             cwd: dir.to_owned(),
         };
-        return Ok(env.on_host(launch));
+        return as_terminal(launch, &program_name(&words[0], env.system), env);
     }
     if words.len() != 1 {
         return Err(LaunchError::NoCommandForm(terminal));
     }
-    let name = Path::new(&words[0])
-        .file_name()
-        .map(|name| name.to_string_lossy().into_owned())
-        .unwrap_or_default();
+    let name = program_name(&words[0], env.system);
+    match env.system {
+        System::MacOs if macos::is_terminal(&name) => {
+            return macos::terminal_running(dir, command, env);
+        }
+        System::Windows => {
+            if let Some(launch) = windows::terminal_running(&name, &terminal, dir, command, env)? {
+                return Ok(launch);
+            }
+        }
+        _ => {}
+    }
     // What comes before the command: `-e` takes the rest of the line in these, `--` ends
     // the terminal's own options in those (GNOME Console's `-- COMMAND` since 3.x); kitty
     // and foot take it as they are; Tilix's `-e` takes one string, which it splits as a
     // shell would.
     let mut launch = from_setting(&terminal, dir, false, dir, env)?;
-    launch.args = terminal_args(&name, dir);
+    launch.args = terminal_args(&name, dir, env.system);
     match name.as_str() {
         "konsole" | "alacritty" | "xterm" => launch.args.push("-e".into()),
         "gnome-terminal" | "ptyxis" | "kgx" | "wezterm" => launch.args.push("--".into()),
         "xfce4-terminal" | "mate-terminal" => launch.args.push("-x".into()),
         "kitty" | "foot" => {}
         "tilix" => {
-            let line = shell_line(command).ok_or(LaunchError::NoCommandForm(name))?;
+            let line = shell_line(command).ok_or(LaunchError::NoCommandForm(name.clone()))?;
             launch.args.extend(["-e".into(), line.into()]);
-            return Ok(env.on_host(launch));
+            return as_terminal(launch, &name, env);
         }
         _ => return Err(LaunchError::NoCommandForm(name)),
     }
     launch.args.extend(command.iter().cloned());
-    Ok(env.on_host(launch))
+    as_terminal(launch, &name, env)
 }
 
 /// The file managers that select a file they're given, by desktop file (without
@@ -566,7 +663,7 @@ fn selecting_file_manager(desktop_id: &str) -> Option<(&'static str, &'static [&
 /// `setting` is a command (`{path}` is `path`, else it's added at the end). Empty: the
 /// default folder handler when it's one that selects files (Dolphin, Nautilus, Nemo), else
 /// the desktop's file manager over D-Bus (several may offer that, and D-Bus picks one), else
-/// `xdg-open` on the folder.
+/// `xdg-open` on the folder. The Finder on macOS, Explorer on Windows.
 pub fn file_manager(
     setting: &str,
     path: &Path,
@@ -590,6 +687,11 @@ fn file_manager_here(
     let setting = setting.trim();
     if !setting.is_empty() {
         return from_setting(setting, path, true, folder, env);
+    }
+    match env.system {
+        System::MacOs => return macos::file_manager(path, is_dir, folder, env),
+        System::Windows => return windows::file_manager(path, is_dir, folder, env),
+        System::Linux => {}
     }
     let handler = (!is_dir).then(|| env.directory_handler()).flatten();
     if let Some((name, options)) = handler.as_deref().and_then(selecting_file_manager)
@@ -628,7 +730,8 @@ fn file_manager_here(
 }
 
 /// An editor with `file` open, started in `workdir`. `setting` is a command (`{path}` is
-/// the file, else it's added at the end). Empty: the file's default application.
+/// the file, else it's added at the end). Empty: the file's default application; on macOS
+/// the default text editor, on Windows Notepad.
 pub fn editor(
     setting: &str,
     file: &Path,
@@ -637,7 +740,11 @@ pub fn editor(
 ) -> Result<Launch, LaunchError> {
     let setting = setting.trim();
     let launch = if setting.is_empty() {
-        xdg_open(file, workdir, env)?
+        match env.system {
+            System::Linux => xdg_open(file, workdir, env)?,
+            System::MacOs => macos::editor(file, workdir, env)?,
+            System::Windows => windows::editor(file, workdir, env)?,
+        }
     } else {
         from_setting(setting, file, true, workdir, env)?
     };
@@ -671,8 +778,8 @@ fn file_uri(path: &Path) -> String {
 
 /// Starts `launch` on its own (detached from us, no terminal input) and returns once
 /// it runs. A program that exits with an error within a moment (a bad option, `xdg-open`
-/// finding nothing to open with) reports its last message. Blocks for up to 1.5 s: run it
-/// off the UI thread.
+/// finding nothing to open with) reports its last message; Explorer, whose exit code means
+/// nothing, never does. Blocks for up to 1.5 s: run it off the UI thread.
 pub fn launch(launch: &Launch) -> Result<(), LaunchError> {
     let name = launch.program.file_name().map_or_else(
         || launch.program.display().to_string(),
@@ -680,12 +787,17 @@ pub fn launch(launch: &Launch) -> Result<(), LaunchError> {
     );
     #[allow(clippy::disallowed_methods)] // The user's own programs, never git (see module docs).
     let mut command = Command::new(&launch.program);
+    #[cfg(not(windows))]
+    command.args(&launch.args);
+    #[cfg(windows)]
+    windows::add_args(&mut command, launch);
     command
-        .args(&launch.args)
         .current_dir(&launch.cwd)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::piped());
+    let any_exit =
+        System::current() == System::Windows && windows::exit_code_means_nothing(&launch.program);
     let mut child =
         gitweft_platform::process::spawn_detached(&mut command).map_err(|err| {
             match err.kind() {
@@ -706,7 +818,7 @@ pub fn launch(launch: &Launch) -> Result<(), LaunchError> {
     let started = Instant::now();
     while started.elapsed() < QUICK_FAILURE {
         match child.try_wait() {
-            Ok(Some(status)) if status.success() => return Ok(()),
+            Ok(Some(status)) if status.success() || any_exit => return Ok(()),
             Ok(Some(status)) => {
                 let text = reader.join().unwrap_or_default();
                 let text = String::from_utf8_lossy(&text);
@@ -736,18 +848,20 @@ pub fn launch(launch: &Launch) -> Result<(), LaunchError> {
 mod tests {
     use super::*;
 
-    /// A folder of fake programs to be `PATH`, and an environment using it.
-    #[cfg(unix)]
-    fn programs(names: &[&str]) -> (tempfile::TempDir, Environment) {
-        use std::os::unix::fs::PermissionsExt;
-
+    /// A folder of fake programs to be `PATH`, and an environment using it, on Linux.
+    pub(super) fn programs(names: &[&str]) -> (tempfile::TempDir, Environment) {
         let dir = tempfile::tempdir().unwrap();
         for name in names {
             let path = dir.path().join(name);
             std::fs::write(&path, "#!/bin/sh\n").unwrap();
-            std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).unwrap();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).unwrap();
+            }
         }
         let env = Environment {
+            system: System::Linux,
             path: Some(dir.path().as_os_str().to_owned()),
             data_dirs: Some(dir.path().join("share").into()),
             directory_handler: Some(None),
@@ -856,8 +970,7 @@ mod tests {
         assert_eq!(name(&run("").unwrap()), "konsole");
     }
 
-    #[cfg(unix)]
-    fn args(launch: &Launch) -> Vec<String> {
+    pub(super) fn args(launch: &Launch) -> Vec<String> {
         launch
             .args
             .iter()
@@ -865,8 +978,7 @@ mod tests {
             .collect()
     }
 
-    #[cfg(unix)]
-    fn name(launch: &Launch) -> String {
+    pub(super) fn name(launch: &Launch) -> String {
         launch
             .program
             .file_name()
@@ -1078,6 +1190,7 @@ mod tests {
         );
         write_program(&spawn, &script);
         let env = Environment {
+            system: System::Linux,
             host: Some(Host::new(spawn, &[])),
             ..Environment::default()
         };
