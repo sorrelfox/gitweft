@@ -6,4 +6,6 @@ disallowed-methods = [
     { path = "std::net::UdpSocket::bind", reason = "Gitweft never opens network sockets (docs/OFFLINE.md)" },
     { path = "gpui::App::set_http_client", reason = "registering an HTTP client would let GPUI fetch URLs (docs/OFFLINE.md)" },
     { path = "std::process::Command::new", reason = "spawn git through gitweft_git::GitCli so it is supervised, logged and cancellable" },
+    { path = "std::fs::canonicalize", reason = "use gitweft_platform::fs::canonicalize: git can't use std's \\\\?\\ paths on Windows" },
+    { path = "std::path::Path::canonicalize", reason = "use gitweft_platform::fs::canonicalize: git can't use std's \\\\?\\ paths on Windows" },
 ]

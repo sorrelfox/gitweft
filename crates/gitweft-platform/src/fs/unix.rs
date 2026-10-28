@@ -1,7 +1,7 @@
 use std::fs::{DirBuilder, Metadata, Permissions};
 use std::io;
 use std::os::unix::fs::{DirBuilderExt, MetadataExt, PermissionsExt};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub(super) fn create_private_dir(dir: &Path) -> io::Result<()> {
     DirBuilder::new().recursive(true).mode(0o700).create(dir)?;
@@ -46,6 +46,11 @@ pub(super) fn set_executable(path: &Path, executable: bool) -> io::Result<()> {
 
 pub(super) fn symlink(target: &Path, link: &Path) -> io::Result<()> {
     std::os::unix::fs::symlink(target, link)
+}
+
+pub(super) fn canonicalize(path: &Path) -> io::Result<PathBuf> {
+    #[allow(clippy::disallowed_methods)] // The one place std's is right as it is.
+    std::fs::canonicalize(path)
 }
 
 #[cfg(test)]

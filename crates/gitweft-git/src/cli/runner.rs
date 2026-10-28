@@ -626,7 +626,8 @@ impl GitCommand<'_> {
 
 /// Whether the subcommand in `args` runs a hook that can stop it and the repository at
 /// `cwd` has one: an executable file where git looks (`git rev-parse --git-path hooks`,
-/// which follows `core.hooksPath`). Asked only after a failure git didn't explain.
+/// which follows `core.hooksPath`). Windows has no executable bit, and Git for Windows runs
+/// any file there. Asked only after a failure git didn't explain.
 fn has_blocking_hook(cli: &GitCli, cwd: &std::path::Path, args: &[OsString]) -> bool {
     let hooks: &[&str] = match args.first().map(|arg| arg.as_encoded_bytes()) {
         Some(b"commit") => &["pre-commit", "prepare-commit-msg", "commit-msg"],
@@ -648,7 +649,7 @@ fn has_blocking_hook(cli: &GitCli, cwd: &std::path::Path, args: &[OsString]) -> 
     let dir = cwd.join(path_from_bytes(listed));
     hooks.iter().any(|name| {
         std::fs::metadata(dir.join(name))
-            .is_ok_and(|meta| meta.is_file() && fs::is_executable(&meta))
+            .is_ok_and(|meta| meta.is_file() && (cfg!(windows) || fs::is_executable(&meta)))
     })
 }
 

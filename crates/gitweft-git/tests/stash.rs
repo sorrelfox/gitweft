@@ -74,23 +74,25 @@ fn push_an_untracked_path() {
     std::fs::write(repo.join("a.txt"), "2\n").unwrap();
     std::fs::write(repo.join("new.txt"), "new\n").unwrap();
     std::fs::write(repo.join("other.txt"), "other\n").unwrap();
-    // A name that would be a glob matching both untracked files: taken literally.
-    std::fs::write(repo.join("*.txt"), "star\n").unwrap();
+    // A name that would be a glob matching `other.txt`: taken literally. Windows has no
+    // `*` in a file name, but takes a `[o]`.
+    let glob = if cfg!(unix) { "*.txt" } else { "[o]ther.txt" };
+    std::fs::write(repo.join(glob), "star\n").unwrap();
     let options = StashOptions {
         include_untracked: true,
-        paths: vec![BString::from("new.txt"), BString::from("*.txt")],
+        paths: vec![BString::from("new.txt"), BString::from(glob)],
         ..StashOptions::default()
     };
     assert!(stash_push(sb.git(), &repo, &options, &cancel).unwrap());
 
     assert_eq!(read(&repo, "new.txt"), None);
-    assert_eq!(read(&repo, "*.txt"), None);
+    assert_eq!(read(&repo, glob), None);
     assert_eq!(read(&repo, "other.txt").as_deref(), Some("other\n"));
     assert_eq!(read(&repo, "a.txt").as_deref(), Some("2\n"));
     let stash = only_stash(&sb, &repo);
     let contents = stash_contents(sb.git(), &repo, &stash, &cancel).unwrap();
     assert!(contents.tracked.is_empty(), "{contents:?}");
-    assert_eq!(paths(&contents.untracked), ["*.txt", "new.txt"]);
+    assert_eq!(paths(&contents.untracked), [glob, "new.txt"]);
 }
 
 #[test]

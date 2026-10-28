@@ -70,21 +70,30 @@ fn base_dir(value: Option<PathBuf>, home: Option<PathBuf>, fallback: &str) -> Pa
 mod tests {
     use super::*;
 
+    /// `path` as an absolute path on this system: on Windows one needs a drive.
+    fn absolute_path(path: &str) -> PathBuf {
+        if cfg!(windows) {
+            PathBuf::from(format!("C:{path}"))
+        } else {
+            PathBuf::from(path)
+        }
+    }
+
     #[test]
     fn base_directories() {
-        let home = || Some(PathBuf::from("/home/u"));
+        let home = || Some(absolute_path("/home/u"));
         assert_eq!(
-            base_dir(Some("/cfg".into()), home(), ".config"),
-            PathBuf::from("/cfg")
+            base_dir(Some(absolute_path("/cfg")), home(), ".config"),
+            absolute_path("/cfg")
         );
         assert_eq!(
             base_dir(None, home(), ".config"),
-            PathBuf::from("/home/u/.config")
+            absolute_path("/home/u/.config")
         );
         // A relative value is ignored, as the XDG spec says.
         assert_eq!(
             base_dir(Some("cfg".into()), home(), ".config"),
-            PathBuf::from("/home/u/.config")
+            absolute_path("/home/u/.config")
         );
         // No home at all: this user's own folder, not the shared temp dir.
         assert_eq!(

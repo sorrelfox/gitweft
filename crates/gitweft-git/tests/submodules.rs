@@ -470,8 +470,10 @@ fn a_conflicting_submodule_entry() {
     assert_eq!(listed[1].state, SubmoduleState::UpToDate);
 }
 
+/// A `file://` URL for `path`, with `/` between its parts as git stores it (on Windows
+/// `file://C:/…`).
 fn file_url(path: &Path) -> String {
-    format!("file://{}", path.display())
+    format!("file://{}", path.display()).replace('\\', "/")
 }
 
 /// What `git diff --cached --name-status` says is staged.

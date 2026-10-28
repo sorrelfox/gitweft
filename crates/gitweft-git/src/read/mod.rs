@@ -70,7 +70,7 @@ pub const NO_LIMIT: usize = 2_147_483_647;
 /// Opens the repository containing `path` (searching upwards, like `git` does).
 /// The path is made absolute first, so no relative path leaks into later git commands.
 pub fn open_repo(path: &std::path::Path) -> Result<gix::Repository, ReadError> {
-    Ok(gix::discover(path.canonicalize()?)?)
+    Ok(gix::discover(gitweft_platform::fs::canonicalize(path)?)?)
 }
 
 /// [`open_repo`] with the repository's own config only: no user, system or git-install
@@ -82,7 +82,10 @@ pub fn open_repo_isolated(path: &std::path::Path) -> Result<gix::Repository, Rea
         full: isolated.clone(),
         reduced: isolated,
     };
-    let repo =
-        gix::ThreadSafeRepository::discover_opts(path.canonicalize()?, Default::default(), trust)?;
+    let repo = gix::ThreadSafeRepository::discover_opts(
+        gitweft_platform::fs::canonicalize(path)?,
+        Default::default(),
+        trust,
+    )?;
     Ok(repo.to_thread_local())
 }

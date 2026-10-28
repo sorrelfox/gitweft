@@ -20,6 +20,13 @@ fn entry<'a>(status: &'a Status, path: &str) -> &'a gitweft_git::read::StatusEnt
 fn stage_and_unstage_modified_deleted_untracked_and_glob_named_files() {
     let sb = Sandbox::new();
     let repo = sb.init_repo("r");
+    // A name that is also a glob for `untouched.txt`. Windows has no `*` in a file name,
+    // but takes a `[u]`.
+    let glob = if cfg!(unix) {
+        "*.txt"
+    } else {
+        "[u]ntouched.txt"
+    };
     std::fs::write(repo.join("mod.txt"), "1\n").unwrap();
     std::fs::write(repo.join("del.txt"), "x\n").unwrap();
     sb.run(&repo, &["add", "."]);
@@ -28,7 +35,7 @@ fn stage_and_unstage_modified_deleted_untracked_and_glob_named_files() {
     std::fs::write(repo.join("mod.txt"), "2\n").unwrap();
     std::fs::remove_file(repo.join("del.txt")).unwrap();
     std::fs::write(repo.join("new file.txt"), "n\n").unwrap();
-    std::fs::write(repo.join("*.txt"), "literal star\n").unwrap();
+    std::fs::write(repo.join(glob), "literal star\n").unwrap();
     std::fs::write(repo.join("untouched.txt"), "u\n").unwrap();
 
     let git = sb.git();
@@ -36,7 +43,7 @@ fn stage_and_unstage_modified_deleted_untracked_and_glob_named_files() {
     stage_paths(
         git,
         &repo,
-        &paths(&["mod.txt", "del.txt", "new file.txt", "*.txt"]),
+        &paths(&["mod.txt", "del.txt", "new file.txt", glob]),
         &cancel,
     )
     .unwrap();
@@ -44,8 +51,8 @@ fn stage_and_unstage_modified_deleted_untracked_and_glob_named_files() {
     assert_eq!(entry(&s, "mod.txt").index, Some(ChangeKind::Modified));
     assert_eq!(entry(&s, "del.txt").index, Some(ChangeKind::Deleted));
     assert_eq!(entry(&s, "new file.txt").index, Some(ChangeKind::Added));
-    assert_eq!(entry(&s, "*.txt").index, Some(ChangeKind::Added));
-    // `*.txt` was taken literally, not as a glob.
+    assert_eq!(entry(&s, glob).index, Some(ChangeKind::Added));
+    // The name was taken literally, not as a glob.
     assert_eq!(entry(&s, "untouched.txt").kind, EntryKind::Untracked);
 
     unstage_paths(
@@ -61,7 +68,7 @@ fn stage_and_unstage_modified_deleted_untracked_and_glob_named_files() {
     assert_eq!(entry(&s, "mod.txt").worktree, Some(ChangeKind::Modified));
     assert_eq!(entry(&s, "del.txt").worktree, Some(ChangeKind::Deleted));
     assert_eq!(entry(&s, "new file.txt").kind, EntryKind::Untracked);
-    assert_eq!(s.staged().count(), 1, "only `*.txt` stays staged");
+    assert_eq!(s.staged().count(), 1, "only {glob} stays staged");
 }
 
 #[test]

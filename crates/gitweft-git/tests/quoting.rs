@@ -1,6 +1,8 @@
 //! Paths git quotes, or reads as something else: a newline, a leading quote and a tab in
 //! a name, and a name that looks like an index stage (`1:x`). Each goes through the reads and
-//! writes that used to lose or misread it.
+//! writes that used to lose or misread it. Windows allows none of these names.
+
+#![cfg(unix)]
 
 use std::path::Path;
 

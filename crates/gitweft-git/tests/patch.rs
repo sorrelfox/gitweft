@@ -129,6 +129,9 @@ fn partially_staged_executable_keeps_its_mode() {
     assert_eq!(index_content(&sb, &repo, "run.sh"), "#!/bin/sh\necho one\n");
 }
 
+// Git quotes a name with a quote, a backslash or a control character, none of which
+// Windows allows in one.
+#[cfg(unix)]
 #[test]
 fn lines_of_a_file_whose_name_git_has_to_quote() {
     let sb = Sandbox::new();

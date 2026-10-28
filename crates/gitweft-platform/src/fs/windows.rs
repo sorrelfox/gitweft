@@ -1,6 +1,6 @@
 use std::fs::Metadata;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use windows_sys::Win32::Foundation::ERROR_PRIVILEGE_NOT_HELD;
 
@@ -41,4 +41,10 @@ pub(super) fn symlink(target: &Path, link: &Path) -> io::Result<()> {
         }
         Err(err) => Err(err),
     }
+}
+
+/// The `\\?\` prefix stays only where the path needs it: one too long without it, or with a
+/// part like `con` that would name a device.
+pub(super) fn canonicalize(path: &Path) -> io::Result<PathBuf> {
+    dunce::canonicalize(path)
 }

@@ -16,6 +16,7 @@ use gitweft_git::repair::{
     inspect_lock, remove_lock, set_identity, trust_directory, untrusted_path,
 };
 use gitweft_git::{CancelToken, GitCli, GitErrorKind, ObjectId};
+use gitweft_platform::fs::canonicalize;
 use gitweft_testkit::Sandbox;
 
 const IDENTITY_ENV: [&str; 5] = [
@@ -57,7 +58,7 @@ fn config_get(git: &GitCli, repo: &Path, scope: &str, key: &str) -> Option<Strin
 }
 
 fn same_file(a: &Path, b: &Path) -> bool {
-    a.canonicalize().unwrap() == b.canonicalize().unwrap()
+    canonicalize(a).unwrap() == canonicalize(b).unwrap()
 }
 
 #[test]
@@ -177,6 +178,10 @@ fn inspecting_a_lock() {
     assert!(info.age.unwrap() < Duration::from_secs(60), "{info:?}");
     assert_eq!(info.holders, []);
 
+    // Holders are found through /proc.
+    if !cfg!(target_os = "linux") {
+        return;
+    }
     // A git working in the repository (in a subfolder) holds it; one elsewhere doesn't.
     std::fs::create_dir(repo.join("sub")).unwrap();
     let inside = FakeGit::start(&sb, &repo.join("sub"));
@@ -505,7 +510,7 @@ fn identity_guessed_by_git() {
 fn a_folder_that_isnt_utf8_is_found_from_the_opened_one_and_trusted() {
     use gitweft_git::repair::untrusted_folder;
     let sb = Sandbox::new();
-    let parent = sb.path().canonicalize().unwrap();
+    let parent = canonicalize(sb.path()).unwrap();
     let root = parent.join(OsStr::from_bytes(b"caf\xe9 repo"));
     std::fs::create_dir(&root).unwrap();
     sb.run(&root, &["init", "-q"]);

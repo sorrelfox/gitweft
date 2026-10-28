@@ -12,7 +12,7 @@ use gitweft_git::lfs::{
 };
 use gitweft_git::read::{DiffOptions, DiffSource, file_diff};
 use gitweft_git::{CancelToken, GitErrorKind, StderrEvent};
-use gitweft_testkit::Sandbox;
+use gitweft_testkit::{Sandbox, file_url};
 
 const HELLO: &str = "hello lfs\n";
 
@@ -48,7 +48,7 @@ fn seed_and_remote(sb: &Sandbox) -> (PathBuf, String) {
         sb.path(),
         &["init", "-q", "--bare", "-b", "main", "remote.git"],
     );
-    let url = format!("file://{}", sb.path().join("remote.git").display());
+    let url = file_url(&sb.path().join("remote.git"));
     sb.run(&seed, &["remote", "add", "origin", &url]);
     // The pre-push hook uploads the objects.
     sb.run(&seed, &["push", "-q", "origin", "main"]);

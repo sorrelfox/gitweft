@@ -31,7 +31,7 @@ fn walk_options_come_from_the_repository_settings() {
     assert!(loaded.graph.row_of(&other).is_some());
 
     // The root the app keeps the settings under: the (canonical) working tree.
-    let root = repo.canonicalize().unwrap();
+    let root = gitweft_platform::fs::canonicalize(&repo).unwrap();
     let walk = WalkOptions {
         current_branch: true,
         topo_order: true,

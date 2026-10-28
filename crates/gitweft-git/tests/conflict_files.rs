@@ -261,8 +261,9 @@ fn delete_modify_with_a_space_in_the_name() {
 
 #[test]
 fn pathspec_characters_in_a_name_mean_only_that_file() {
-    // Both files would match the glob `*.txt`.
-    let glob = "*.txt";
+    // Both files would match the glob. Windows has no `*` in a file name, but `[x]`
+    // matches `x.txt` too.
+    let glob = if cfg!(unix) { "*.txt" } else { "[x].txt" };
     let sb = Sandbox::new();
     let repo = merged(
         &sb,

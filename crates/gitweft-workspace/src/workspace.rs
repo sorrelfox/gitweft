@@ -290,7 +290,8 @@ impl Record {
 /// repository of its own: no folder on the way down, `path` included, has a `.git` (a
 /// submodule, a linked worktree or another repository). Both are compared canonicalized.
 fn in_worktree(root: &Path, path: &Path) -> bool {
-    let canonical = |path: &Path| path.canonicalize().unwrap_or_else(|_| path.to_owned());
+    let canonical =
+        |path: &Path| gitweft_platform::fs::canonicalize(path).unwrap_or_else(|_| path.to_owned());
     let (root, path) = (canonical(root), canonical(path));
     let Ok(inside) = path.strip_prefix(&root) else {
         return false;

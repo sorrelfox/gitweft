@@ -2407,6 +2407,7 @@ name = "gitweft-git"
 version = "1.0.1"
 dependencies = [
  "async-channel",
+ "flate2",
  "gitweft-platform",
  "gitweft-testkit",
  "gix",
@@ -2430,6 +2431,7 @@ dependencies = [
 name = "gitweft-platform"
 version = "1.0.1"
 dependencies = [
+ "dunce",
  "libc",
  "tempfile",
  "windows-sys 0.59.0",

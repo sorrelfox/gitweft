@@ -4,7 +4,7 @@
 //! which on Unix can be any byte sequence at all, while Git for Windows prints UTF-8. The
 //! other direction needs nothing from here: std's `OsStr::as_encoded_bytes` and
 //! `OsString::into_encoded_bytes` already give the bytes on Unix, and UTF-8 for every name
-//! Windows can hold.
+//! Windows can hold. Only a relative path's separators need [`git_path`].
 
 use std::borrow::Cow;
 use std::ffi::{OsStr, OsString};
@@ -59,9 +59,29 @@ pub fn path_buf_from_vec(bytes: Vec<u8>) -> PathBuf {
     PathBuf::from(os_string_from_vec(bytes))
 }
 
+/// `relative` as git writes a path: its parts joined by `/` on every system (Windows joins
+/// them with `\`), so it can be shown, compared and handed to git like the paths git prints.
+pub fn git_path(relative: &Path) -> Vec<u8> {
+    let mut bytes = Vec::new();
+    for part in relative.components() {
+        if !bytes.is_empty() {
+            bytes.push(b'/');
+        }
+        bytes.extend_from_slice(part.as_os_str().as_encoded_bytes());
+    }
+    bytes
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn git_paths_are_joined_by_slashes() {
+        let nested = Path::new("src").join("deep").join("a.txt");
+        assert_eq!(git_path(&nested), b"src/deep/a.txt");
+        assert_eq!(git_path(Path::new("build.log")), b"build.log");
+    }
 
     #[test]
     fn utf8_names_round_trip() {

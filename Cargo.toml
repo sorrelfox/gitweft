@@ -47,6 +47,9 @@ windows-sys = { version = "0.59", features = [
     "Win32_System_JobObjects",
     "Win32_System_Threading",
 ] }
+# Resolved paths on Windows without the `\\?\` prefix git can't take; already in the tree
+# through gix.
+dunce = "1.0.5"
 # inotify file watching; already in the tree through gpui-component, so no new code.
 notify = { version = "7.0.0", default-features = false }
 similar = { version = "3.2", features = ["unicode"] }
@@ -74,6 +77,8 @@ gitweft-testkit = { path = "crates/gitweft-testkit" }
 gitweft-ui = { path = "crates/gitweft-ui" }
 
 # Dev
+# Reading back the .tar.gz archives git writes, in tests; already in the tree through GPUI.
+flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
 proptest = "1"
 tempfile = "3"
 # Benchmarks (`just bench`): no plots, no rayon.

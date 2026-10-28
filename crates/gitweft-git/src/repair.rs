@@ -5,6 +5,8 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
+use gitweft_platform::fs::canonicalize;
+
 use crate::cancel::CancelToken;
 use crate::cli::{GitCli, GitError};
 
@@ -26,7 +28,7 @@ pub fn untrusted_path(stderr: &str) -> Option<PathBuf> {
 pub fn untrusted_folder(stderr: &str, opened: Option<&Path>) -> Option<PathBuf> {
     let printed = untrusted_path(stderr)?;
     let printed_text = printed.to_string_lossy();
-    let opened = opened.map(|path| path.canonicalize().unwrap_or_else(|_| path.to_owned()));
+    let opened = opened.map(|path| canonicalize(path).unwrap_or_else(|_| path.to_owned()));
     let real = opened
         .iter()
         .flat_map(|path| path.ancestors())
@@ -85,7 +87,7 @@ pub struct LockInfo {
 /// What we know about a lock file git reported: whether it (still) exists, how old it is
 /// (from its mtime), and the git processes of this user now running with their working
 /// directory inside one of `dirs` (pass the working tree and the git dirs). Those are found
-/// through /proc: a process whose `comm` is `git` or starts with `git-`, whose `cwd` link
+/// through /proc, so only on Linux: a process whose `comm` is `git` or starts with `git-`, whose `cwd` link
 /// can be read (only this user's can) and lies inside a dir. Never fails: whatever can't
 /// be read is skipped.
 pub fn inspect_lock(path: &Path, dirs: &[PathBuf]) -> LockInfo {
@@ -96,7 +98,7 @@ pub fn inspect_lock(path: &Path, dirs: &[PathBuf]) -> LockInfo {
             .duration_since(mtime)
             .unwrap_or(Duration::ZERO)
     });
-    let dirs: Vec<PathBuf> = dirs.iter().filter_map(|d| d.canonicalize().ok()).collect();
+    let dirs: Vec<PathBuf> = dirs.iter().filter_map(|d| canonicalize(d).ok()).collect();
     LockInfo {
         path: path.to_owned(),
         exists: meta.is_some(),
@@ -158,14 +160,14 @@ pub fn remove_lock(path: &Path, git_dirs: &[PathBuf]) -> io::Result<()> {
     } else {
         parent
     };
-    let parent = match parent.canonicalize() {
+    let parent = match canonicalize(parent) {
         Ok(parent) => parent,
         Err(err) if err.kind() == io::ErrorKind::NotFound => return Ok(()),
         Err(err) => return Err(err),
     };
     let inside = git_dirs
         .iter()
-        .filter_map(|dir| dir.canonicalize().ok())
+        .filter_map(|dir| canonicalize(dir).ok())
         .any(|dir| parent.starts_with(dir));
     if !inside {
         return Err(refuse("not inside the repository's git directory"));

@@ -26,7 +26,7 @@ fn the_tip_filter_comes_from_the_repository_settings() {
     assert!(loaded.tips.is_empty());
     assert!(loaded.graph.row_of(&wip).is_some());
 
-    let root = repo.canonicalize().unwrap();
+    let root = gitweft_platform::fs::canonicalize(&repo).unwrap();
     let tips = TipFilter {
         hidden: vec!["refs/heads/wip".into()],
         solo: None,

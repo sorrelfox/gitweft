@@ -350,23 +350,38 @@ fn zip_names(zip: &[u8]) -> Vec<Vec<u8>> {
     names
 }
 
-/// `tar -tzf`, if tar is installed.
-#[allow(clippy::disallowed_methods)] // tar, only to read the archive back
-fn tar_names(file: &Path) -> Option<Vec<Vec<u8>>> {
-    let output = std::process::Command::new("tar")
-        .args(["--quoting-style=literal", "-tzf"])
-        .arg(file)
-        .env("LC_ALL", "C")
-        .output()
-        .ok()?;
-    assert!(output.status.success(), "{output:?}");
-    Some(
-        output
-            .stdout
-            .split(|&b| b == b'\n')
-            .map(<[u8]>::to_vec)
-            .collect(),
-    )
+/// The entry names in a gzipped tar, leaving out git's pax headers.
+fn tar_gz_names(tgz: &[u8]) -> Vec<Vec<u8>> {
+    use std::io::Read;
+
+    let mut tar = Vec::new();
+    flate2::read::GzDecoder::new(tgz)
+        .read_to_end(&mut tar)
+        .unwrap();
+    let field = |block: &[u8]| -> Vec<u8> {
+        let end = block.iter().position(|&b| b == 0).unwrap_or(block.len());
+        block[..end].to_vec()
+    };
+    let mut names = Vec::new();
+    let mut at = 0;
+    // Two zero blocks end the archive.
+    while at + 512 <= tar.len() && tar[at..at + 512].iter().any(|&b| b != 0) {
+        let header = &tar[at..at + 512];
+        let size = std::str::from_utf8(&field(&header[124..136]))
+            .ok()
+            .and_then(|octal| usize::from_str_radix(octal.trim(), 8).ok())
+            .expect("entry size");
+        if !matches!(header[156], b'g' | b'x') {
+            let (prefix, name) = (field(&header[345..500]), field(&header[..100]));
+            names.push(if prefix.is_empty() {
+                name
+            } else {
+                [&prefix[..], b"/", &name[..]].concat()
+            });
+        }
+        at += 512 + size.div_ceil(512) * 512;
+    }
+    names
 }
 
 /// Files only (archives list folders too), sorted.
@@ -423,10 +438,7 @@ fn archive_writes_zip_and_tar_gz_with_the_commit_files() {
     archive(sb.git(), &repo, &commit, ArchiveFormat::TarGz, &tgz, &c()).unwrap();
     let bytes = std::fs::read(&tgz).unwrap();
     assert_eq!(bytes[..2], [0x1f, 0x8b], "gzip magic");
-    match tar_names(&tgz) {
-        Some(names) => assert_eq!(files_only(names), expected),
-        None => eprintln!("tar is not installed: only the gzip header was checked"),
-    }
+    assert_eq!(files_only(tar_gz_names(&bytes)), expected);
 
     // A failure leaves no empty file behind.
     let missing = ObjectId::from_hex(b"1c272101c5c26442cf2d04b6fbc29030cf072307").unwrap();

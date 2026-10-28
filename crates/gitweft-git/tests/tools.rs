@@ -659,18 +659,20 @@ fn paths_are_literal() {
     let repo = sb.init_repo("r");
     let cancel = CancelToken::new();
 
-    // Difftool: `*.txt` is that one file, not a glob matching the others.
-    for (file, content) in [("*.txt", "star"), ("a b.txt", "space"), ("c.txt", "c")] {
+    // Difftool: `*.txt` is that one file, not a glob matching the others. Windows has no
+    // `*` in a file name; `[c].txt` is a glob for `c.txt` there.
+    let glob = if cfg!(unix) { "*.txt" } else { "[c].txt" };
+    for (file, content) in [(glob, "star"), ("a b.txt", "space"), ("c.txt", "c")] {
         sb.commit_file(&repo, file, &format!("{content}\n"), file);
     }
     let head = id(&sb.run(&repo, &["rev-parse", "HEAD"]));
-    for (file, content) in [("*.txt", "STAR"), ("a b.txt", "SPACE"), ("c.txt", "C")] {
+    for (file, content) in [(glob, "STAR"), ("a b.txt", "SPACE"), ("c.txt", "C")] {
         std::fs::write(repo.join(file), format!("{content}\n")).unwrap();
     }
     let out = fake_difftool(&sb, &repo, "fake");
     config(&sb, &repo, "diff.tool", "fake");
     let target = DiffToolTarget::WorkingTree { base: Some(head) };
-    run_difftool(sb.git(), &repo, &target, b("*.txt"), None, None, &cancel).unwrap();
+    run_difftool(sb.git(), &repo, &target, b(glob), None, None, &cancel).unwrap();
     assert_eq!(seen(&out).as_deref(), Some("[star\nSTAR\n]"));
     run_difftool(sb.git(), &repo, &target, b("a b.txt"), None, None, &cancel).unwrap();
     assert_eq!(
@@ -679,10 +681,18 @@ fn paths_are_literal() {
     );
 
     // Mergetool: one conflicted file at a time, whatever its name. `:!a.txt` would be
-    // pathspec magic ("everything but a.txt"). (A `*` name is only safe while no other
-    // conflicted file matches it as a shell glob: see `run_mergetool`.)
+    // pathspec magic ("everything but a.txt"). Windows allows neither that name nor `*.md`:
+    // it goes without the first, and `[b].md` stands in for the second. (A `*` name is
+    // only safe while no other conflicted file matches it as a shell glob: see
+    // `run_mergetool`.)
     let sb = Sandbox::new();
-    let repo = conflicted(&sb, &[":!a.txt", "a.txt", "a b.txt", "*.md", "c.txt"]);
+    let magic = cfg!(unix).then_some(":!a.txt");
+    let glob = if cfg!(unix) { "*.md" } else { "[b].md" };
+    let files: Vec<&str> = magic
+        .into_iter()
+        .chain(["a.txt", "a b.txt", glob, "c.txt"])
+        .collect();
+    let repo = conflicted(&sb, &files);
     fake_mergetool(&sb, &repo);
     let names = |left: &str| -> Vec<String> {
         let mut names: Vec<String> = left
@@ -692,16 +702,18 @@ fn paths_are_literal() {
         names.dedup();
         names
     };
-    run_mergetool(sb.git(), &repo, b(":!a.txt"), None, &cancel).unwrap();
+    if let Some(magic) = magic {
+        run_mergetool(sb.git(), &repo, b(magic), None, &cancel).unwrap();
+    }
     assert_eq!(
         names(&unmerged(&sb, &repo)),
-        ["*.md", "a b.txt", "a.txt", "c.txt"]
+        [glob, "a b.txt", "a.txt", "c.txt"]
     );
-    run_mergetool(sb.git(), &repo, b("*.md"), None, &cancel).unwrap();
+    run_mergetool(sb.git(), &repo, b(glob), None, &cancel).unwrap();
     assert_eq!(names(&unmerged(&sb, &repo)), ["a b.txt", "a.txt", "c.txt"]);
     run_mergetool(sb.git(), &repo, b("a b.txt"), None, &cancel).unwrap();
     assert_eq!(names(&unmerged(&sb, &repo)), ["a.txt", "c.txt"]);
-    for file in [":!a.txt", "*.md", "a b.txt"] {
+    for file in magic.into_iter().chain([glob, "a b.txt"]) {
         assert_eq!(
             std::fs::read_to_string(repo.join(file)).unwrap(),
             "theirs\n"

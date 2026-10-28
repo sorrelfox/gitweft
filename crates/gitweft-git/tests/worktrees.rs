@@ -6,6 +6,7 @@ use gitweft_git::worktrees::{
     remove_worktree, unlock_worktree, worktree_has_changes,
 };
 use gitweft_git::{CancelToken, GitError, ObjectId};
+use gitweft_platform::fs::canonicalize;
 use gitweft_testkit::Sandbox;
 
 /// A repository `r` with two commits and a branch `feat` at the first; returns the repo,
@@ -15,7 +16,7 @@ fn setup(sb: &Sandbox) -> (PathBuf, PathBuf, ObjectId, ObjectId) {
     let first = sb.commit_file(&repo, "a.txt", "1\n", "first");
     sb.run(&repo, &["branch", "feat"]);
     let second = sb.commit_file(&repo, "a.txt", "2\n", "second");
-    let root = std::fs::canonicalize(sb.path()).unwrap();
+    let root = canonicalize(sb.path()).unwrap();
     let id = |hex: &str| ObjectId::from_hex(hex.as_bytes()).unwrap();
     (root.join("r"), root, id(&first), id(&second))
 }
@@ -345,7 +346,8 @@ fn a_worktree_moves_unless_locked_and_its_lock_keeps_the_reason() {
     let sb = Sandbox::new();
     let repo = sb.init_repo("r");
     sb.commit_file(&repo, "a.txt", "a\n", "first");
-    let (wt, moved) = (sb.path().join("wt"), sb.path().join("moved"));
+    let root = canonicalize(sb.path()).unwrap();
+    let (wt, moved) = (root.join("wt"), root.join("moved"));
     detached(&sb, &repo, &wt);
     let cancel = CancelToken::new();
 

@@ -11,9 +11,8 @@
 
 use std::path::{Path, PathBuf};
 
-use gitweft_platform::bytes::path_from_bytes;
+use gitweft_platform::bytes::{git_path, path_from_bytes};
 use gix::ObjectId;
-use gix::bstr::BString;
 
 use crate::cancel::CancelToken;
 use crate::cli::{GitCli, GitError, GitErrorKind};
@@ -461,7 +460,7 @@ fn trash_untracked_in_the_way(
             break;
         }
         record.files.push(TrashFile {
-            path: BString::from(relative.as_os_str().as_encoded_bytes()),
+            path: git_path(relative).into(),
             kind: TrashFileKind::Untracked,
         });
     }

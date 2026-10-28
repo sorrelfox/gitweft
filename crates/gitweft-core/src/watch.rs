@@ -26,6 +26,7 @@ use gitweft_git::gix;
 use gitweft_git::gix::bstr::BString;
 use gitweft_git::read::{dirs_of, ignored_paths, tracked_dirs};
 use gitweft_git::{CancelToken, GitCli};
+use gitweft_platform::bytes::git_path;
 use notify::event::{AccessKind, AccessMode};
 use notify::{EventKind, RecommendedWatcher, RecursiveMode};
 
@@ -331,7 +332,9 @@ impl Worker {
         // worktree's common dir comes from its `commondir` file as `…/worktrees/<name>/../..`:
         // watching it works, but no event path starts with it, so every change to its refs
         // was dropped.
-        let real = |path: &Path| std::fs::canonicalize(path).unwrap_or_else(|_| path.to_owned());
+        let real = |path: &Path| {
+            gitweft_platform::fs::canonicalize(path).unwrap_or_else(|_| path.to_owned())
+        };
         Self {
             git_dir: real(repo.git_dir()),
             common_dir: real(repo.common_dir()),
@@ -649,9 +652,9 @@ impl Worker {
         if relative.file_name() == Some(OsStr::new(".gitignore")) {
             self.pending.excludes = true;
         }
-        self.pending
-            .worktree
-            .push(BString::from(relative.as_os_str().as_encoded_bytes()));
+        // As git writes it: the form `git check-ignore` answers in and the ignored cache
+        // is keyed by.
+        self.pending.worktree.push(git_path(relative).into());
         self.pending.arm(WORKTREE_WINDOW);
     }
 

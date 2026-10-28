@@ -46,7 +46,7 @@ fn a_folder_another_user_owns_loads_but_git_refuses_it_until_trusted() {
     assert_eq!(refused.kind, GitErrorKind::DubiousOwnership, "{refused:?}");
     let folder =
         untrusted_folder(&refused.stderr, Some(&repo)).expect("the folder, from git's message");
-    assert_eq!(folder, repo.canonicalize().unwrap());
+    assert_eq!(folder, gitweft_platform::fs::canonicalize(&repo).unwrap());
 
     // What the banner's Trust does, then the same status.
     trust_directory(&git, &folder, &CancelToken::new()).unwrap();

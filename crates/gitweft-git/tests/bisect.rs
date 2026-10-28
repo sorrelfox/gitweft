@@ -798,11 +798,13 @@ fn a_bisect_started_with_a_path_agrees_with_one_started_in_a_terminal() {
 #[test]
 fn a_path_with_glob_characters_is_taken_literally() {
     let sb = Sandbox::new();
-    // Odd commits change `*.txt`, even ones `a.txt`, which the glob `*.txt` matches too.
-    let (repo, ids) = path_history(&sb, "r", "*.txt", "a.txt");
-    // The same history with a plain name: what a literal `*.txt` must count like.
+    // Windows has no `*` in a file name, but `[a]` is a glob that matches `a.txt` too.
+    let glob = if cfg!(unix) { "*.txt" } else { "[a].txt" };
+    // Odd commits change the glob's name, even ones `a.txt`, which the glob matches too.
+    let (repo, ids) = path_history(&sb, "r", glob, "a.txt");
+    // The same history with a plain name: what the literal name must count like.
     let (twin, twin_ids) = path_history(&sb, "t", "star.txt", "a.txt");
-    let star = vec![PathBuf::from("*.txt")];
+    let star = vec![PathBuf::from(glob)];
 
     let mut current = start(&sb, &repo, Some("HEAD"), &[ids[0].to_string()], &star);
     assert_eq!(current.paths, star);
@@ -862,7 +864,7 @@ fn a_path_with_glob_characters_is_taken_literally() {
     // otherwise; the state still agrees with git.
     reset(&sb, &repo);
     let root = ids[0].to_string();
-    let printed = sb.run(&repo, &["bisect", "start", "HEAD", &root, "--", "*.txt"]);
+    let printed = sb.run(&repo, &["bisect", "start", "HEAD", &root, "--", glob]);
     let globbed = assert_agrees_with_git(&sb, &repo, &printed);
     assert_eq!(globbed.paths, star);
     assert_ne!(globbed.progress, first);

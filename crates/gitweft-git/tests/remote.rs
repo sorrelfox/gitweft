@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 use gitweft_git::read::{Tracking, branch_tracking};
 use gitweft_git::remote::{FetchTarget, ForceMode, PullMode, PushRequest, fetch, pull, push};
 use gitweft_git::{CancelToken, GitErrorKind, StderrEvent};
-use gitweft_testkit::Sandbox;
+use gitweft_testkit::{Sandbox, file_url};
 
 /// A bare remote with one commit (as a `file://` URL) and a clone of it, `work`.
 fn remote_and_clone(sb: &Sandbox) -> (String, PathBuf) {
@@ -23,7 +23,7 @@ fn remote_and_clone(sb: &Sandbox) -> (String, PathBuf) {
             bare.to_str().unwrap(),
         ],
     );
-    let url = format!("file://{}", bare.display());
+    let url = file_url(&bare);
     let work = clone(sb, &url, "work");
     (url, work)
 }
@@ -426,7 +426,8 @@ fn cancel_kills_a_hanging_transport() {
         ],
     );
     let mut git = sb.git().clone();
-    git.set_env("GIT_SSH_COMMAND", hang);
+    // Forward slashes: git hands GIT_SSH_COMMAND to `sh`, which eats backslashes.
+    git.set_env("GIT_SSH_COMMAND", hang.to_str().unwrap().replace('\\', "/"));
 
     let cancel = CancelToken::new();
     let canceller = {

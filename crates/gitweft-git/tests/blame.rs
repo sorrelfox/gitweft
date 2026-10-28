@@ -6,6 +6,7 @@ use gitweft_git::read::{
     commit_summaries, file_content,
 };
 use gitweft_git::{CancelToken, GitError, GitErrorKind, ObjectId};
+use gitweft_platform::fs::canonicalize;
 use gitweft_testkit::Sandbox;
 
 fn run_blame(sb: &Sandbox, repo: &Path, rev: Option<ObjectId>, path: &str) -> Vec<BlameUpdate> {
@@ -380,14 +381,14 @@ fn the_ignore_revs_file_resolves_from_the_working_tree_root() {
         &repo,
         &["config", "blame.ignoreRevsFile", ".git-blame-ignore-revs"],
     );
-    let expected = repo.canonicalize().unwrap().join(".git-blame-ignore-revs");
+    let expected = canonicalize(&repo).unwrap().join(".git-blame-ignore-revs");
     let sub = repo.join("sub");
     std::fs::create_dir(&sub).unwrap();
     for cwd in [&repo, &sub] {
         let found = blame_ignore_revs_file(sb.git(), cwd, &cancel)
             .unwrap()
             .unwrap();
-        assert_eq!(found.canonicalize().unwrap_or(found), expected);
+        assert_eq!(canonicalize(&found).unwrap_or(found), expected);
     }
 
     // The last value wins, as with `git config --get`; an absolute path stays as it is.

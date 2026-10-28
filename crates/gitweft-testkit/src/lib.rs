@@ -8,6 +8,17 @@ use tempfile::TempDir;
 
 pub const FIXED_DATE: &str = "2026-01-01T00:00:00Z";
 
+/// `path` as a `file://` URL, the form git and git-lfs both take: `file:///tmp/r`, and on
+/// Windows `file:///C:/Users/r`, with forward slashes.
+pub fn file_url(path: &Path) -> String {
+    let path = path.to_str().expect("a UTF-8 path").replace('\\', "/");
+    if path.starts_with('/') {
+        format!("file://{path}")
+    } else {
+        format!("file:///{path}")
+    }
+}
+
 pub struct Sandbox {
     dir: TempDir,
     git: GitCli,
@@ -114,5 +125,21 @@ impl Sandbox {
         self.run(repo, &["add", "--", file]);
         self.run(repo, &["commit", "-q", "-m", message]);
         self.run(repo, &["rev-parse", "HEAD"]).trim().to_owned()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn file_urls_have_an_empty_host_and_forward_slashes() {
+        assert_eq!(file_url(Path::new("/tmp/r.git")), "file:///tmp/r.git");
+        if cfg!(windows) {
+            assert_eq!(
+                file_url(Path::new(r"C:\Users\me\r.git")),
+                "file:///C:/Users/me/r.git"
+            );
+        }
     }
 }

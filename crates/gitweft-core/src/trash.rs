@@ -26,7 +26,7 @@ use gitweft_git::trash::{
     unprotect,
 };
 use gitweft_git::{CancelToken, GitCli, GitError, GitErrorKind, ObjectId};
-use gitweft_platform::bytes::path_from_bytes;
+use gitweft_platform::bytes::{git_path, path_from_bytes};
 
 pub use gitweft_git::trash::{FILES_DIR, INDEX_FILE, TrashAction, TrashFile, TrashFileKind};
 
@@ -73,14 +73,15 @@ pub fn list(trash_root: &Path) -> Vec<TrashEntry> {
 /// The entries that came from the working tree at `root`, including those recorded where
 /// it was before a move.
 pub fn list_for_repo(trash_root: &Path, root: &Path) -> Vec<TrashEntry> {
-    let canonical = root.canonicalize().ok();
+    let canonical = gitweft_platform::fs::canonicalize(root).ok();
     let previous = crate::repo_id::previous_roots_in(&crate::paths::data_dir(), root);
     list(trash_root)
         .into_iter()
         .filter(|entry| {
             entry.root.as_deref().is_some_and(|recorded| {
                 recorded == root
-                    || (canonical.is_some() && recorded.canonicalize().ok() == canonical)
+                    || (canonical.is_some()
+                        && gitweft_platform::fs::canonicalize(recorded).ok() == canonical)
                     || previous.iter().any(|old| old == recorded)
             })
         })
@@ -163,7 +164,7 @@ fn walk(base: &Path, dir: &Path, files: &mut Vec<TrashFile>) {
         }
         if let Ok(relative) = path.strip_prefix(base) {
             files.push(TrashFile {
-                path: BString::from(relative.as_os_str().as_encoded_bytes()),
+                path: git_path(relative).into(),
                 kind: TrashFileKind::Untracked,
             });
         }
@@ -455,8 +456,9 @@ pub fn restore(
         };
         let target = root.join(relative);
         if let Some(blocker) = blocker_in(root, relative) {
-            let blocker = BString::from(blocker.as_os_str().as_encoded_bytes());
-            report.blocked.push((file.path.clone(), blocker));
+            report
+                .blocked
+                .push((file.path.clone(), git_path(&blocker).into()));
             continue;
         }
         let result = match &file.kind {
