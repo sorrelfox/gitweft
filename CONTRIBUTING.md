@@ -36,7 +36,7 @@ Debug builds compile the dependencies with optimisations (`[profile.dev.package.
 
 ## Finding your way around
 
-The workspace has nine crates under `crates/`:
+The workspace has eleven crates under `crates/`:
 
 | Crate | What it is |
 |---|---|
@@ -48,10 +48,16 @@ The workspace has nine crates under `crates/`:
 | `gitweft-graph` | Lays out the commit graph: which lane and color each commit gets, and the lines between them. |
 | `gitweft-diff` | Word-level diffs, line pairing, moved lines, conflict markers. |
 | `gitweft-syntax` | Syntax highlighting. |
+| `gitweft-platform` | What differs between Linux, macOS and Windows: paths from git's bytes, folders, process groups, local sockets, lock holders. The only crate that calls the operating system directly. |
+| `gitweft-console` | `gitweft.com` on Windows, a small console program that runs `gitweft.exe` and waits for it. |
 | `gitweft-testkit` | Throwaway git repositories for tests. |
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) goes through how they fit together, from a click to
 the git process and back. It is worth reading once before changing anything bigger than a label.
+
+`site/` is the project page at https://sorrelfox.github.io/gitweft/: one HTML file with no
+JavaScript and nothing loaded from elsewhere. `.github/workflows/pages.yml` adds the icon and the
+screenshots and publishes it whenever one of them changes on `main`.
 
 ## The rules
 

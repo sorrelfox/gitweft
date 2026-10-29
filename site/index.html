@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gitweft: a fast, fully offline Git client for Linux, macOS and Windows</title>
+<meta name="description" content="Gitweft is a free, open-source Git GUI written in Rust. A commit graph that stays quick on a million commits, line-by-line staging, a conflict tool, an interactive rebase editor and undo, with no accounts, no telemetry and no network connections of its own.">
+<link rel="canonical" href="https://sorrelfox.github.io/gitweft/">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#14161a">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Gitweft">
+<meta property="og:title" content="Gitweft: a fast, fully offline Git client">
+<meta property="og:description" content="A native Git GUI for Linux, macOS and Windows, written in Rust. Quick on huge histories, and it never opens a network connection of its own.">
+<meta property="og:url" content="https://sorrelfox.github.io/gitweft/">
+<meta property="og:image" content="https://sorrelfox.github.io/gitweft/graph-dark.png">
+<meta property="og:image:width" content="1456">
+<meta property="og:image:height" content="912">
+<meta property="og:image:alt" content="Gitweft showing a commit graph, the selected commit's details and its diff">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Gitweft",
+  "description": "A fast, fully offline Git client for Linux, macOS and Windows, written in Rust.",
+  "url": "https://sorrelfox.github.io/gitweft/",
+  "downloadUrl": "https://github.com/sorrelfox/gitweft/releases/latest",
+  "codeRepository": "https://github.com/sorrelfox/gitweft",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Linux, macOS, Windows",
+  "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+  "screenshot": "https://sorrelfox.github.io/gitweft/graph-dark.png",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<style>
+  /* The app's Graphite colors. Only system fonts: the page loads nothing from elsewhere. */
+  :root {
+    --bg: #14161a;
+    --panel: #1a1d23;
+    --line: #2a2f38;
+    --fg: #e6e8ec;
+    --fg2: #9aa3b2;
+    --acc: #5b9dff;
+    --acc-fg: #0b1220;
+    --orange: #f0a33c;
+    --code: #20242b;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Cantarell, "Noto Sans", sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", "DejaVu Sans Mono", monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f7f8fa;
+      --panel: #ffffff;
+      --line: #dde1e7;
+      --fg: #1b1f27;
+      --fg2: #5a6372;
+      --acc: #1f6fe0;
+      --acc-fg: #ffffff;
+      --orange: #b86e0b;
+      --code: #eef0f4;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 17px/1.6 var(--sans);
+  }
+  a { color: var(--acc); }
+  code {
+    font: 0.88em var(--mono);
+    background: var(--code);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 64px 0 32px; text-align: center; }
+  header img { width: 96px; height: 96px; }
+  h1 { font-size: 2.6rem; line-height: 1.15; margin: 12px 0 8px; letter-spacing: -0.02em; }
+  .tagline { font-size: 1.25rem; color: var(--fg2); margin: 0 auto; max-width: 640px; }
+  .buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 28px 0 12px; }
+  .button {
+    display: inline-block;
+    padding: 11px 22px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--line);
+    color: var(--fg);
+    background: var(--panel);
+  }
+  .button.primary { background: var(--acc); border-color: var(--acc); color: var(--acc-fg); }
+  .small { font-size: 0.9rem; color: var(--fg2); }
+  .shot { margin: 24px auto 0; }
+  .shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  }
+  section { padding: 56px 0 8px; }
+  h2 { font-size: 1.7rem; margin: 0 0 16px; letter-spacing: -0.01em; }
+  h3 { font-size: 1.05rem; margin: 0 0 6px; }
+  .lead { max-width: 760px; color: var(--fg2); margin-top: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card p { margin: 0; color: var(--fg2); font-size: 0.95rem; }
+  .card code { white-space: nowrap; }
+  .points { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px 32px; }
+  .points p { margin: 0; color: var(--fg2); }
+  .points strong { color: var(--fg); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+  td, th { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--fg2); font-weight: 600; }
+  td:first-child { color: var(--fg2); }
+  .table { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  .table tr:last-child td { border-bottom: 0; }
+  pre {
+    background: var(--code);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font: 0.9rem/1.5 var(--mono);
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  footer { padding: 56px 0 48px; color: var(--fg2); font-size: 0.9rem; text-align: center; }
+  .accent { color: var(--orange); }
+  @media (max-width: 600px) {
+    header { padding-top: 40px; }
+    h1 { font-size: 2rem; }
+    .tagline { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <img src="icon.svg" alt="" width="96" height="96">
+  <h1>Gitweft</h1>
+  <p class="tagline">A fast, fully offline Git client for Linux, macOS and Windows.</p>
+  <div class="buttons">
+    <a class="button primary" href="https://github.com/sorrelfox/gitweft/releases/latest">Download</a>
+    <a class="button" href="https://github.com/sorrelfox/gitweft">Source on GitHub</a>
+  </div>
+  <p class="small">Free software under the GPL. No accounts, no telemetry, no update checks.</p>
+</header>
+
+<div class="shot">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="graph-light.png">
+    <img src="graph-dark.png" width="1456" height="912"
+         alt="Gitweft showing a commit graph, the selected commit's details and its diff">
+  </picture>
+</div>
+
+<section>
+  <h2>A Git GUI you can live in</h2>
+  <p class="lead">Gitweft shows a repository as a commit graph, lets you stage down to a single
+  line, walks you through merge conflicts and interactive rebases, and keeps an undo history for
+  the local operations that usually make people nervous. It is a native Rust application drawn
+  on the GPU, and it never opens a network connection of its own.</p>
+  <div class="points">
+    <p><strong>Quick on big histories.</strong> Built to stay responsive on a million commits and
+    more: the Linux kernel opens in under three seconds and scrolls at a few milliseconds per
+    frame.</p>
+    <p><strong>Your computer, your data.</strong> No cloud features, no crash reports. The only
+    network traffic comes from <code>git</code> and <code>ssh</code> talking to your remotes, when
+    you ask them to.</p>
+    <p><strong>Your own git underneath.</strong> Hooks, signing, credential helpers, ssh
+    configuration and LFS behave exactly as in a terminal, and the Activity log shows every git
+    command it ran.</p>
+  </div>
+</section>
+
+<section>
+  <h2>What it does</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>History</h3>
+      <p>A commit graph with colored lanes, branch and tag labels and signature marks. Search by
+      message, author, hash, branch or the content of a change. File history that follows
+      renames, blame, a file browser at any commit, the reflog and dangling commits.</p>
+    </div>
+    <div class="card">
+      <h3>Changes</h3>
+      <p>Stage and unstage whole files, hunks or single lines. Commit, amend, sign off, add
+      co-authors, use commit templates. Stash everything, one file or a selection.</p>
+    </div>
+    <div class="card">
+      <h3>Diffs</h3>
+      <p>Unified or side by side, with word-level highlights, moved lines detected across files,
+      syntax colors, find in the text, and image and Git LFS previews.</p>
+    </div>
+    <div class="card">
+      <h3>Branches and remotes</h3>
+      <p>Fetch, pull and push with progress and a Cancel button. Force pushes use
+      <code>--force-with-lease</code> and <code>--force-if-includes</code>. Drag a commit to cherry-pick it, or a
+      branch onto another to merge or rebase.</p>
+    </div>
+    <div class="card">
+      <h3>Merges and rebases</h3>
+      <p>A merge preview that predicts conflicts, a conflict tool that works per hunk or per
+      line, and an interactive rebase editor: reword, squash, fixup, drop and reorder by drag.
+      Cherry-pick, revert, reset, bisect.</p>
+    </div>
+    <div class="card">
+      <h3>Undo</h3>
+      <p>Undo and redo for local operations: every rewrite records the refs it moved. Discarded
+      changes go to a trash you can restore from, and there are warnings before rewriting
+      commits that are already pushed.</p>
+    </div>
+    <div class="card">
+      <h3>Code review, without a server</h3>
+      <p>Compare any two branches, tags or commits, mark files viewed, comment on lines, see what
+      changed since your last review, and export it as Markdown or a git note.</p>
+    </div>
+    <div class="card">
+      <h3>And the rest</h3>
+      <p>Worktrees, submodules, Git LFS with file locks, shallow and partial clones, tabs, a
+      command palette, full keyboard navigation, dark, light and high-contrast themes, and
+      thirteen languages.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>How fast it is</h2>
+  <p class="lead">A release build on the Linux kernel's repository: 1,482,850 commits and 96,035
+  files. Only the rows on screen are drawn, and no git work ever runs on the thread that draws
+  the window.</p>
+  <div class="table">
+    <table>
+      <tr><td>Opening the repository, with a commit-graph file</td><td>2.6 s to the first frame</td></tr>
+      <tr><td>Scrolling the graph</td><td>3.7 to 4.1 ms per frame (median)</td></tr>
+      <tr><td><code>git status</code></td><td>55 ms</td></tr>
+      <tr><td>Laying out a graph of one million commits</td><td>44 ms</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="install">
+  <h2>Install</h2>
+  <p class="lead">Every package is on the
+  <a href="https://github.com/sorrelfox/gitweft/releases/latest">latest release</a>, with SHA-256
+  checksums and a build attestation you can check with
+  <code>gh attestation verify FILE --repo sorrelfox/gitweft</code>.</p>
+  <div class="table">
+    <table>
+      <tr><th>System</th><th>Package</th></tr>
+      <tr><td>Fedora 44 and later</td><td>RPM for x86_64 or aarch64: <code>sudo dnf install ./gitweft-*.rpm</code></td></tr>
+      <tr><td>Debian 13, Ubuntu 24.04 and later</td><td>DEB for amd64 or arm64: <code>sudo apt install ./gitweft_*.deb</code></td></tr>
+      <tr><td>Any Linux distribution</td><td>AppImage for x86_64 or aarch64, or the Flatpak bundle</td></tr>
+      <tr><td>macOS 10.15.7 and later</td><td>A disk image with one app for Apple silicon and Intel</td></tr>
+      <tr><td>Windows 10 and 11, 64-bit</td><td>An installer that needs no administrator rights, or a zip</td></tr>
+    </table>
+  </div>
+  <p class="small">Gitweft uses the git you have installed (2.39 or newer). The macOS and Windows
+  builds are new and not signed yet, so each system asks once before opening them. The
+  <a href="https://github.com/sorrelfox/gitweft#install">README</a> has the details, and how to
+  build it yourself.</p>
+  <pre><code>gitweft ~/code/project               # one tab per repository
+gitweft ~/code/project ~/code/other</code></pre>
+</section>
+
+<section>
+  <h2>Offline, and checked</h2>
+  <p class="lead">Being offline is a hard requirement of the project, not a setting. The
+  dependency tree has no HTTP or TLS crates, nothing is downloaded at run time (not even a
+  font), and the test suite starts the app with no network and records its system calls to
+  prove it never opens an internet socket.
+  <a href="https://github.com/sorrelfox/gitweft/blob/main/docs/OFFLINE.md">docs/OFFLINE.md</a>
+  explains exactly what is promised and how it is enforced.</p>
+</section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>Gitweft is free software under the
+    <a href="https://github.com/sorrelfox/gitweft/blob/main/LICENSE">GNU General Public License,
+    version 3 or later</a>.
+    <a href="https://github.com/sorrelfox/gitweft">Source</a> ·
+    <a href="https://github.com/sorrelfox/gitweft/releases">Releases</a> ·
+    <a href="https://github.com/sorrelfox/gitweft/blob/main/CHANGELOG.md">Changelog</a> ·
+    <a href="https://github.com/sorrelfox/gitweft/issues">Issues</a></p>
+    <p>Made with <span class="accent">git</span>, Rust and GPUI.</p>
+  </div>
+</footer>
+</body>
+</html>

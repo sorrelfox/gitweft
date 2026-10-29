@@ -1,0 +1,42 @@
+# The project page, https://sorrelfox.github.io/gitweft/: site/ with the icon and the
+# screenshots, published by GitHub Pages whenever one of them changes on main.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - site/**
+      - docs/screenshots/**
+      - packaging/linux/icons/hicolor/scalable/apps/io.github.sorrelfox.Gitweft.svg
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Put the page together
+        run: |
+          mkdir _site
+          cp site/* _site/
+          cp docs/screenshots/graph-dark.png docs/screenshots/graph-light.png _site/
+          cp packaging/linux/icons/hicolor/scalable/apps/io.github.sorrelfox.Gitweft.svg \
+            _site/icon.svg
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+      - id: deployment
+        uses: actions/deploy-pages@v4
