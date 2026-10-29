@@ -4,7 +4,7 @@
 
 # Gitweft
 
-**A fast, fully offline Git client for Linux.**
+**A fast, fully offline Git client for Linux, macOS and Windows.**
 
 [Why I wrote it](#why-i-wrote-it) · [What it does](#what-it-does) · [How fast it is](#how-fast-it-is) ·
 [Install](#install) · [Build it yourself](#build-it-yourself) · [What it is made of](#what-it-is-made-of) ·
@@ -89,7 +89,7 @@ viewed, comment on lines, see what changed since your last review, and export th
 Markdown or a git note. Nothing is sent anywhere.
 
 **And the rest.** Worktrees, submodules, Git LFS (including file locks), shallow and partial
-clones, tabs for several repositories in one window, a command palette (Ctrl+Shift+P), full
+clones, tabs for several repositories in one window, a command palette (Ctrl+Shift+P, ⌘⇧P on a Mac), full
 keyboard navigation with shortcuts you can change, dark, light and high-contrast themes, your
 choice of fonts, and the interface in twelve languages besides English.
 
@@ -125,10 +125,10 @@ gh attestation verify FILE --repo sorrelfox/gitweft
 
 | System | File | Install |
 |---|---|---|
-| Fedora 44 and later | `gitweft-1.0.1-1.fc44.x86_64.rpm` | `sudo dnf install ./gitweft-*.rpm` |
-| Debian 13, Ubuntu 24.04 and later | `gitweft_1.0.1-1_amd64.deb` | `sudo apt install ./gitweft_*.deb` |
-| Any recent distribution | `Gitweft-1.0.1-x86_64.AppImage` | `chmod +x Gitweft-*.AppImage`, then run it |
-| Any distribution with Flatpak | `Gitweft-1.0.1-x86_64.flatpak` | `flatpak install --user ./Gitweft-*.flatpak` |
+| Fedora 44 and later | `gitweft-1.0.2-1.fc44.x86_64.rpm` | `sudo dnf install ./gitweft-*.rpm` |
+| Debian 13, Ubuntu 24.04 and later | `gitweft_1.0.2-1_amd64.deb` | `sudo apt install ./gitweft_*.deb` |
+| Any recent distribution | `Gitweft-1.0.2-x86_64.AppImage` | `chmod +x Gitweft-*.AppImage`, then run it |
+| Any distribution with Flatpak | `Gitweft-1.0.2-x86_64.flatpak` | `flatpak install --user ./Gitweft-*.flatpak` |
 
 You need x86_64 or aarch64 Linux on Wayland or X11, git 2.39 or newer, and a GPU driver with
 Vulkan (Mesa's open-source drivers are fine). The RPM and DEB pull git in as a dependency. The
@@ -136,8 +136,24 @@ AppImage brings the few libraries not every distribution installs and uses the g
 installed. The Flatpak brings its own git and runs your terminal, file manager and editor
 outside its sandbox.
 
-On 64-bit ARM (aarch64) take `gitweft-1.0.1-1.fc44.aarch64.rpm`, `gitweft_1.0.1-1_arm64.deb` or
-`Gitweft-1.0.1-aarch64.AppImage` instead. The Flatpak bundle is x86_64 only for now.
+On 64-bit ARM (aarch64) take `gitweft-1.0.2-1.fc44.aarch64.rpm`, `gitweft_1.0.2-1_arm64.deb` or
+`Gitweft-1.0.2-aarch64.AppImage` instead. The Flatpak bundle is x86_64 only for now.
+
+The macOS and Windows builds are new since 1.0.2 and have seen less use than the Linux ones.
+
+| System | File | Install |
+|---|---|---|
+| macOS 10.15.7 and later, Apple silicon or Intel | `Gitweft-1.0.2-macos-universal.dmg` | open it and drag Gitweft to Applications |
+| Windows 10 and 11, 64-bit | `Gitweft-1.0.2-windows-x86_64-setup.exe` | run it; it needs no administrator rights |
+| Windows, without installing | `Gitweft-1.0.2-windows-x86_64.zip` | unpack it anywhere and run `gitweft.exe` |
+
+Neither is signed yet, so each system asks once before it opens Gitweft. On macOS, the first
+start is refused: allow it in System Settings, Privacy & Security, "Open Anyway". On Windows,
+SmartScreen says "Windows protected your PC": choose "More info", then "Run anyway". Both need
+git: on a Mac, the one that comes with the Xcode Command Line Tools (`xcode-select --install`)
+or Homebrew's; on Windows, [Git for Windows](https://gitforwindows.org). To type `gitweft` in
+cmd or PowerShell, add Gitweft's folder (`%LOCALAPPDATA%\Programs\Gitweft` by default) to your
+`PATH`.
 
 Open a repository from the start screen, or from a terminal:
 
@@ -197,7 +213,9 @@ of the finished file when it is done.
 | `just deb` | DEB for Debian 13 and Ubuntu 24.04 and later, installed and tested on all three, checked with lintian | `target/deb/` | podman, python3 |
 | `just appimage` | AppImage, repacking the DEB's binary and libraries (built first if they are not there), then started in a bare Debian container | `target/appimage/` | podman, python3, squashfs-tools, curl |
 | `just flatpak` | Flatpak bundle, built in the Freedesktop SDK (installed for you from Flathub on the first run) | `target/flatpak/` | flatpak, flatpak-builder, python3 |
-| `just release` | All of the above, plus the source tarballs and `SHA256SUMS` | `target/release/1.0.1/` | all of the above, desktop-file-utils, appstream |
+| `just release` | All of the above, plus the source tarballs and `SHA256SUMS` | `target/release/1.0.2/` | all of the above, desktop-file-utils, appstream |
+| `just macos` | The macOS disk image, one universal binary for Apple silicon and Intel | `target/macos/` | a Mac with Xcode, Python 3.11 or later |
+| `just windows` | The Windows installer and zip, installed, tested and uninstalled again | `target/windows/` | Windows with Git for Windows, the Visual Studio Build Tools, Python 3.11 or later, Inno Setup 6.3 or later |
 
 Docker works in place of podman: `CONTAINER=docker just rpm`. The first run downloads the
 container images and, for the Flatpak, the SDK; the builds themselves never touch the network.
@@ -207,13 +225,14 @@ pinned, and how a release is cut.
 
 ## What it is made of
 
-Gitweft is written in Rust (edition 2024, toolchain 1.98) as a workspace of nine crates;
+Gitweft is written in Rust (edition 2024, toolchain 1.98) as a workspace of eleven crates;
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) walks through them. The main pieces:
 
 - [GPUI](https://www.gpui.rs), the GPU-rendered UI framework behind the Zed editor, and the
   [GPUI Component](https://github.com/longbridge/gpui-component) widget library, both through
   the `gpui-kit` bundle (pinned to an exact version, since GPUI has no stable release yet). It
-  draws through [wgpu](https://wgpu.rs) with Vulkan, on Wayland or X11.
+  draws through [wgpu](https://wgpu.rs) with Vulkan on Linux (Wayland or X11), with Metal on
+  macOS and with Direct3D 11 on Windows.
 - [gix](https://github.com/GitoxideLabs/gitoxide), the gitoxide library, reads repositories
   in-process: history, refs, trees, blame, diffs, status. No libgit2.
 - Your own `git` does everything that writes or talks to a network, so hooks, signing,
@@ -225,7 +244,8 @@ Gitweft is written in Rust (edition 2024, toolchain 1.98) as a workspace of nine
   definitions and themes of [bat](https://github.com/sharkdp/bat), compiled in through
   [two-face](https://github.com/CosmicHorrorDev/two-face).
 - [rust-i18n](https://github.com/longbridge/rust-i18n) for the translations, with CLDR plural
-  rules; [notify](https://github.com/notify-rs/notify) (inotify) for file watching; serde and
+  rules; [notify](https://github.com/notify-rs/notify) (inotify, FSEvents,
+  ReadDirectoryChangesW) for file watching; serde and
   serde_json for the settings, the session and the undo log.
 - Fonts compiled into the binary: IBM Plex Sans and Mono by default, Inter and JetBrains Mono as
   alternatives (all under the SIL Open Font License), or any font installed on your system.
@@ -247,9 +267,9 @@ your system language; `GITWEFT_LOCALE=de gitweft` picks one by hand.
 ## What it is not
 
 Gitweft is a git client and nothing more. It does not talk to GitHub or any other hosting
-service, so there are no pull requests, issues or avatars in it, and there will not be. It runs
-on Linux only for now, x86_64 and ARM; Windows and Mac builds are planned, but I haven't gotten around to them yet.
-One known limitation: on KDE under Wayland, a second `gitweft PATH` opens its tab in the running
+service, so there are no pull requests, issues or avatars in it, and there will not be. Linux is
+where I use it every day; the macOS and Windows builds are tested by the release workflow, but
+far less by hand, so reports from those systems are especially welcome. One known limitation: on KDE under Wayland, a second `gitweft PATH` opens its tab in the running
 window but cannot bring that window to the front, because the compositor only lets the window
 you clicked last come forward.
 

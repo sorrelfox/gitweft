@@ -2364,7 +2364,7 @@ checksum = "e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7"
 
 [[package]]
 name = "gitweft"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "embed-resource",
  "gitweft-core",
@@ -2378,7 +2378,7 @@ dependencies = [
 
 [[package]]
 name = "gitweft-console"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "embed-resource",
  "gitweft-platform",
@@ -2387,7 +2387,7 @@ dependencies = [
 
 [[package]]
 name = "gitweft-core"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "async-channel",
  "gitweft-git",
@@ -2403,7 +2403,7 @@ dependencies = [
 
 [[package]]
 name = "gitweft-diff"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "criterion",
  "gitweft-testkit",
@@ -2413,7 +2413,7 @@ dependencies = [
 
 [[package]]
 name = "gitweft-git"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "async-channel",
  "flate2",
@@ -2430,7 +2430,7 @@ dependencies = [
 
 [[package]]
 name = "gitweft-graph"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "criterion",
  "proptest",
@@ -2438,7 +2438,7 @@ dependencies = [
 
 [[package]]
 name = "gitweft-platform"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "dunce",
  "libc",
@@ -2448,7 +2448,7 @@ dependencies = [
 
 [[package]]
 name = "gitweft-syntax"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "criterion",
  "two-face",
@@ -2456,7 +2456,7 @@ dependencies = [
 
 [[package]]
 name = "gitweft-testkit"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "gitweft-git",
  "tempfile",
@@ -2464,7 +2464,7 @@ dependencies = [
 
 [[package]]
 name = "gitweft-ui"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "gitweft-core",
  "gpui-kit",
@@ -2474,7 +2474,7 @@ dependencies = [
 
 [[package]]
 name = "gitweft-workspace"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "async-channel",
  "gitweft-core",

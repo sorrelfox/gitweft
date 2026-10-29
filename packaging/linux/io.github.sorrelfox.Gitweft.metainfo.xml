@@ -107,6 +107,16 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.0.2" date="2026-10-28" type="stable">
+      <description>
+        <p>
+          Gitweft now runs on macOS and Windows too: a disk image with one app for Apple
+          silicon and Intel Macs, and an installer and a zip for 64-bit Windows. Both are new
+          and less tested than the Linux packages, and neither is signed yet, so macOS and
+          Windows ask once before opening them.
+        </p>
+      </description>
+    </release>
     <release version="1.0.1" date="2026-10-28" type="stable">
       <description>
         <p>

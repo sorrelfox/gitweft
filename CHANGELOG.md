@@ -8,6 +8,23 @@ same sentence sits in the AppStream metainfo
 changelogs are written from, and `just versions` fails when the two disagree. So when you
 write an entry here, write the same first paragraph there.
 
+## 1.0.2 (2026-10-28)
+
+Gitweft now runs on macOS and Windows too: a disk image with one app for Apple silicon and
+Intel Macs, and an installer and a zip for 64-bit Windows. Both are new and less tested than the
+Linux packages, and neither is signed yet, so macOS and Windows ask once before opening them.
+
+In this release:
+
+- macOS: ⌘ in place of Ctrl for the shortcuts, the menu bar, folders opened from Finder or
+  with `open -a Gitweft`, Terminal and Finder as the external tools, and the oldest macOS it
+  runs on is 10.15.7.
+- Windows: an installer that needs no administrator rights, Windows Terminal or cmd and
+  Explorer as the external tools, and `gitweft.com` next to `gitweft.exe`, so that
+  `gitweft --version` in cmd or PowerShell prints before the prompt comes back.
+- When git reports a lock file, Gitweft can now tell on macOS and Windows too whether a git
+  that is still running holds it.
+
 ## 1.0.1 (2026-10-28)
 
 Error messages name the files git lists, such as the local changes a checkout or a stash would

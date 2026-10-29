@@ -4,7 +4,7 @@
 # scripts/dist/rpm.sh does the same in a Fedora 44 container.
 
 Name:           gitweft
-Version:        1.0.1
+Version:        1.0.2
 Release:        1%{?dist}
 Summary:        A fast, offline Git client
 
@@ -97,6 +97,12 @@ appstreamcli validate --no-net %{buildroot}%{_metainfodir}/io.github.sorrelfox.G
 # The newest entry says what the metainfo's newest <release> says, on the same day
 # (scripts/dist/check-version.sh).
 %changelog
+* Wed Oct 28 2026 sorrelfox <sorrelfox@users.noreply.github.com> - 1.0.2-1
+- Gitweft now runs on macOS and Windows too: a disk image with one app for Apple silicon
+  and Intel Macs, and an installer and a zip for 64-bit Windows. Both are new and less
+  tested than the Linux packages, and neither is signed yet, so macOS and Windows ask once
+  before opening them.
+
 * Wed Oct 28 2026 sorrelfox <sorrelfox@users.noreply.github.com> - 1.0.1-1
 - Error messages name the files git lists, such as the local changes a checkout or a stash
   would overwrite, every release package comes with a build attestation that the GitHub CLI
