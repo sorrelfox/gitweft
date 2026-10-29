@@ -1782,10 +1782,18 @@ mod tests {
         sb.commit_file(&repo, "a.txt", "one\n", "A short message");
         sb.run(&repo, &["branch", "feature"]);
         sb.run(&repo, &["tag", "v1"]);
+        // A long body (60 % of the panel under its header), on a branch of its own so
+        // that HEAD, which the graph selects, stays on the short one.
+        let body: String = (1..=80).map(|n| format!("Body line {n}.\n")).collect();
+        sb.run(&repo, &["checkout", "-qb", "long"]);
+        std::fs::write(repo.join("a.txt"), "two\n").unwrap();
+        sb.run(&repo, &["commit", "-qam", &format!("A long one\n\n{body}")]);
+        sb.run(&repo, &["checkout", "-q", "-"]);
         let mut cx = TestAppContext::single();
         let mut ui = open(&mut cx, &sb, vec![repo.clone()]);
         ui.wait("the details with its refs", |ui| {
-            ui.window.debug_bounds("details-refs").is_some()
+            ui.window.debug_bounds("graph-row-1").is_some()
+                && ui.window.debug_bounds("details-refs").is_some()
         });
         ui.frame();
         let top = ui.window.debug_bounds("details-top").unwrap();
@@ -1795,13 +1803,6 @@ mod tests {
             "the refs row {refs:?} lies inside the details' visible part {top:?}"
         );
 
-        // A long body: 60 % of the panel under its header.
-        let body: String = (1..=80).map(|n| format!("Body line {n}.\n")).collect();
-        std::fs::write(repo.join("a.txt"), "two\n").unwrap();
-        sb.run(&repo, &["commit", "-qam", &format!("A long one\n\n{body}")]);
-        ui.wait("the new commit in the graph", |ui| {
-            ui.window.debug_bounds("graph-row-1").is_some()
-        });
         ui.click_row(0);
         // Its body is cut to a few lines until "Show more".
         ui.wait("its Show more", |ui| {
