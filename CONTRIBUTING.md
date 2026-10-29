@@ -57,7 +57,8 @@ the git process and back. It is worth reading once before changing anything bigg
 
 `site/` is the project page at https://sorrelfox.github.io/gitweft/: one HTML file with no
 JavaScript and nothing loaded from elsewhere. `.github/workflows/pages.yml` adds the icon and the
-screenshots and publishes it whenever one of them changes on `main`.
+screenshots and publishes it whenever one of them changes on `main`. The `.txt` file named by a
+hex number is the page's IndexNow key, which lets search engines be told when the page changes.
 
 ## The rules
 
